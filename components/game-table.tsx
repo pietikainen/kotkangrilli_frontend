@@ -20,7 +20,7 @@ export default function GameTable() {
 
 
 
-    if (isLoading && isLoadingUsers) return <p>Ladataaan...</p>;
+    if (isLoading || isLoadingUsers) return <p>Ladataaan...</p>;
     if (error) return <p>Virhe: {error.message}</p>;
     console.log("Userdata: " + userData);
 
