@@ -6,7 +6,7 @@ import {
     TableHeader,
     TableRow
 } from "@/components/ui/table";
-import {Checkbox} from "@/components/ui/checkbox";
+import { Checkbox } from "@/components/ui/checkbox";
 import useSWR from "swr";
 import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode } from "react";
 
@@ -15,14 +15,18 @@ const fetcher = (path: string) => fetch(`http://localhost:5000${path}`, {
 }).then((res) => res.json());
 
 export default function GameTable() {
-    const {data, error, isLoading} = useSWR('/api/games', fetcher);
+    const { data, error, isLoading } = useSWR('/api/games', fetcher);
+    const { data: userData, isLoading: isLoadingUsers } = useSWR('/user/users', fetcher);
 
-    if (isLoading) return <p>Ladataaan...</p>;
+
+
+    if (isLoading && isLoadingUsers) return <p>Ladataaan...</p>;
     if (error) return <p>Virhe: {error.message}</p>;
+    console.log("Userdata: " + userData);
 
     return (
         <Table>
-            <TableCaption/>
+            <TableCaption />
             <TableHeader>
                 <TableRow>
                     <TableHead className="w-[100px]">Nimi</TableHead>
@@ -36,8 +40,8 @@ export default function GameTable() {
                 </TableRow>
             </TableHeader>
             <TableBody>
-                {data?.data.map((game: { gameExternalApiId: Key | null | undefined; gameName: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; gamePrice: number; gameStore: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; gameDescription: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; gameLink: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; gamePlayers: string | number | bigint | boolean | ReactElement<any, string | JSXElementConstructor<any>> | Iterable<ReactNode> | ReactPortal | Promise<AwaitedReactNode> | null | undefined; gameIsLan: any; gameSubmittedBy: number; }) => (
-                    <TableRow key={game.gameExternalApiId}>
+                {data?.data.map((game: { id: number, gameExternalApiId: number; gameName: string, gamePrice: number; gameStore: string; gameDescription: string | null | undefined; gameLink: string | null | undefined; gamePlayers: number; gameIsLan: boolean; gameSubmittedBy: number; }) => (
+                    <TableRow key={game.id}>
                         <TableCell className="font-medium">{game.gameName}</TableCell>
                         <TableCell>{game.gamePrice / 100}</TableCell>
                         <TableCell>{game.gameStore}</TableCell>
@@ -45,7 +49,7 @@ export default function GameTable() {
                         <TableCell>{game.gameLink}</TableCell>
                         <TableCell>{game.gamePlayers}</TableCell>
                         <TableCell>{game.gameIsLan ? "Kyllä" : "Ei"}</TableCell>
-                        <TableCell>{game.gameSubmittedBy}</TableCell>
+                        <TableCell><img src={`https://cdn.discordapp.com/avatars/${userData.find((user: { id: number; }) => user.id === game.gameSubmittedBy)?.discordId}/${userData.find((user: { id: number; }) => user.id === game.gameSubmittedBy)?.profilePicture}.png?size=24`} alt="avatar" />{userData.find((user: { id: number; }) => user.id === game.gameSubmittedBy)?.username}</TableCell>
                     </TableRow>
                 ))}
             </TableBody>
