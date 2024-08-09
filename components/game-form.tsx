@@ -25,14 +25,14 @@ async function addGame(
     arg,
   }: {
     arg: {
-      gameExternalApiId: number;
-      gameName: string;
-      gamePrice: number;
-      gameStore: string;
-      gameDescription: string | undefined;
-      gameLink: string | undefined;
-      gamePlayers: number;
-      gameIsLan: boolean;
+      externalApiId: number;
+      title: string;
+      price: number;
+      store: string;
+      description: string | undefined;
+      link: string | undefined;
+      players: number;
+      isLan: boolean;
     };
   },
 ) {
@@ -50,13 +50,13 @@ export default function GameForm() {
   const form = useForm<z.infer<typeof gameSchema>>({
     resolver: zodResolver(gameSchema),
     defaultValues: {
-      gameName: "",
-      gamePrice: 0,
-      gameStore: "",
-      gameDescription: "",
-      gameLink: "",
-      gamePlayers: 2,
-      gameIsLan: true,
+      title: "",
+      price: 0,
+      store: "",
+      description: "",
+      link: "",
+      players: 2,
+      isLan: true,
     },
   });
 
@@ -64,14 +64,14 @@ export default function GameForm() {
 
   async function onSubmit(values: z.infer<typeof gameSchema>) {
     await trigger({
-      gameExternalApiId: 1234,
-      gameName: values.gameName,
-      gamePrice: values.gamePrice * 100,
-      gameStore: values.gameStore,
-      gameDescription: values.gameDescription,
-      gameLink: values.gameLink,
-      gamePlayers: values.gamePlayers,
-      gameIsLan: values.gameIsLan,
+      externalApiId: 1234,
+      title: values.title,
+      price: values.price * 100,
+      store: values.store,
+      description: values.description,
+      link: values.link,
+      players: values.players,
+      isLan: values.isLan,
     });
   }
 
@@ -80,7 +80,7 @@ export default function GameForm() {
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
         <FormField
           control={form.control}
-          name="gameName"
+          name="title"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pelin nimi</FormLabel>
@@ -94,7 +94,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gamePrice"
+          name="price"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Hinta (€)</FormLabel>
@@ -108,7 +108,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gameStore"
+          name="store"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Kaupat</FormLabel>
@@ -122,7 +122,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gameDescription"
+          name="description"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Kuvaus</FormLabel>
@@ -136,7 +136,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gameLink"
+          name="link"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Linkki</FormLabel>
@@ -150,7 +150,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gamePlayers"
+          name="players"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Pelaajat</FormLabel>
@@ -164,7 +164,7 @@ export default function GameForm() {
         />
         <FormField
           control={form.control}
-          name="gameIsLan"
+          name="isLan"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Onko peli LAN?</FormLabel>

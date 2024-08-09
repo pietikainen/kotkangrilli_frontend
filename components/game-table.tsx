@@ -44,34 +44,34 @@ export default function GameTable() {
         {data?.data.map(
           (game: {
             id: number;
-            gameExternalApiId: number;
-            gameName: string;
-            gamePrice: number;
-            gameStore: string;
-            gameDescription: string | null | undefined;
-            gameLink: string | null | undefined;
-            gamePlayers: number;
-            gameIsLan: boolean;
-            gameSubmittedBy: number;
+            externalApiId: number;
+            title: string;
+            price: number;
+            store: string;
+            description: string | null | undefined;
+            link: string | null | undefined;
+            players: number;
+            isLan: boolean;
+            submittedBy: number;
           }) => {
             const user = userData.find(
-              (user: { id: number }) => user.id === game.gameSubmittedBy,
+              (user: { id: number }) => user.id === game.submittedBy,
             );
 
             return (
               <TableRow key={game.id}>
-                <TableCell className="font-medium">{game.gameName}</TableCell>
-                <TableCell>{game.gamePrice / 100}</TableCell>
-                <TableCell>{game.gameStore}</TableCell>
-                <TableCell>{game.gameDescription}</TableCell>
-                <TableCell>{game.gameLink}</TableCell>
-                <TableCell>{game.gamePlayers}</TableCell>
-                <TableCell>{game.gameIsLan ? "Kyllä" : "Ei"}</TableCell>
+                <TableCell className="font-medium">{game.title}</TableCell>
+                <TableCell>{game.price / 100}</TableCell>
+                <TableCell>{game.store}</TableCell>
+                <TableCell>{game.description}</TableCell>
+                <TableCell>{game.link}</TableCell>
+                <TableCell>{game.players}</TableCell>
+                <TableCell>{game.isLan ? "Kyllä" : "Ei"}</TableCell>
                 <TableCell>
                   <Image
                     src={`https://cdn.discordapp.com/avatars/${
-                      user.discordId
-                    }/${user.profilePicture}.png?size=24`}
+                      user.snowflake
+                    }/${user.avatar}.png?size=24`}
                     alt={`${user.username} avatar`}
                     width={24}
                     height={24}
