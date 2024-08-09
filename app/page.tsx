@@ -6,12 +6,12 @@ import Link from "next/link";
 import {buttonVariants} from "@/components/ui/button";
 import useSWR from "swr";
 
-const fetcher = (path: string) => fetch(`http://localhost:5000${path}`, {
+const fetcher = (path: string) => fetch(`http://localhost:5000/api${path}`, {
     credentials: "include"
 }).then((res) => res.json());
 
 function useUser() {
-    const { data, error, isLoading } = useSWR('/user/me', fetcher);
+    const { data, error, isLoading } = useSWR('/users/me', fetcher);
     return { user: data, error, isLoading };
 }
 

@@ -10,19 +10,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 import useSWR from "swr";
 import { Key, ReactElement, JSXElementConstructor, ReactNode, ReactPortal, AwaitedReactNode } from "react";
 
-const fetcher = (path: string) => fetch(`http://localhost:5000${path}`, {
+const fetcher = (path: string) => fetch(`http://localhost:5000/api${path}`, {
     credentials: "include"
 }).then((res) => res.json());
 
 export default function GameTable() {
-    const { data, error, isLoading } = useSWR('/api/games', fetcher);
-    const { data: userData, isLoading: isLoadingUsers } = useSWR('/user/users', fetcher);
-
-
+    const { data, error, isLoading } = useSWR('/games', fetcher);
+    const { data: userData, isLoading: isLoadingUsers } = useSWR('/users/user-profiles', fetcher);
 
     if (isLoading || isLoadingUsers) return <p>Ladataaan...</p>;
     if (error) return <p>Virhe: {error.message}</p>;
-    console.log("Userdata: " + userData);
 
     return (
         <Table>
