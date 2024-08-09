@@ -1,25 +1,17 @@
 "use client";
-import { ModeToggle } from "@/components/mode-toggle";
-import GameForm from "@/components/game-form";
-import GameTable from "@/components/game-table";
 import Link from "next/link";
 import { buttonVariants } from "@/components/ui/button";
-import useSWR from "swr";
-
-const fetcher = (path: string) =>
-  fetch(`http://localhost:5000/api${path}`, {
-    credentials: "include",
-  }).then((res) => res.json());
-
-function useUser() {
-  const { data, error, isLoading } = useSWR("/users/me", fetcher);
-  return { user: data, error, isLoading };
-}
+import { useUser } from "@/lib/api";
+import { useRouter } from "next/navigation";
 
 export default function Home() {
-  const { user, error, isLoading } = useUser();
+  const { user, error, isLoading } = useUser({ shouldRetryOnError: false });
+  const router = useRouter();
 
-  if (!user)
+  if (isLoading) return <p>Ladataan...</p>;
+  if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
+
+  if (!user || error?.status === 401)
     return (
       <Link
         className={buttonVariants({ variant: "outline" })}
@@ -28,22 +20,6 @@ export default function Home() {
         Kirjaudu sisään
       </Link>
     );
-  if (isLoading) return <p>Ladataaan...</p>;
-  if (error) return <p>Virhe: {error.message}</p>;
 
-  return (
-    <main className="flex min-h-screen flex-col items-center p-24">
-      <h1 className="text-xl">Kotkan grilin lani hasutus</h1>
-      <h2>Moi {user.username}!</h2>
-      <div>
-        <ModeToggle />
-      </div>
-      <div>
-        <GameForm />
-      </div>
-      <div>
-        <GameTable />
-      </div>
-    </main>
-  );
+  router.push("/dashboard");
 }

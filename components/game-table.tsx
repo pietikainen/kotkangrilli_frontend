@@ -1,3 +1,4 @@
+"use client";
 import {
   Table,
   TableBody,
@@ -9,16 +10,12 @@ import {
 } from "@/components/ui/table";
 import useSWR from "swr";
 import Image from "next/image";
-
-const fetcher = (path: string) =>
-  fetch(`http://localhost:5000/api${path}`, {
-    credentials: "include",
-  }).then((res) => res.json());
+import { fetcher } from "@/lib/api";
 
 export default function GameTable() {
-  const { data, error, isLoading } = useSWR("/games", fetcher);
+  const { data, error, isLoading } = useSWR("api/games", fetcher);
   const { data: userData, isLoading: isLoadingUsers } = useSWR(
-    "/users/user-profiles",
+    "api/users/user-profiles",
     fetcher,
   );
 

@@ -77,7 +77,10 @@ export default function GameForm() {
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid grid-cols-3 gap-4"
+      >
         <FormField
           control={form.control}
           name="title"
@@ -111,7 +114,7 @@ export default function GameForm() {
           name="store"
           render={({ field }) => (
             <FormItem>
-              <FormLabel>Kaupat</FormLabel>
+              <FormLabel>Kauppa</FormLabel>
               <FormControl>
                 <Input {...field} />
               </FormControl>
@@ -166,17 +169,20 @@ export default function GameForm() {
           control={form.control}
           name="isLan"
           render={({ field }) => (
-            <FormItem>
-              <FormLabel>Onko peli LAN?</FormLabel>
+            <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
               <FormControl>
                 <Checkbox {...field} value={field.value ? "true" : "false"} />
               </FormControl>
-              <FormDescription />
-              <FormMessage />
+              <div className="space-y-1 leading-none">
+                <FormLabel>Onko peli LAN?</FormLabel>
+                <FormDescription />
+              </div>
             </FormItem>
           )}
         />
-        <Button type="submit">Lähetä</Button>
+        <Button type="submit" className="h-100">
+          Lähetä
+        </Button>
       </form>
     </Form>
   );
