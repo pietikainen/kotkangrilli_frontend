@@ -1,39 +1,14 @@
-"use client"; // Add this directive at the top
+"use client";
 
-import React, { useState } from "react";
-import GameForm from "@/components/game-form";
+import React from "react";
+import GameSearch from "@/components/game-search";
 import GameTable from "@/components/game-table";
-import GameDialog from "@/components/game-dialog";
 
 export default function GameSuggestions() {
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogTitle, setDialogTitle] = useState("");
-  const [dialogCoverImageUrl, setDialogCoverImageUrl] = useState("");
-
-  const handleOpenDialog = (title: string, coverImageUrl: string) => {
-    setDialogTitle(title);
-    setDialogCoverImageUrl(coverImageUrl);
-    setIsDialogOpen(true);
-  };
-
-  const handleCloseDialog = () => {
-    setIsDialogOpen(false);
-  };
-
   return (
     <div>
       <div>
-        <GameForm onOpenDialog={handleOpenDialog} />
-      </div>
-      <div>
-        {isDialogOpen && (
-          <GameDialog
-            title={dialogTitle}
-            coverImageUrl={dialogCoverImageUrl}
-            isDialogOpen={isDialogOpen}
-            onClose={handleCloseDialog}
-          />
-        )}
+        <GameSearch />
       </div>
       <div>
         <GameTable />

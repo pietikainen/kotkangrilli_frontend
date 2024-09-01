@@ -61,7 +61,9 @@ export default function GameTable() {
                 <TableCell>{game.price / 100}</TableCell>
                 <TableCell>{game.store}</TableCell>
                 <TableCell>{game.description}</TableCell>
-                <TableCell>{game.link}</TableCell>
+                <TableCell>
+                  {game.link ? <a href={game.link}>{game.link}</a> : null}
+                </TableCell>
                 <TableCell>{game.players}</TableCell>
                 <TableCell>{game.isLan ? "Kyllä" : "Ei"}</TableCell>
                 <TableCell>
