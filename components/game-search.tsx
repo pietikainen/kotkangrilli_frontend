@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useDebouncedCallback } from "use-debounce";
 import { Input } from "@/components/ui/input";
@@ -15,6 +15,10 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import GameForm from "@/components/game-form";
+import { ImageOff } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { router } from "next/client";
 
 export default function GameSearch() {
   const [title, setTitle] = useState("");
@@ -30,6 +34,10 @@ export default function GameSearch() {
     setTitle(term);
   }, 500);
 
+  useEffect(() => {
+    if (!isLoading && error?.status === 401) router.push("/");
+  }, [isLoading, error]);
+
   return (
     <div className="relative flex flex-col items-center mb-10 mt-10">
       <div className="relative w-full">
@@ -40,31 +48,49 @@ export default function GameSearch() {
         />
         {isLoading && title && (
           <div className="flex justify-center items-center mt-4">
-            <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-gray-900 m-8"></div>
+            <LoadingSpinner />
           </div>
         )}
-        {!isLoading && games && title && (
+        {!isLoading && games?.data.length === 0 && title && (
+          <div className="flex justify-center items-center mt-4">
+            <div className="text-center text-gray-400">
+              Joko peliä ei löytynyt tai löytyi liian monta. Tarkista
+              oikeinkirjoitus tai tarkenna hakua.
+            </div>
+          </div>
+        )}
+        {!isLoading && games?.data.length > 0 && title && (
           <div className="absolute border border-gray-300 rounded-md shadow-md w-full mt-2 mb-20 z-40 dark:bg-slate-900 bg-slate-50 px-2">
             {games.data.map(
-              (game: { id: number; coverImageUrl: string; name: string }) => (
-                <button
-                  className="flex items-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 w-full my-2"
-                  onClick={() => {
-                    setGame(game);
-                    setOpen(true);
-                  }}
-                  key={game.id}
-                >
-                  <Image
-                    src={game.coverImageUrl}
-                    alt="Kansikuva"
-                    width={48}
-                    height={64}
-                    unoptimized={true}
-                    className="mr-2"
-                  />
-                  <span>{game.name}</span>
-                </button>
+              (
+                game: { id: number; coverImageUrl: string; name: string },
+                i: number,
+              ) => (
+                <>
+                  {i !== 0 && <Separator />}
+                  <button
+                    className="flex items-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 w-full my-2"
+                    onClick={() => {
+                      setGame(game);
+                      setOpen(true);
+                    }}
+                    key={game.id}
+                  >
+                    {game.coverImageUrl ? (
+                      <Image
+                        src={game.coverImageUrl}
+                        alt="Kansikuva"
+                        width={48}
+                        height={64}
+                        unoptimized={true}
+                        className="mr-2"
+                      />
+                    ) : (
+                      <ImageOff />
+                    )}
+                    <span>{game.name}</span>
+                  </button>
+                </>
               ),
             )}
           </div>
@@ -75,9 +101,26 @@ export default function GameSearch() {
             open={open}
             onOpenChange={(value) => setOpen(value)}
           >
-            <DialogContent>
+            <DialogContent className="max-w-3xl">
               <DialogHeader>
-                <DialogTitle>{game.name}</DialogTitle>
+                <DialogTitle>
+                  <div className="flex flex-row items-center">
+                    {game.coverImageUrl ? (
+                      <Image
+                        src={game.coverImageUrl}
+                        alt="Kansikuva"
+                        width={48}
+                        height={64}
+                        unoptimized={true}
+                        className="mr-2"
+                      />
+                    ) : (
+                      <ImageOff />
+                    )}
+
+                    <span>{game.name}</span>
+                  </div>
+                </DialogTitle>
               </DialogHeader>
               <GameForm game={game} setOpen={setOpen} setTitle={setTitle} />
               <DialogFooter>

@@ -39,16 +39,20 @@ async function gameFetcher(path: string) {
       { credentials: "include" },
     );
     if (!res.ok) {
-      const error = new Error("An error occurred while fetching the data.");
-      const data = await res.json();
-      error.message = data.message || "Ei lisätietoja";
-      (error as any).status = res.status;
+      if (res.status === 404) {
+        game.coverImageUrl = null;
+      } else {
+        const error = new Error("An error occurred while fetching the data.");
+        const data = await res.json();
+        error.message = data.message || "Ei lisätietoja";
+        (error as any).status = res.status;
 
-      throw error;
+        throw error;
+      }
+    } else {
+      const cover = await res.json();
+      game.coverImageUrl = cover.data;
     }
-
-    const cover = await res.json();
-    game.coverImageUrl = cover.data;
   }
 
   return data;

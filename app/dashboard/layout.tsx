@@ -54,7 +54,7 @@ export default function DashboardLayout({
   if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
 
   return (
-    <div className="flex flex-col items-center pt-24">
+    <>
       <header className="flex flex-row justify-between">
         <h1 className="text-xl me-24">Kotkan grilin lani hasutus</h1>
         <NavigationMenu className="me-24">
@@ -100,6 +100,6 @@ export default function DashboardLayout({
         </DropdownMenu>
       </header>
       <main className="pt-16">{children}</main>
-    </div>
+    </>
   );
 }

@@ -11,13 +11,49 @@ import {
 import useSWR from "swr";
 import Image from "next/image";
 import { fetcher } from "@/lib/api";
+import { SiSteam, SiEpicgames } from "@icons-pack/react-simple-icons";
+import { ImageOff, Link2Icon, Link2Off } from "lucide-react";
+import { useEffect } from "react";
+import { router } from "next/client";
+
+function getLink(link: string | null | undefined) {
+  if (link) {
+    if (link.includes("steampowered.com")) {
+      return (
+        <a href={link}>
+          <SiSteam />
+        </a>
+      );
+    }
+    if (link.includes("epicgames.com")) {
+      return (
+        <a href={link}>
+          <SiEpicgames />
+        </a>
+      );
+    }
+    return (
+      <a href={link}>
+        <Link2Icon />
+      </a>
+    );
+  }
+
+  return <Link2Off />;
+}
 
 export default function GameTable() {
   const { data, error, isLoading } = useSWR("api/games", fetcher);
-  const { data: userData, isLoading: isLoadingUsers } = useSWR(
-    "api/users/user-profiles",
-    fetcher,
-  );
+  const {
+    data: userData,
+    error: userError,
+    isLoading: isLoadingUsers,
+  } = useSWR("api/users/user-profiles", fetcher);
+
+  useEffect(() => {
+    if (!isLoading && error?.status === 401) router.push("/");
+    if (!isLoadingUsers && userError?.status === 401) router.push("/");
+  }, [isLoading, isLoadingUsers, error, userError]);
 
   if (isLoading || isLoadingUsers) return <p>Ladataan...</p>;
   if (error) return <p>Virhe: {error.message}</p>;
@@ -43,6 +79,7 @@ export default function GameTable() {
             id: number;
             externalApiId: number;
             title: string;
+            image: string;
             price: number;
             store: string;
             description: string | null | undefined;
@@ -57,13 +94,24 @@ export default function GameTable() {
 
             return (
               <TableRow key={game.id}>
-                <TableCell className="font-medium">{game.title}</TableCell>
+                <TableCell className="font-medium">
+                  {game.image ? (
+                    <Image
+                      src={game.image}
+                      alt="Kansikuva"
+                      width={48}
+                      height={64}
+                      unoptimized={true}
+                    />
+                  ) : (
+                    <ImageOff />
+                  )}
+                  {game.title}
+                </TableCell>
                 <TableCell>{game.price / 100}</TableCell>
                 <TableCell>{game.store}</TableCell>
                 <TableCell>{game.description}</TableCell>
-                <TableCell>
-                  {game.link ? <a href={game.link}>{game.link}</a> : null}
-                </TableCell>
+                <TableCell>{getLink(game.link)}</TableCell>
                 <TableCell>{game.players}</TableCell>
                 <TableCell>{game.isLan ? "Kyllä" : "Ei"}</TableCell>
                 <TableCell>
@@ -72,8 +120,8 @@ export default function GameTable() {
                       user.snowflake
                     }/${user.avatar}.png?size=24`}
                     alt={`${user.username} avatar`}
-                    width={24}
-                    height={24}
+                    width={32}
+                    height={32}
                     unoptimized={true}
                   />
                   {user.username}
