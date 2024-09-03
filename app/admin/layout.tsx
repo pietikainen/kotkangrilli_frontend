@@ -1,10 +1,11 @@
 "use client";
 import { useUser } from "@/lib/api";
-import { useRouter } from "next/navigation";
+import { redirect, useRouter } from "next/navigation";
 
 import React, { useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import AdminNav from "@/components/admin/admin-nav";
 
 export default function AdminLayout({
   children,
@@ -26,10 +27,12 @@ export default function AdminLayout({
       </div>
     );
   if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
+  if (user.userlevel < 2) redirect("/");
 
   return (
     <>
       <Navbar />
+      <AdminNav />
       <main className="pt-16">{children}</main>
     </>
   );

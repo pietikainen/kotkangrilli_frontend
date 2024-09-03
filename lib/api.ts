@@ -87,5 +87,10 @@ export function useUsers() {
 
 export function useEvents() {
   const { data, error, isLoading } = useSWR("api/events", fetcher);
-  return { events: data, error, isLoading };
+  return { events: data?.data, error, isLoading };
+}
+
+export function useLocations() {
+  const { data, error, isLoading } = useSWR("api/locations", fetcher);
+  return { locations: data?.data, error, isLoading };
 }
