@@ -13,8 +13,9 @@ import Image from "next/image";
 import { fetcher } from "@/lib/api";
 import { SiSteam, SiEpicgames } from "@icons-pack/react-simple-icons";
 import { ImageOff, Link2Icon, Link2Off } from "lucide-react";
-import { useEffect } from "react";
+import React, { useEffect } from "react";
 import { router } from "next/client";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 function getLink(link: string | null | undefined) {
   if (link) {
@@ -47,15 +48,21 @@ export default function GameTable() {
   const {
     data: userData,
     error: userError,
-    isLoading: isLoadingUsers,
+    isLoading: isLoadingUserprofiles,
   } = useSWR("api/users/user-profiles", fetcher);
 
   useEffect(() => {
     if (!isLoading && error?.status === 401) router.push("/");
-    if (!isLoadingUsers && userError?.status === 401) router.push("/");
-  }, [isLoading, isLoadingUsers, error, userError]);
+    if (!isLoadingUserprofiles && userError?.status === 401) router.push("/");
+  }, [isLoading, isLoadingUserprofiles, error, userError]);
 
-  if (isLoading || isLoadingUsers) return <p>Ladataan...</p>;
+  if (isLoading || isLoadingUserprofiles)
+    return (
+      <div className="flex items-center">
+        <LoadingSpinner />
+        <span>Ladataan...</span>
+      </div>
+    );
   if (error) return <p>Virhe: {error.message}</p>;
 
   return (

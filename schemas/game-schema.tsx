@@ -3,13 +3,15 @@
 import { z } from "zod";
 
 export const gameSchema = z.object({
-  externalApiId: z.coerce.number().min(0),
-  title: z.string().min(1).max(50),
-  image: z.string().min(1).max(255),
-  price: z.coerce.number().min(0),
-  store: z.string().min(1).max(50),
-  description: z.string().min(0).max(180).optional(),
-  link: z.string().min(0).max(100).optional(),
-  players: z.coerce.number().min(0).max(128),
+  id: z.number().min(1).optional(),
+  externalApiId: z.number().min(0),
+  title: z.string().min(1).max(255),
+  image: z.string().min(4).max(255).optional(),
+  price: z.coerce.number().min(0).max(15),
+  link: z.string().min(4).max(255),
+  store: z.string().min(4).max(255),
+  players: z.coerce.number().min(2),
   isLan: z.boolean(),
+  submittedBy: z.number().min(0).optional(),
+  description: z.string().min(0).max(180).optional(),
 });

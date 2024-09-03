@@ -79,3 +79,13 @@ export function useGamesSearch(title: string) {
   );
   return { games: data, error, isLoading };
 }
+
+export function useUsers() {
+  const { data, error, isLoading } = useSWR("api/users", fetcher);
+  return { users: data, error, isLoading };
+}
+
+export function useEvents() {
+  const { data, error, isLoading } = useSWR("api/events", fetcher);
+  return { events: data, error, isLoading };
+}

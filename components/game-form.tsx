@@ -25,13 +25,13 @@ async function addGame(
     arg: {
       externalApiId: number;
       title: string;
-      image: string;
+      image: string | undefined;
       price: number;
+      link: string;
       store: string;
-      description: string | undefined;
-      link: string | undefined;
       players: number;
       isLan: boolean;
+      description: string | undefined;
     };
   },
 ) {
@@ -78,11 +78,11 @@ export default function GameForm({
       title: values.title,
       image: values.image,
       price: isNas ? 0 : values.price * 100,
-      store: isNas ? "NAS" : values.store,
-      description: values.description,
       link: values.link,
+      store: isNas ? "NAS" : values.store,
       players: values.players,
       isLan: values.isLan,
+      description: values.description,
     });
 
     setIsNas(false);

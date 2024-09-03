@@ -6,7 +6,7 @@ import React, { useEffect } from "react";
 import Navbar from "@/components/navbar";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
-export default function DashboardLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
