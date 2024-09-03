@@ -55,7 +55,17 @@ async function gameFetcher(path: string) {
     }
   }
 
-  return data;
+  return data.data;
+}
+
+export function useGames() {
+  const { data, error, isLoading } = useSWR("api/games", fetcher);
+  return { games: data?.data, error, isLoading };
+}
+
+export function useUserProfiles() {
+  const { data, error, isLoading } = useSWR("api/users/user-profiles", fetcher);
+  return { userProfiles: data, error, isLoading };
 }
 
 export function useUser({

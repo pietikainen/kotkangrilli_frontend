@@ -22,17 +22,7 @@ async function addGame(
   {
     arg,
   }: {
-    arg: {
-      externalApiId: number;
-      title: string;
-      image: string | undefined;
-      price: number;
-      link: string;
-      store: string;
-      players: number;
-      isLan: boolean;
-      description: string | undefined;
-    };
+    arg: z.infer<typeof gameSchema>;
   },
 ) {
   return fetch(`http://localhost:5000/${path}`, {
@@ -178,7 +168,6 @@ export default function GameForm({
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>Onko peli LAN?</FormLabel>
-                <FormDescription />
               </div>
             </FormItem>
           )}

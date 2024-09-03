@@ -8,9 +8,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import useSWR from "swr";
 import Image from "next/image";
-import { fetcher } from "@/lib/api";
+import { useGames, useUserProfiles } from "@/lib/api";
 import { SiSteam, SiEpicgames } from "@icons-pack/react-simple-icons";
 import { ImageOff, Link2Icon, Link2Off } from "lucide-react";
 import React, { useEffect } from "react";
@@ -44,12 +43,12 @@ function getLink(link: string | null | undefined) {
 }
 
 export default function GameTable() {
-  const { data, error, isLoading } = useSWR("api/games", fetcher);
+  const { games, error, isLoading } = useGames();
   const {
-    data: userData,
+    userProfiles,
     error: userError,
     isLoading: isLoadingUserprofiles,
-  } = useSWR("api/users/user-profiles", fetcher);
+  } = useUserProfiles();
 
   useEffect(() => {
     if (!isLoading && error?.status === 401) router.push("/");
@@ -81,7 +80,7 @@ export default function GameTable() {
         </TableRow>
       </TableHeader>
       <TableBody>
-        {data?.data.map(
+        {games.map(
           (game: {
             id: number;
             externalApiId: number;
@@ -95,7 +94,7 @@ export default function GameTable() {
             isLan: boolean;
             submittedBy: number;
           }) => {
-            const user = userData.find(
+            const user = userProfiles?.find(
               (user: { id: number }) => user.id === game.submittedBy,
             );
 

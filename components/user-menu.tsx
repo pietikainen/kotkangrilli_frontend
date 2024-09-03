@@ -32,7 +32,7 @@ export default function UserMenu() {
     }
   }, [mutate, isMutating, data, router]);
 
-  if (isLoading) <LoadingSpinner />;
+  if (isLoading) return <LoadingSpinner />;
   if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
   if (!user) return null;
 

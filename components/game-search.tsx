@@ -51,7 +51,7 @@ export default function GameSearch() {
             <LoadingSpinner />
           </div>
         )}
-        {!isLoading && games?.data.length === 0 && title && (
+        {!isLoading && games?.length === 0 && title && (
           <div className="flex justify-center items-center mt-4">
             <div className="text-center text-gray-400">
               Joko peliä ei löytynyt tai löytyi liian monta. Tarkista
@@ -59,9 +59,9 @@ export default function GameSearch() {
             </div>
           </div>
         )}
-        {!isLoading && games?.data.length > 0 && title && (
+        {!isLoading && games?.length > 0 && title && (
           <div className="absolute border border-gray-300 rounded-md shadow-md w-full mt-2 mb-20 z-40 dark:bg-slate-900 bg-slate-50 px-2">
-            {games.data.map(
+            {games.map(
               (
                 game: { id: number; coverImageUrl: string; name: string },
                 i: number,
