@@ -10,7 +10,12 @@ import {
 } from "@/components/ui/table";
 import Image from "next/image";
 import { useGames, useUserProfiles } from "@/lib/api";
-import { SiSteam, SiEpicgames } from "@icons-pack/react-simple-icons";
+import {
+  SiSteam,
+  SiEpicgames,
+  SiGogdotcom,
+  SiUbisoft,
+} from "@icons-pack/react-simple-icons";
 import { ImageOff, Link2Icon, Link2Off } from "lucide-react";
 import React, { useEffect } from "react";
 import { router } from "next/client";
@@ -25,12 +30,29 @@ function getLink(link: string | null | undefined) {
         </a>
       );
     }
+    if (link.includes("gog.com")) {
+      return (
+        <a href={link}>
+          <SiGogdotcom />
+        </a>
+      );
+    }
     if (link.includes("epicgames.com")) {
       return (
         <a href={link}>
           <SiEpicgames />
         </a>
       );
+    }
+    if (link.includes("ubisoft.com") || link.includes("ubi.com")) {
+      return (
+        <a href={link}>
+          <SiUbisoft />
+        </a>
+      );
+    }
+    if (link.includes("xbox.com") || link.includes("microsoft.com")) {
+      return <a href={link}>💩</a>;
     }
     return (
       <a href={link}>

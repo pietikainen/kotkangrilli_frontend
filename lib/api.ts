@@ -104,3 +104,11 @@ export function useLocations() {
   const { data, error, isLoading } = useSWR("api/locations", fetcher);
   return { locations: data?.data, error, isLoading };
 }
+
+export function useStoreUrl(id: number) {
+  const { data, error, isLoading } = useSWR(
+    `api/games/store-url/${id}`,
+    fetcher,
+  );
+  return { storeUrl: data?.data, error, isLoading };
+}

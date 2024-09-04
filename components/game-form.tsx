@@ -16,6 +16,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Textarea } from "@/components/ui/textarea";
 import useSWRMutation from "swr/mutation";
 import { useState } from "react";
+import { useStoreUrl } from "@/lib/api";
+import { LoadingSpinner } from "@/components/ui/loading-spinner";
 
 async function addGame(
   path: string,
@@ -35,6 +37,19 @@ async function addGame(
   }).then((res) => res.json());
 }
 
+function getStoreName(url: string) {
+  if (url) {
+    if (url.includes("steampowered.com")) return "Steam";
+    if (url.includes("gog.com")) return "GOG.com";
+    if (url.includes("epicgames.com")) return "Epic Games";
+    if (url.includes("ubisoft.com") || url.includes("ubi.com"))
+      return "Ubisoft";
+    if (url.includes("xbox.com") || url.includes("microsoft.com"))
+      return "Xbox";
+  }
+  return "Tuntematon";
+}
+
 export default function GameForm({
   game,
   setOpen,
@@ -44,6 +59,7 @@ export default function GameForm({
   setOpen: (value: boolean) => void;
   setTitle: (value: string) => void;
 }) {
+  const { storeUrl, error, isLoading } = useStoreUrl(game.id);
   const form = useForm<z.infer<typeof gameSchema>>({
     resolver: zodResolver(gameSchema),
     defaultValues: {
@@ -80,6 +96,12 @@ export default function GameForm({
     setOpen(false);
   }
 
+  if (isLoading) return <LoadingSpinner />;
+  if (storeUrl) {
+    form.setValue("store", getStoreName(storeUrl));
+    form.setValue("link", storeUrl);
+  }
+
   return (
     <Form {...form}>
       <form
@@ -98,6 +120,9 @@ export default function GameForm({
           render={({ field }) => (
             <FormItem>
               <FormLabel>Hinta (€)</FormLabel>
+              <FormDescription>
+                Hinta voi olla epäilyttävästä epävirallisesta kaupasta.
+              </FormDescription>
               <FormControl>
                 <Input type="number" {...field} />
               </FormControl>
@@ -116,7 +141,7 @@ export default function GameForm({
               </FormControl>
             </FormItem>
           )}
-          disabled={isNas}
+          disabled={isNas || storeUrl !== ""}
         />
         <FormField
           control={form.control}
@@ -141,6 +166,7 @@ export default function GameForm({
               </FormControl>
             </FormItem>
           )}
+          disabled={isNas || storeUrl !== ""}
         />
         <FormField
           control={form.control}
@@ -168,6 +194,10 @@ export default function GameForm({
               </FormControl>
               <div className="space-y-1 leading-none">
                 <FormLabel>Onko peli LAN?</FormLabel>
+                <FormDescription>
+                  Älä aina luota täysin viralliseen sanaan. Kts. Wreckfest ja
+                  Natural Selection 2.
+                </FormDescription>
               </div>
             </FormItem>
           )}

@@ -66,7 +66,7 @@ export default function GameSearch() {
                 game: { id: number; coverImageUrl: string; name: string },
                 i: number,
               ) => (
-                <>
+                <div key={game.id}>
                   {i !== 0 && <Separator />}
                   <button
                     className="flex items-center cursor-pointer hover:bg-slate-100 dark:hover:bg-slate-800 w-full my-2"
@@ -74,7 +74,6 @@ export default function GameSearch() {
                       setGame(game);
                       setOpen(true);
                     }}
-                    key={game.id}
                   >
                     {game.coverImageUrl ? (
                       <Image
@@ -90,7 +89,7 @@ export default function GameSearch() {
                     )}
                     <span>{game.name}</span>
                   </button>
-                </>
+                </div>
               ),
             )}
           </div>
