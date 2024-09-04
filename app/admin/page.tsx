@@ -17,7 +17,7 @@ export default function Admin() {
     );
   if (error) return <p>Virhe: {error.message}</p>;
   if (!user) redirect("/");
-  if (user.userlevel < 2) redirect("/");
+  if (user.userlevel < 8) redirect("/");
 
   return <div>Sinulla on voima muuttaa kaiken</div>;
 }

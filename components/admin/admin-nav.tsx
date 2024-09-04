@@ -17,7 +17,7 @@ export default function AdminNav() {
   if (isLoading) return <LoadingSpinner />;
   if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
   if (!user) return null;
-  if (user.userlevel < 2) return null;
+  if (user.userlevel < 8) return null;
 
   return (
     <NavigationMenu>

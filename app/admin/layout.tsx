@@ -27,7 +27,7 @@ export default function AdminLayout({
       </div>
     );
   if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
-  if (user.userlevel < 2) redirect("/");
+  if (user.userlevel < 8) redirect("/");
 
   return (
     <>

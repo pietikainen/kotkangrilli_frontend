@@ -11,5 +11,5 @@ export const userSchema = z.object({
   email: z.string().min(6).max(255).optional(),
   phone: z.string().min(5).optional(),
   bankaccount: z.string().min(1).optional(),
-  userlevel: z.coerce.number().min(1).max(2),
+  userlevel: z.coerce.number().min(0).max(9),
 });
