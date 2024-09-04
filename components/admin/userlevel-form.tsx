@@ -13,17 +13,17 @@ import { useForm } from "react-hook-form";
 import useSWRMutation from "swr/mutation";
 import { Button } from "@/components/ui/button";
 
-async function updateRole(
+async function updateUserLevel(
   path: string,
   {
     arg,
   }: {
-    arg: { id: number; role: number };
+    arg: { id: number; userlevel: number };
   },
 ) {
   return fetch(`http://localhost:5000/${path}/${arg.id}/userlevel`, {
     method: "PATCH",
-    body: JSON.stringify({ role: arg.role }),
+    body: JSON.stringify({ userlevel: arg.userlevel }),
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
@@ -41,16 +41,16 @@ export default function UserLevelForm({
   const form = useForm({
     defaultValues: {
       id: user?.id,
-      role: user?.userlevel || 1,
+      userlevel: user?.userlevel || 1,
     },
   });
-  const { trigger, isMutating } = useSWRMutation("api/users", updateRole);
+  const { trigger, isMutating } = useSWRMutation("api/users", updateUserLevel);
 
-  async function onSubmit(values: { role: number }) {
+  async function onSubmit(values: { userlevel: number }) {
     if (user) {
       await trigger({
         id: user.id,
-        role: values.role,
+        userlevel: values.userlevel,
       });
       setOpen(false);
     }
@@ -61,7 +61,7 @@ export default function UserLevelForm({
       <form onSubmit={form.handleSubmit(onSubmit)}>
         <FormField
           control={form.control}
-          name="role"
+          name="userlevel"
           render={({ field }) => (
             <FormItem>
               <FormLabel>Käyttäjätaso</FormLabel>
