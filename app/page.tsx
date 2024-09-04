@@ -5,10 +5,15 @@ import { useUser } from "@/lib/api";
 import { useRouter } from "next/navigation";
 import { SiDiscord } from "@icons-pack/react-simple-icons";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { useEffect } from "react";
 
 export default function Home() {
   const { user, error, isLoading } = useUser({ shouldRetryOnError: false });
   const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !error && user) router.push("/dashboard");
+  }, [isLoading, user]);
 
   if (isLoading)
     return (
@@ -32,6 +37,4 @@ export default function Home() {
         </Link>
       </>
     );
-
-  router.push("/dashboard");
 }
