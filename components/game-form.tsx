@@ -18,6 +18,7 @@ import useSWRMutation from "swr/mutation";
 import { useState } from "react";
 import { useStoreUrl } from "@/lib/api";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { cn } from "@/lib/utils";
 
 async function addGame(
   path: string,
@@ -124,11 +125,15 @@ export default function GameForm({
                 Hinta voi olla epäilyttävästä epävirallisesta kaupasta.
               </FormDescription>
               <FormControl>
-                <Input type="number" {...field} />
+                <Input
+                  type="number"
+                  {...field}
+                  readOnly={isNas}
+                  className={cn(isNas && "cursor-not-allowed opacity-50")}
+                />
               </FormControl>
             </FormItem>
           )}
-          disabled={isNas}
         />
         <FormField
           control={form.control}
@@ -137,11 +142,17 @@ export default function GameForm({
             <FormItem>
               <FormLabel>Kauppa</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  readOnly={isNas || storeUrl !== ""}
+                  className={cn(
+                    (isNas || storeUrl !== "") &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                />
               </FormControl>
             </FormItem>
           )}
-          disabled={isNas || storeUrl !== ""}
         />
         <FormField
           control={form.control}
@@ -162,11 +173,17 @@ export default function GameForm({
             <FormItem>
               <FormLabel>Linkki</FormLabel>
               <FormControl>
-                <Input {...field} />
+                <Input
+                  {...field}
+                  readOnly={isNas || storeUrl !== ""}
+                  className={cn(
+                    (isNas || storeUrl !== "") &&
+                      "cursor-not-allowed opacity-50",
+                  )}
+                />
               </FormControl>
             </FormItem>
           )}
-          disabled={isNas || storeUrl !== ""}
         />
         <FormField
           control={form.control}
