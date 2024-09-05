@@ -5,6 +5,7 @@ export const eventSchema = z.object({
   title: z.string().min(1).max(255),
   description: z.string().min(0).max(255).optional(),
   location: z.coerce.number().min(1),
+  winnerGamesCount: z.number().min(3).max(5),
   startDate: z.date(),
   endDate: z.date(),
   votingOpen: z.boolean(),

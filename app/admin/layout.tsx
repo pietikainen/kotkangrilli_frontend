@@ -5,12 +5,11 @@ import { useRouter } from 'next/navigation';
 import { AppShell, Burger, Center, Group, Loader, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import useGetUser from '@/api/useGetUser.hook';
-import useLogout from '@/api/useLogout.hook';
 import { ColorSchemeToggle } from '@/components/ColorSchemeToggle';
 import Navbar from '@/components/Navbar';
 import UserMenu from '@/components/UserMenu';
 
-export default function DashboardLayout({
+export default function AdminLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
@@ -18,21 +17,14 @@ export default function DashboardLayout({
   const [opened, { toggle }] = useDisclosure();
   const router = useRouter();
   const { data: user, isError, isLoading } = useGetUser();
-  const logout = useLogout();
 
   useEffect(() => {
-    if ((!isLoading && !user?.data) || isError) {
+    if ((!isLoading && !user) || isError || user?.data.userlevel < 8) {
       router.push('/');
     }
   }, [isLoading, isError, user]);
 
-  useEffect(() => {
-    if (logout.isSuccess) {
-      router.push('/');
-    }
-  }, [logout.isSuccess]);
-
-  if (isLoading || !user) {
+  if (isLoading || !user || user.data.userlevel < 8) {
     return (
       <Center h="100vh">
         <Loader />

@@ -12,7 +12,7 @@ export default function HomePage() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!isLoading && !isError && user) {
+    if (!isLoading && !isError && user?.data) {
       router.push('/dashboard');
     }
   }, [isLoading, user]);

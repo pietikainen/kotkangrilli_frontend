@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 async function postLogout() {
-  return axios.post('http://localhost:5000/api/users/logout', {}, { withCredentials: true });
+  return axios.get('http://localhost:5000/auth/logout', { withCredentials: true });
 }
 
 export default function useLogout() {
@@ -11,7 +11,10 @@ export default function useLogout() {
   return useMutation({
     mutationFn: postLogout,
     onSuccess: () => {
-      queryClient.invalidateQueries();
+      queryClient.clear();
+    },
+    onError: () => {
+      queryClient.clear();
     },
   });
 }
