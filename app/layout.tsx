@@ -1,19 +1,15 @@
-import type { Metadata } from "next";
-import { Inter as FontSans } from "next/font/google";
-import { ThemeProvider } from "@/components/theme-provider";
-import { cn } from "@/lib/utils";
-import "./globals.css";
-import React from "react";
+import '@mantine/core/styles.css';
+
+import React from 'react';
+import { Metadata } from 'next';
+import { ColorSchemeScript, MantineProvider } from '@mantine/core';
+import Providers from '@/components/Providers';
+import { theme } from '@/theme';
 
 export const metadata: Metadata = {
-  title: "Kotkan grilin lani hasutus",
-  description: "Kiva laniportaali",
+  title: 'Kotkan grilin lani hasutus',
+  description: 'Kiva laniportaali',
 };
-
-const fontSans = FontSans({
-  subsets: ["latin"],
-  variable: "--font-sans",
-});
 
 export default function RootLayout({
   children,
@@ -21,21 +17,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body
-        className={cn(
-          "min-h-screen bg-background font-sans antialiased",
-          fontSans.variable,
-        )}
-      >
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="system"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <div className="flex flex-col items-center pt-24">{children}</div>
-        </ThemeProvider>
+    <html lang="en">
+      <head>
+        <ColorSchemeScript defaultColorScheme="auto" />
+        <link rel="shortcut icon" href="/favicon.svg" />
+        <meta
+          name="viewport"
+          content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"
+        />
+      </head>
+      <body>
+        <MantineProvider theme={theme} defaultColorScheme="auto">
+          <Providers>{children}</Providers>
+        </MantineProvider>
       </body>
     </html>
   );

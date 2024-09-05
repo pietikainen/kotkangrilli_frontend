@@ -1,6 +1,4 @@
-"use client";
-
-import { z } from "zod";
+import { z } from 'zod';
 
 export const gameSchema = z.object({
   id: z.number().min(1).optional(),

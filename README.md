@@ -1,6 +1,7 @@
 Kotkan grilin lani hasutus frontti
 
 ```bash
+yarn install
 npm run dev
 ```
 

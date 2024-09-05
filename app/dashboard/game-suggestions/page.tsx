@@ -1,18 +1,128 @@
-"use client";
+'use client';
 
-import React from "react";
-import GameSearch from "@/components/game-search";
-import GameTable from "@/components/game-table";
+import { useEffect, useState } from 'react';
+import { IconPhotoOff } from '@tabler/icons-react';
+import axios from 'axios';
+import { Group, Image, Loader, Menu, Modal, Stack, TextInput, Title } from '@mantine/core';
+import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
+import useGetGames from '@/api/useGetGames.hook';
+import useGetGamesSearch from '@/api/useGetGamesSearch.hook';
+import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
+import GameForm from '@/components/GameForm';
+import GameTable from '@/components/GameTable';
 
-export default function GameSuggestions() {
+export default function GameSuggestionsPage() {
+  const [openedMenu, setOpenedMenu] = useState(false);
+  const [title, setTitle] = useState('');
+  const [debounced] = useDebouncedValue(title, 2000);
+  const [foundGames, setFoundGames] = useState<any[]>([]);
+  const [isLoadingCovers, setIsLoadingCovers] = useState(false);
+  const [game, setGame] = useState<{
+    id: number;
+    coverImageUrl: string;
+    name: string;
+  } | null>(null);
+  const [opened, { open, close }] = useDisclosure(false);
+  const { data, isLoading } = useGetGames();
+  const { data: upData, isLoading: isLoadingUserProfiles } = useGetUserProfiles();
+  const {
+    data: gamesSearchData,
+    isFetching: isFetchingGamesSearch,
+    isSuccess: isSuccessGamesSearch,
+  } = useGetGamesSearch(debounced);
+
+  useEffect(() => {
+    async function fetchCoverImages() {
+      if (isSuccessGamesSearch && gamesSearchData.data.data) {
+        setIsLoadingCovers(true);
+        const gamesWithCovers = await Promise.all(
+          gamesSearchData.data.data.map(async (foundGame: any) => {
+            try {
+              const response = await axios.get(
+                `http://localhost:5000/api/games/cover/${foundGame.id}`,
+                {
+                  withCredentials: true,
+                }
+              );
+              return {
+                ...foundGame,
+                coverImageUrl: response.status === 200 ? response.data.data : null,
+              };
+            } catch (error) {
+              return { ...foundGame, coverImageUrl: null };
+            }
+          })
+        );
+        setFoundGames(gamesWithCovers);
+        setIsLoadingCovers(false);
+        setOpenedMenu(true);
+      }
+    }
+
+    fetchCoverImages();
+  }, [isSuccessGamesSearch, gamesSearchData]);
+
+  const games = data?.data.data || [];
+  const userProfiles = upData?.data || [];
+
+  if (isLoading || isLoadingUserProfiles) {
+    return <Loader />;
+  }
+
   return (
-    <div>
-      <div>
-        <GameSearch />
-      </div>
-      <div>
-        <GameTable />
-      </div>
-    </div>
+    <Stack>
+      <Group justify="space-between">
+        <Title order={2}>Peliehdotukset</Title>
+        <Group>
+          {(isFetchingGamesSearch || isLoadingCovers) && <Loader />}
+          <Menu opened={openedMenu} onChange={setOpenedMenu} trigger="click-hover">
+            <Menu.Target>
+              <TextInput
+                placeholder="Ehdota peliä..."
+                value={title}
+                onChange={(e) => setTitle(e.currentTarget.value)}
+              />
+            </Menu.Target>
+            <Menu.Dropdown>
+              {foundGames && foundGames.length > 0 ? (
+                foundGames.map((foundGame: { id: number; coverImageUrl: string; name: string }) => (
+                  <div key={foundGame.id}>
+                    <Menu.Item
+                      key={foundGame.id}
+                      leftSection={
+                        foundGame.coverImageUrl ? (
+                          <Image src={foundGame.coverImageUrl} alt="Kansikuva" w="auto" mah={64} />
+                        ) : (
+                          <IconPhotoOff />
+                        )
+                      }
+                      onClick={() => {
+                        setGame(foundGame);
+                        open();
+                      }}
+                    >
+                      {foundGame.name}
+                    </Menu.Item>
+                  </div>
+                ))
+              ) : (
+                <Menu.Item>
+                  {title && !isFetchingGamesSearch && !isLoadingCovers
+                    ? 'Haku ei tuottanut tuloksia'
+                    : 'Etsi peliä nimellä'}
+                </Menu.Item>
+              )}
+            </Menu.Dropdown>
+          </Menu>
+        </Group>
+      </Group>
+      <p></p>
+      <GameTable data={games} userProfiles={userProfiles} />
+      {game && (
+        <Modal opened={opened} onClose={close} title={game.name}>
+          <GameForm game={game} close={close} setTitle={setTitle} />
+        </Modal>
+      )}
+    </Stack>
   );
 }

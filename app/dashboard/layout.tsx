@@ -1,36 +1,75 @@
-"use client";
-import { useUser } from "@/lib/api";
-import { useRouter } from "next/navigation";
+'use client';
 
-import React, { useEffect } from "react";
-import Navbar from "@/components/navbar";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { AppShell, Burger, Button, Center, Group, Loader, NavLink, Title } from '@mantine/core';
+import { useDisclosure } from '@mantine/hooks';
+import useGetUser from '@/api/useGetUser.hook';
+import useLogout from '@/api/useLogout.hook';
+import { ColorSchemeToggle } from '@/components/ColorSchemeToggle';
 
 export default function DashboardLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const [opened, { toggle }] = useDisclosure();
   const router = useRouter();
-  const { user, error, isLoading } = useUser({});
+  const { data: user, isError, isLoading } = useGetUser();
+  const logout = useLogout();
 
   useEffect(() => {
-    if (!isLoading && (!user || error?.status === 401)) router.push("/");
-  }, [isLoading, error, user, router]);
+    if ((!isLoading && !user) || isError) {
+      router.push('/');
+    }
+  }, [isLoading, isError, user]);
 
-  if (isLoading || !user)
+  useEffect(() => {
+    if (logout.isSuccess) {
+      router.push('/');
+    }
+  }, [logout.isSuccess]);
+
+  if (isLoading || !user) {
     return (
-      <div className="flex items-center">
-        <LoadingSpinner />
-        <span>Ladataan...</span>
-      </div>
+      <Center h="100vh">
+        <Loader />
+      </Center>
     );
-  if (error && error.status !== 401) return <p>Virhe: {error.message}</p>;
+  }
 
   return (
-    <>
-      <Navbar />
-      <main className="pt-16">{children}</main>
-    </>
+    <AppShell
+      header={{ height: 60 }}
+      navbar={{
+        width: 300,
+        breakpoint: 'sm',
+        collapsed: { mobile: !opened },
+      }}
+      padding="md"
+    >
+      <AppShell.Header>
+        <Group h="100%" justify="space-between" mx="md">
+          <Group>
+            <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
+            <Title>KotkanGrilli</Title>
+          </Group>
+          <Group>
+            <ColorSchemeToggle />
+            <Button onClick={() => logout.mutate()} disabled={logout.isPending}>
+              Kirjaudu ulos
+            </Button>
+          </Group>
+        </Group>
+      </AppShell.Header>
+
+      <AppShell.Navbar p="md">
+        <NavLink component={Link} href="/dashboard" label="Etusivu" />
+        <NavLink component={Link} href="/dashboard/game-suggestions" label="Peliehdotukset" />
+      </AppShell.Navbar>
+
+      <AppShell.Main>{children}</AppShell.Main>
+    </AppShell>
   );
 }
