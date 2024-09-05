@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { useForm } from 'react-hook-form';
@@ -52,19 +52,32 @@ export default function GameForm({ game, close, setTitle }: any) {
       isLan: values.isLan,
       description: values.description,
     });
+  }
 
+  useEffect(() => {
     if (addGame.isSuccess) {
       setIsNas(false);
       setTitle('');
       close();
     }
-  }
+  }, [addGame.isSuccess]);
+
+  useEffect(() => {
+    if (isNas) {
+      setValue('store', 'NAS');
+      setValue('price', 0);
+    }
+    if (storeUrl?.data.data && !isNas) {
+      setValue('store', getStoreName(storeUrl.data.data));
+      setValue('link', storeUrl.data.data);
+    }
+    if (storeUrl?.data.data && isNas) {
+      setValue('store', 'NAS');
+      setValue('link', storeUrl.data.data);
+    }
+  }, [storeUrl, isNas]);
 
   if (isLoading) return <Loader />;
-  if (storeUrl?.data.data) {
-    setValue('store', getStoreName(storeUrl.data.data));
-    setValue('link', storeUrl.data.data);
-  }
 
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
@@ -89,10 +102,10 @@ export default function GameForm({ game, close, setTitle }: any) {
           name="store"
           control={control}
           label="Kauppa"
-          readOnly={isNas || storeUrl?.data !== ''}
+          readOnly={isNas || storeUrl?.data.data !== ''}
           style={{
-            cursor: isNas || storeUrl?.data !== '' ? 'not-allowed' : 'auto',
-            opacity: isNas || storeUrl?.data !== '' ? 0.5 : 1,
+            cursor: isNas || storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
+            opacity: isNas || storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
         />
         <Textarea name="description" control={control} label="Lisätiedot/Kuvaus" />
@@ -100,10 +113,10 @@ export default function GameForm({ game, close, setTitle }: any) {
           name="link"
           control={control}
           label="Linkki"
-          readOnly={isNas || storeUrl?.data !== ''}
+          readOnly={isNas && storeUrl?.data.data !== ''}
           style={{
-            cursor: isNas || storeUrl?.data !== '' ? 'not-allowed' : 'auto',
-            opacity: isNas || storeUrl?.data !== '' ? 0.5 : 1,
+            cursor: isNas && storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
+            opacity: isNas && storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
         />
         <NumberInput name="players" control={control} label="Pelaajat" />

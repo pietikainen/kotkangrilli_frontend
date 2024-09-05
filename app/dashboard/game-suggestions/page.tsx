@@ -62,6 +62,13 @@ export default function GameSuggestionsPage() {
     fetchCoverImages();
   }, [isSuccessGamesSearch, gamesSearchData]);
 
+  useEffect(() => {
+    if (title === '') {
+      setOpenedMenu(false);
+      setFoundGames([]);
+    }
+  }, [title]);
+
   const games = data?.data.data || [];
   const userProfiles = upData?.data || [];
 
@@ -116,7 +123,14 @@ export default function GameSuggestionsPage() {
           </Menu>
         </Group>
       </Group>
-      <p></p>
+      <p>
+        Pelin kauppa ilmoitetaan aina virallisella kaupalla, mutta hinta voi olla myös virallisilta
+        tai epävirallisilta jälleenmyyjiltä.
+        <br />
+        Hinnan löytämiseen voit käyttää <a href="https://isthereanydeal.com/">IsThereAnyDeal</a>
+        (vain virallisia), <a href="https://gg.deals/">GG.deals</a>(erottelee viralliset) tai{' '}
+        <a href="https://www.allkeyshop.com/blog/">AllKeyShop</a> sivustoa.
+      </p>
       <GameTable data={games} userProfiles={userProfiles} />
       {game && (
         <Modal opened={opened} onClose={close} title={game.name}>
