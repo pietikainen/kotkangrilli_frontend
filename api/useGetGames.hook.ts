@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 
 async function getGames() {
-  return axios.get('http://localhost:5000/api/games', { withCredentials: true });
+  return axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/games`, { withCredentials: true });
 }
 
 export default function useGetGames() {

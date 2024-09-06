@@ -2,7 +2,9 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 async function postLogout() {
-  return axios.get('http://localhost:5000/auth/logout', { withCredentials: true });
+  return axios.get(`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/logout`, {
+    withCredentials: true,
+  });
 }
 
 export default function useLogout() {

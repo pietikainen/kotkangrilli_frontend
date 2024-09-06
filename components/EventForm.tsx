@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { Checkbox, DateTimePicker, Select, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
@@ -8,7 +9,7 @@ import { Alert, Button, Loader, Radio, Stack } from '@mantine/core';
 import useAddEvent from '@/api/useAddEvent.hook';
 import useGetLocations from '@/api/useGetLocations.hook';
 import useGetUsers from '@/api/useGetUsers.hook';
-import { eventSchema } from '@/schemas/event-chema';
+import eventSchema from '@/schemas/eventSchema';
 
 export default function EventForm({ close }: any) {
   const { data: users, isLoading } = useGetUsers();
@@ -115,7 +116,7 @@ export default function EventForm({ close }: any) {
         <Button type="submit" loading={addEvent.isPending}>
           Lähetä
         </Button>
-        {addEvent.error?.response && (
+        {isAxiosError(addEvent.error) && addEvent.error?.response && (
           <Alert
             variant="light"
             color="red"

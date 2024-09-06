@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const locationSchema = z.object({
+const locationSchema = z.object({
   id: z.number().min(1).optional(),
   name: z.string().min(1).max(255),
   address: z.string().min(1).max(255),
@@ -9,3 +9,5 @@ export const locationSchema = z.object({
   description: z.string().min(1).max(255),
   price: z.coerce.number().min(0),
 });
+
+export default locationSchema;

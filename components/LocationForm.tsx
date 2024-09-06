@@ -1,12 +1,13 @@
 import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { NumberInput, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
 import { Alert, Button, Stack } from '@mantine/core';
 import useAddLocation from '@/api/useAddLocation.hook';
-import { locationSchema } from '@/schemas/location-schema';
+import locationSchema from '@/schemas/locationSchema';
 
 export default function LocationForm({ close }: any) {
   const { control, handleSubmit } = useForm<z.infer<typeof locationSchema>>({
@@ -52,7 +53,7 @@ export default function LocationForm({ close }: any) {
         <Button type="submit" loading={addLocation.isPending}>
           Lähetä
         </Button>
-        {addLocation.error?.response && (
+        {isAxiosError(addLocation.error) && addLocation.error?.response && (
           <Alert
             variant="light"
             color="red"

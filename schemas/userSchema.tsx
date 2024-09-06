@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
-export const userSchema = z.object({
-  id: z.number().min(1),
+const userSchema = z.object({
+  id: z.number().min(1).optional(),
   snowflake: z.bigint(),
   username: z.string().min(1).max(255),
   nickname: z.string().min(1).max(255).optional(),
@@ -11,3 +11,5 @@ export const userSchema = z.object({
   bankaccount: z.string().min(1).optional(),
   userlevel: z.coerce.number().min(0).max(9),
 });
+
+export default userSchema;

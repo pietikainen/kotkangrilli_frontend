@@ -6,7 +6,7 @@ import { AppShell, Burger, Center, Group, Loader, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import useGetUser from '@/api/useGetUser.hook';
 import useLogout from '@/api/useLogout.hook';
-import { ColorSchemeToggle } from '@/components/ColorSchemeToggle';
+import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import Navbar from '@/components/Navbar';
 import UserMenu from '@/components/UserMenu';
 

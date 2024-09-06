@@ -3,7 +3,7 @@
 import { IconMoon, IconSun } from '@tabler/icons-react';
 import { Button, Menu, useComputedColorScheme, useMantineColorScheme } from '@mantine/core';
 
-export function ColorSchemeToggle() {
+export default function ColorSchemeToggle() {
   const { setColorScheme } = useMantineColorScheme();
   const computedColorScheme = useComputedColorScheme();
 

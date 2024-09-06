@@ -1,13 +1,14 @@
 import { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
+import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { Checkbox, NumberInput, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
 import { Alert, Button, Checkbox as CheckboxM, Loader, Stack } from '@mantine/core';
 import useAddGame from '@/api/useAddGame.hook';
 import useGetStoreUrl from '@/api/useGetStoreUrl.hook';
-import { gameSchema } from '@/schemas/game-schema';
+import gameSchema from '@/schemas/gameSchema';
 
 function getStoreName(url: string) {
   if (url) {
@@ -88,7 +89,7 @@ export default function GameForm({ game, close, setTitle }: any) {
           name="price"
           control={control}
           label="Hinta (€)"
-          description="Hinta voi olla epäilyttävästä epävirallisesta kaupasta."
+          description="Hinta saa olla epäilyttävästä epävirallisesta kaupasta."
           readOnly={isNas}
           styles={{
             input: {
@@ -108,17 +109,17 @@ export default function GameForm({ game, close, setTitle }: any) {
             opacity: isNas || storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
         />
-        <Textarea name="description" control={control} label="Lisätiedot/Kuvaus" />
         <TextInput
           name="link"
           control={control}
           label="Linkki"
-          readOnly={isNas && storeUrl?.data.data !== ''}
+          readOnly={storeUrl?.data.data !== ''}
           style={{
-            cursor: isNas && storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
-            opacity: isNas && storeUrl?.data.data !== '' ? 0.5 : 1,
+            cursor: storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
+            opacity: storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
         />
+        <Textarea name="description" control={control} label="Lisätiedot/Kuvaus" />
         <NumberInput name="players" control={control} label="Pelaajat" />
         <Checkbox
           name="isLan"
@@ -128,14 +129,14 @@ export default function GameForm({ game, close, setTitle }: any) {
         />
         <CheckboxM
           label="Peli NASilta?"
-          description='Pelin kaupaksi tulee "NAS" ja hinnaksi 0€, mutta sille luodaan silti kauppalinkki.'
+          description='Pelin kaupaksi tulee "NAS" ja hinnaksi 0€, mutta sille saattaa silti löytyä kauppalinkki.'
           checked={isNas}
           onChange={(e) => setIsNas(e.currentTarget.checked)}
         />
         <Button type="submit" loading={addGame.isPending}>
           Lähetä
         </Button>
-        {addGame.error?.response && (
+        {isAxiosError(addGame.error) && addGame.error?.response && (
           <Alert
             variant="light"
             color="red"

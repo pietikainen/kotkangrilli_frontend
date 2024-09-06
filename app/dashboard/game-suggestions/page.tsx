@@ -72,10 +72,6 @@ export default function GameSuggestionsPage() {
   const games = data?.data.data || [];
   const userProfiles = upData?.data || [];
 
-  if (isLoading || isLoadingUserProfiles) {
-    return <Loader />;
-  }
-
   return (
     <Stack>
       <Group justify="space-between">
@@ -131,7 +127,11 @@ export default function GameSuggestionsPage() {
         (vain virallisia), <a href="https://gg.deals/">GG.deals</a>(erottelee viralliset) tai{' '}
         <a href="https://www.allkeyshop.com/blog/">AllKeyShop</a> sivustoa.
       </p>
-      <GameTable data={games} userProfiles={userProfiles} />
+      {isLoading || isLoadingUserProfiles ? (
+        <Loader />
+      ) : (
+        <GameTable data={games} userProfiles={userProfiles} />
+      )}
       {game && (
         <Modal opened={opened} onClose={close} title={game.name}>
           <GameForm game={game} close={close} setTitle={setTitle} />

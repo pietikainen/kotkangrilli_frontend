@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-react-table';
 import { z } from 'zod';
-import { locationSchema } from '@/schemas/location-schema';
+import locationSchema from '@/schemas/locationSchema';
 
 export default function LocationTable({ data }: { data: z.infer<typeof locationSchema>[] }) {
   const columns: MRT_ColumnDef<z.infer<typeof locationSchema>>[] = useMemo(
@@ -33,6 +33,7 @@ export default function LocationTable({ data }: { data: z.infer<typeof locationS
       {
         accessorKey: 'price',
         header: 'Hinta',
+        Cell: ({ cell }) => `${cell.getValue<number>() / 100} €`,
       },
     ],
     []

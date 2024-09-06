@@ -1,16 +1,27 @@
 import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { AppShell, Divider, NavLink } from '@mantine/core';
 import useGetUser from '@/api/useGetUser.hook';
 
-function AdminNav() {
+function AdminNav({ pathname }: { pathname: string }) {
   return (
     <>
       <Divider />
-      <NavLink component={Link} href="/admin" label="ADMIN" />
-      <NavLink component={Link} href="/admin/events" label="Tapahtumat" />
+      <NavLink component={Link} href="/admin" label="ADMIN" active={pathname === '/admin'} />
+      <NavLink
+        component={Link}
+        href="/admin/events"
+        label="Tapahtumat"
+        active={pathname === '/admin/events'}
+      />
       {/*<NavLink component={Link} href="/admin/users" label="Käyttäjät" />*/}
-      <NavLink component={Link} href="/admin/locations" label="Paikat" />
+      <NavLink
+        component={Link}
+        href="/admin/locations"
+        label="Paikat"
+        active={pathname === '/admin/locations'}
+      />
       {/*user?.data.userlevel > 7 && <NavLink component={Link} href="/admin/games" label="Pelit" />*/}
     </>
   );
@@ -18,12 +29,23 @@ function AdminNav() {
 
 export default function Navbar() {
   const { data: user } = useGetUser();
+  const pathname = usePathname();
 
   return (
     <AppShell.Navbar p="md">
-      <NavLink component={Link} href="/dashboard" label="Etusivu" />
-      <NavLink component={Link} href="/dashboard/game-suggestions" label="Peliehdotukset" />
-      {user?.data.userlevel > 7 && <AdminNav />}
+      <NavLink
+        component={Link}
+        href="/dashboard"
+        label="Etusivu"
+        active={pathname === '/dashboard'}
+      />
+      <NavLink
+        component={Link}
+        href="/dashboard/game-suggestions"
+        label="Peliehdotukset"
+        active={pathname === '/dashboard/game-suggestions'}
+      />
+      {user?.data.userlevel > 7 && <AdminNav pathname={pathname} />}
     </AppShell.Navbar>
   );
 }

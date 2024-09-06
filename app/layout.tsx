@@ -1,11 +1,17 @@
 import '@mantine/core/styles.css';
 import '@mantine/dates/styles.css';
+import 'mantine-react-table/styles.css';
+import 'dayjs/locale/fi';
 
+import dayjs from 'dayjs';
 import React from 'react';
 import { Metadata } from 'next';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
+import { DatesProvider } from '@mantine/dates';
 import Providers from '@/components/Providers';
-import { theme } from '@/theme';
+import theme from '@/theme';
+
+dayjs.locale('fi');
 
 export const metadata: Metadata = {
   title: 'Kotkan grilin lani hasutus',
@@ -17,6 +23,7 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // noinspection HtmlRequiredTitleElement
   return (
     <html lang="en">
       <head>
@@ -29,7 +36,9 @@ export default function RootLayout({
       </head>
       <body>
         <MantineProvider theme={theme} defaultColorScheme="auto">
-          <Providers>{children}</Providers>
+          <DatesProvider settings={{ locale: 'fi' }}>
+            <Providers>{children}</Providers>
+          </DatesProvider>
         </MantineProvider>
       </body>
     </html>

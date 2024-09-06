@@ -10,7 +10,7 @@ import {
 import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-react-table';
 import { z } from 'zod';
 import { ActionIcon, Image } from '@mantine/core';
-import { gameSchema } from '@/schemas/game-schema';
+import gameSchema from '@/schemas/gameSchema';
 
 function getLink(link: string | null | undefined) {
   if (link) {

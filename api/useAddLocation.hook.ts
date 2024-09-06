@@ -2,7 +2,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import axios from 'axios';
 
 async function postLocation(location: any) {
-  return axios.post('http://localhost:5000/api/locations', location, {
+  return axios.post(`${process.env.NEXT_PUBLIC_API_BASE_URL}/api/locations`, location, {
     withCredentials: true,
   });
 }

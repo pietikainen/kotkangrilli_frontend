@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { IconBrandDiscord } from '@tabler/icons-react';
 import { Button, Center, Group, Loader, Stack, Title } from '@mantine/core';
 import useGetUser from '@/api/useGetUser.hook';
-import { ColorSchemeToggle } from '@/components/ColorSchemeToggle';
+import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 
 export default function HomePage() {
   const { data: user, isError, isLoading, isSuccess } = useGetUser();

@@ -1,6 +1,6 @@
 import { z } from 'zod';
 
-export const gameSchema = z.object({
+const gameSchema = z.object({
   id: z.number().min(1).optional(),
   externalApiId: z.number().min(0),
   title: z.string().min(1).max(255),
@@ -13,3 +13,5 @@ export const gameSchema = z.object({
   submittedBy: z.number().min(0).optional(),
   description: z.string().min(0).max(180).optional(),
 });
+
+export default gameSchema;
