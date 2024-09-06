@@ -5,8 +5,8 @@ import { useDisclosure } from '@mantine/hooks';
 import useGetEvents from '@/api/useGetEvents.hook';
 import useGetLocations from '@/api/useGetLocations.hook';
 import useGetUsers from '@/api/useGetUsers.hook';
-import EventForm from '@/components/EventForm';
-import EventTable from '@/components/EventTable';
+import EventForm from '@/components/forms/EventForm';
+import EventTable from '@/components/tables/EventTable';
 
 export default function LocationsPage() {
   const { data: events, isLoading } = useGetEvents();

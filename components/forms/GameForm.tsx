@@ -5,7 +5,7 @@ import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
 import { Checkbox, NumberInput, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
-import { Alert, Button, Checkbox as CheckboxM, Loader, Stack } from '@mantine/core';
+import { Alert, Button, Checkbox as CheckboxM, Loader, Stack, Text } from '@mantine/core';
 import useAddGame from '@/api/useAddGame.hook';
 import useGetStoreUrl from '@/api/useGetStoreUrl.hook';
 import gameSchema from '@/schemas/gameSchema';
@@ -83,6 +83,9 @@ export default function GameForm({ game, close, setTitle }: any) {
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack>
+        <Text size="sm" c="dimmed">
+          Tähdellä * merkityt kentät ovat pakollisia.
+        </Text>
         <TextInput name="externalApiId" control={control} style={{ display: 'none' }} />
         <TextInput name="title" control={control} style={{ display: 'none' }} />
         <NumberInput
@@ -98,29 +101,39 @@ export default function GameForm({ game, close, setTitle }: any) {
             },
           }}
           step={0.01}
+          withAsterisk
         />
         <TextInput
           name="store"
           control={control}
           label="Kauppa"
+          description="Hinnasta riippumaton virallinen kauppa, ehkä enemmänkin mistä peli ladataan."
           readOnly={isNas || storeUrl?.data.data !== ''}
           style={{
             cursor: isNas || storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
             opacity: isNas || storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
+          withAsterisk
         />
         <TextInput
           name="link"
           control={control}
           label="Linkki"
+          description="Virallinen kauppa tai kotisivut mistä peli ladataan."
           readOnly={storeUrl?.data.data !== ''}
           style={{
             cursor: storeUrl?.data.data !== '' ? 'not-allowed' : 'auto',
             opacity: storeUrl?.data.data !== '' ? 0.5 : 1,
           }}
+          withAsterisk
         />
-        <Textarea name="description" control={control} label="Lisätiedot/Kuvaus" />
-        <NumberInput name="players" control={control} label="Pelaajat" />
+        <Textarea
+          name="description"
+          control={control}
+          label="Lisätiedot/Kuvaus"
+          description="Voi esimerkiksi sisältää lisätietoja mahdollisista LAN-ongelmista."
+        />
+        <NumberInput name="players" control={control} label="Pelaajat" withAsterisk />
         <Checkbox
           name="isLan"
           control={control}

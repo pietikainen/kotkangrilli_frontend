@@ -3,8 +3,8 @@
 import { Button, Group, Loader, Modal, Stack, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
 import useGetLocations from '@/api/useGetLocations.hook';
-import LocationForm from '@/components/LocationForm';
-import LocationTable from '@/components/LocationTable';
+import LocationForm from '@/components/forms/LocationForm';
+import LocationTable from '@/components/tables/LocationTable';
 
 export default function LocationsPage() {
   const { data: locations, isLoading } = useGetLocations();

@@ -8,8 +8,8 @@ import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
 import useGetGames from '@/api/useGetGames.hook';
 import useGetGamesSearch from '@/api/useGetGamesSearch.hook';
 import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
-import GameForm from '@/components/GameForm';
-import GameTable from '@/components/GameTable';
+import GameForm from '@/components/forms/GameForm';
+import GameTable from '@/components/tables/GameTable';
 
 export default function GameSuggestionsPage() {
   const [openedMenu, setOpenedMenu] = useState(false);
