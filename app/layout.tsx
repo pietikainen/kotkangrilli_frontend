@@ -11,8 +11,8 @@ import Providers from '@/components/Providers';
 import theme from '@/theme';
 
 export const metadata: Metadata = {
-  title: 'Kotkan grilin lani hasutus',
-  description: 'Kiva laniportaali',
+  title: 'Kotkangrilli',
+  description: 'Portal',
 };
 
 export default function RootLayout({
@@ -25,7 +25,7 @@ export default function RootLayout({
     <html lang="en">
       <head>
         <ColorSchemeScript defaultColorScheme="auto" />
-        <link rel="shortcut icon" href="/favicon.svg" />
+        <link rel="shortcut icon" href="/favicon.ico" />
         <meta
           name="viewport"
           content="minimum-scale=1, initial-scale=1, width=device-width, user-scalable=no"

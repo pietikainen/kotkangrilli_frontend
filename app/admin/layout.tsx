@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
+import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { AppShell, Burger, Center, Group, Loader, Title } from '@mantine/core';
 import { useDisclosure } from '@mantine/hooks';
@@ -46,7 +47,14 @@ export default function AdminLayout({
         <Group h="100%" justify="space-between" mx="md">
           <Group>
             <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-            <Title>KotkanGrilli</Title>
+            <NextImage
+              src="/kg.jpg"
+              alt="Kotkangrilli logo"
+              width={47.28}
+              height={48}
+              style={{ borderRadius: '0.5rem' }}
+            />
+            <Title>Kotkangrilli</Title>
           </Group>
           <Group>
             <ColorSchemeToggle />

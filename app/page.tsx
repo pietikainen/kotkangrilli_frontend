@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import NextImage from 'next/image';
 import { useRouter } from 'next/navigation';
 import { IconBrandDiscord } from '@tabler/icons-react';
 import { Button, Center, Group, Loader, Stack, Title } from '@mantine/core';
@@ -29,7 +30,14 @@ export default function HomePage() {
     <Center h="100vh">
       <Stack align="center">
         <Group>
-          <Title order={1}>Kotkan grilin lani hasutus</Title>
+          <NextImage
+            src="/kg.jpg"
+            alt="Kotkangrilli logo"
+            width={98.5}
+            height={100}
+            style={{ borderRadius: '0.5rem' }}
+          />
+          <Title order={1}>Kotkangrilli</Title>
           <ColorSchemeToggle />
         </Group>
         <Button

@@ -1,4 +1,4 @@
-Kotkan grilin lani hasutus frontti
+Kotkangrilli Portal
 
 ```bash
 yarn install
