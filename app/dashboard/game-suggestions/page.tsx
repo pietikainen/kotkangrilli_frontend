@@ -39,7 +39,7 @@ export default function GameSuggestionsPage() {
           gamesSearchData.data.data.map(async (foundGame: any) => {
             try {
               const response = await axios.get(
-                `http://localhost:5000/api/games/cover/${foundGame.id}`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/games/cover/${foundGame.id}`,
                 {
                   withCredentials: true,
                 }

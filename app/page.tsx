@@ -34,7 +34,7 @@ export default function HomePage() {
         </Group>
         <Button
           component="a"
-          href="http://localhost:5000/auth/discord"
+          href={`${process.env.NEXT_PUBLIC_API_BASE_URL}/auth/discord`}
           rightSection={<IconBrandDiscord />}
         >
           Kirjaudu sisään
