@@ -15,14 +15,14 @@ function AdminNav({ pathname }: { pathname: string }) {
         label="Tapahtumat"
         active={pathname === '/admin/events'}
       />
-      {/*<NavLink component={Link} href="/admin/users" label="Käyttäjät" />*/}
+      <NavLink component={Link} href="/admin/users" label="Käyttäjät" />
       <NavLink
         component={Link}
         href="/admin/locations"
         label="Paikat"
         active={pathname === '/admin/locations'}
       />
-      {/*user?.data.userlevel > 7 && <NavLink component={Link} href="/admin/games" label="Pelit" />*/}
+      <NavLink component={Link} href="/admin/game-suggestions" label="Peliehdotukset" />
     </>
   );
 }

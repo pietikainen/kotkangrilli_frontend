@@ -4,17 +4,26 @@ import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-
 import { z } from 'zod';
 import { Image } from '@mantine/core';
 import gameSchema from '@/schemas/gameSchema';
+import userSchema from '@/schemas/userSchema';
 import { getLink } from '@/utils/getLink';
 
-export default function GameTable({
+export default function AdminGameTable({
   data,
-  userProfiles,
+  users,
 }: {
   data: z.infer<typeof gameSchema>[];
-  userProfiles: any[];
+  users: z.infer<typeof userSchema>[];
 }) {
   const columns: MRT_ColumnDef<z.infer<typeof gameSchema>>[] = useMemo(
     () => [
+      {
+        accessorKey: 'id',
+        header: 'ID',
+      },
+      {
+        accessorKey: 'externalApiId',
+        header: 'Ulkoinen ID',
+      },
       {
         accessorKey: 'title',
         header: 'Nimi',
@@ -51,19 +60,21 @@ export default function GameTable({
         accessorKey: 'submittedBy',
         header: 'Ehdottaja',
         Cell: ({ cell }) => {
-          const user = userProfiles.find((u: { id: number }) => u.id === cell.getValue<number>());
+          const user = users.find(
+            (u: { id?: number }) => u.id !== undefined && u.id === cell.getValue<number>()
+          );
           return (
             <>
               <Image
                 src={`https://cdn.discordapp.com/avatars/${
-                  user.snowflake
-                }/${user.avatar}.png?size=32`}
-                alt={`${user.username} avatar`}
+                  user?.snowflake
+                }/${user?.avatar}.png?size=32`}
+                alt={`${user?.username} avatar`}
                 mah={32}
                 w="auto"
                 fit="contain"
               />
-              {user.username}
+              {user?.username}
             </>
           );
         },
@@ -71,6 +82,7 @@ export default function GameTable({
     ],
     []
   );
+
   const table = useMantineReactTable({ columns, data });
 
   return <MantineReactTable table={table} />;
