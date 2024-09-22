@@ -7,6 +7,7 @@ import React from 'react';
 import { Metadata } from 'next';
 import { ColorSchemeScript, MantineProvider } from '@mantine/core';
 import { DatesProvider } from '@mantine/dates';
+import { Notifications } from '@mantine/notifications';
 import Providers from '@/components/Providers';
 import theme from '@/theme';
 
@@ -36,6 +37,7 @@ export default function RootLayout({
           <DatesProvider settings={{ locale: 'fi' }}>
             <Providers>{children}</Providers>
           </DatesProvider>
+          <Notifications />
         </MantineProvider>
       </body>
     </html>

@@ -15,14 +15,24 @@ function AdminNav({ pathname }: { pathname: string }) {
         label="Tapahtumat"
         active={pathname === '/admin/events'}
       />
-      <NavLink component={Link} href="/admin/users" label="Käyttäjät" />
+      <NavLink
+        component={Link}
+        href="/admin/users"
+        label="Käyttäjät"
+        active={pathname === '/admin/users'}
+      />
       <NavLink
         component={Link}
         href="/admin/locations"
         label="Paikat"
         active={pathname === '/admin/locations'}
       />
-      <NavLink component={Link} href="/admin/game-suggestions" label="Peliehdotukset" />
+      <NavLink
+        component={Link}
+        href="/admin/game-suggestions"
+        label="Peliehdotukset"
+        active={pathname === '/admin/game-suggestions'}
+      />
     </>
   );
 }

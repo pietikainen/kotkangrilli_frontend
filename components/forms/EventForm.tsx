@@ -1,4 +1,3 @@
-import { useEffect } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { isAxiosError } from 'axios';
@@ -6,17 +5,30 @@ import { useForm } from 'react-hook-form';
 import { Checkbox, DateTimePicker, Select, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
 import { Alert, Button, Loader, Radio, Stack } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import useAddEvent from '@/api/useAddEvent.hook';
 import useGetLocations from '@/api/useGetLocations.hook';
 import useGetUsers from '@/api/useGetUsers.hook';
+import useUpdateEvent from '@/api/useUpdateEvent.hook';
 import eventSchema from '@/schemas/eventSchema';
 
-export default function EventForm({ close }: any) {
+export default function EventForm({
+  close,
+  eventObject,
+}: {
+  close: () => void;
+  eventObject?: z.infer<typeof eventSchema>;
+}) {
+  if (eventObject) {
+    eventObject.startDate = new Date(eventObject.startDate);
+    eventObject.endDate = new Date(eventObject.endDate);
+  }
+
   const { data: users, isLoading } = useGetUsers();
   const { data: locations, isLoading: isLocationsLoading } = useGetLocations();
   const { control, handleSubmit, watch, setValue } = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
-    defaultValues: {
+    defaultValues: eventObject || {
       title: '',
       description: '',
       location: undefined,
@@ -32,49 +44,88 @@ export default function EventForm({ close }: any) {
   });
 
   const addEvent = useAddEvent();
+  const updateEvent = useUpdateEvent();
 
   async function onSubmit(values: z.infer<typeof eventSchema>) {
-    addEvent.mutate({
-      title: values.title,
-      description: values.description,
-      location: values.location,
-      startDate: values.startDate,
-      endDate: values.endDate,
-      winnerGamesCount: values.winnerGamesCount,
-      votingOpen: values.votingOpen,
-      active: values.active,
-      lanMaster: values.lanMaster,
-      paintCompoWinner: values.paintCompoWinner,
-      organizer: values.organizer,
-    });
-  }
-
-  useEffect(() => {
-    if (addEvent.isSuccess) {
-      close();
+    if (values.lanMaster === 0) {
+      values.lanMaster = undefined;
     }
-  }, [addEvent.isSuccess]);
+    if (values.paintCompoWinner === 0) {
+      values.paintCompoWinner = undefined;
+    }
+    if (values.organizer === 0) {
+      values.organizer = undefined;
+    }
+    if (eventObject?.id) {
+      updateEvent.mutate(
+        { eventId: eventObject.id, event: values },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Tapahtuma päivitetty',
+              message: 'Tapahtuma on päivitetty onnistuneesti',
+              color: 'green',
+            });
+            close();
+          },
+          onError: () => {
+            notifications.show({
+              title: 'Virhe',
+              message: 'Tapahtumaa ei voitu päivittää',
+              color: 'red',
+            });
+          },
+        }
+      );
+    } else {
+      addEvent.mutate(values, {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Tapahtuma lisätty',
+            message: 'Tapahtuma on lisätty onnistuneesti',
+            color: 'green',
+          });
+          close();
+        },
+        onError: () => {
+          notifications.show({
+            title: 'Virhe',
+            message: 'Tapahtumaa ei voitu lisätä',
+            color: 'red',
+          });
+        },
+      });
+    }
+  }
 
   if (isLoading || isLocationsLoading) return <Loader />;
 
   const winnerGamesCount = watch('winnerGamesCount', 4);
 
+  const selectUsers = users?.data.map((user: any) => ({
+    value: String(user.id),
+    label: user.username,
+  }));
+
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Stack>
-        <TextInput name="title" control={control} label="Otsikko" />
+        <TextInput name="title" control={control} label="Otsikko" withAsterisk />
         <Textarea name="description" control={control} label="Kuvaus" />
         <Select
           name="location"
-          control={control}
           label="Paikka"
+          control={control}
           data={locations?.data.data.map((location: any) => ({
             value: String(location.id),
             label: location.name,
           }))}
+          value={String(watch('location'))}
+          onChange={(selected) => setValue('location', Number(selected))}
+          withAsterisk
         />
-        <DateTimePicker name="startDate" control={control} label="Alkuaika" />
-        <DateTimePicker name="endDate" control={control} label="Loppuaika" />
+        <DateTimePicker name="startDate" control={control} label="Alkuaika" withAsterisk />
+        <DateTimePicker name="endDate" control={control} label="Loppuaika" withAsterisk />
         <Radio.Group
           label="Pelien määrä"
           value={String(winnerGamesCount)}
@@ -88,32 +139,35 @@ export default function EventForm({ close }: any) {
         <Checkbox name="active" control={control} label="Aktiivinen" />
         <Select
           name="lanMaster"
+          label="LAN mestari"
           control={control}
-          label="LAN mestart"
-          data={users?.data.map((user: any) => ({
-            value: String(user.id),
-            label: user.username,
-          }))}
+          data={selectUsers}
+          value={String(watch('lanMaster'))}
+          onChange={(selected) => setValue('lanMaster', Number(selected))}
+          clearable
+          allowDeselect
         />
         <Select
           name="paintCompoWinner"
+          label="Paint compo voittaja"
           control={control}
-          label="Paint compou winner"
-          data={users?.data.map((user: any) => ({
-            value: String(user.id),
-            label: user.username,
-          }))}
+          data={selectUsers}
+          value={String(watch('paintCompoWinner'))}
+          onChange={(selected) => setValue('paintCompoWinner', Number(selected))}
+          clearable
+          allowDeselect
         />
         <Select
           name="organizer"
-          control={control}
           label="Organisaattori"
-          data={users?.data.map((user: any) => ({
-            value: String(user.id),
-            label: user.username,
-          }))}
+          control={control}
+          data={selectUsers}
+          value={String(watch('organizer'))}
+          onChange={(selected) => setValue('organizer', Number(selected))}
+          clearable
+          allowDeselect
         />
-        <Button type="submit" loading={addEvent.isPending}>
+        <Button type="submit" loading={addEvent.isPending || updateEvent.isPending}>
           Lähetä
         </Button>
         {isAxiosError(addEvent.error) && addEvent.error?.response && (

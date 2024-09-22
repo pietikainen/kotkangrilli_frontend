@@ -4,9 +4,10 @@ import 'dayjs/locale/fi';
 
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useMemo } from 'react';
+import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-react-table';
 import { z } from 'zod';
-import { Image } from '@mantine/core';
+import { ActionIcon, Image } from '@mantine/core';
 import eventSchema from '@/schemas/eventSchema';
 import locationSchema from '@/schemas/locationSchema';
 import userSchema from '@/schemas/userSchema';
@@ -34,10 +35,14 @@ export default function EventTable({
   data,
   locations,
   users,
+  onEdit,
+  onDelete,
 }: {
   data: z.infer<typeof eventSchema>[];
   locations: z.infer<typeof locationSchema>[];
   users: z.infer<typeof userSchema>[];
+  onEdit: (row: z.infer<typeof eventSchema>) => void;
+  onDelete: (row: z.infer<typeof eventSchema>) => void;
 }) {
   const columns: MRT_ColumnDef<z.infer<typeof eventSchema>>[] = useMemo(
     () => [
@@ -90,6 +95,11 @@ export default function EventTable({
         Cell: ({ cell }) => (cell.getValue() ? 'Kyllä' : 'Ei'),
       },
       {
+        accessorKey: 'winnerGamesCount',
+        header: 'Pelejä',
+        Cell: ({ cell }) => cell.getValue() || '—',
+      },
+      {
         accessorKey: 'lanMaster',
         header: 'LAN-mestari',
         Cell: ({ cell }) => {
@@ -99,7 +109,7 @@ export default function EventTable({
         },
       },
       {
-        accessorkey: 'paintCompoWinner',
+        accessorKey: 'paintCompoWinner',
         header: 'Paintcompo voittaja',
         Cell: ({ cell }) => {
           const userId = cell.getValue<number>();
@@ -115,6 +125,20 @@ export default function EventTable({
           if (!userId) return '—';
           return <User userId={userId} users={users} />;
         },
+      },
+      {
+        id: 'actions',
+        header: 'Toiminnot',
+        Cell: ({ row }) => (
+          <div>
+            <ActionIcon variant="filled" aria-label="Muokkaa" onClick={() => onEdit(row.original)}>
+              <IconEdit />
+            </ActionIcon>
+            <ActionIcon variant="filled" aria-label="Poista" onClick={() => onDelete(row.original)}>
+              <IconTrash />
+            </ActionIcon>
+          </div>
+        ),
       },
     ],
     []

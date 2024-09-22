@@ -11,9 +11,9 @@ const eventSchema = z
     endDate: z.date(),
     votingOpen: z.boolean(),
     active: z.boolean(),
-    lanMaster: z.coerce.number().min(1).optional(),
-    paintCompoWinner: z.coerce.number().min(1).optional(),
-    organizer: z.coerce.number().min(1).optional(),
+    lanMaster: z.coerce.number().optional(),
+    paintCompoWinner: z.coerce.number().optional(),
+    organizer: z.coerce.number().optional(),
   })
   .refine((data) => data.endDate > data.startDate, {
     message: 'Loppumispäivän tulee olla myöhemmin kuin alkamispäivän',
