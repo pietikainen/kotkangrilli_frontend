@@ -1,7 +1,4 @@
 import dayjs from 'dayjs';
-
-import 'dayjs/locale/fi';
-
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useMemo } from 'react';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
@@ -11,6 +8,8 @@ import { ActionIcon, Image } from '@mantine/core';
 import eventSchema from '@/schemas/eventSchema';
 import locationSchema from '@/schemas/locationSchema';
 import userSchema from '@/schemas/userSchema';
+
+import 'dayjs/locale/fi';
 
 dayjs.locale('fi');
 dayjs.extend(localizedFormat);

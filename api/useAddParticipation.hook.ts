@@ -20,7 +20,7 @@ export default function useAddParticipation() {
     mutationFn: ({ eventId, arrivalDate }: { eventId: number; arrivalDate: string }) =>
       postParticipation(eventId, arrivalDate),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['patricipations'] });
+      queryClient.invalidateQueries({ queryKey: ['participations'] });
     },
   });
 }
