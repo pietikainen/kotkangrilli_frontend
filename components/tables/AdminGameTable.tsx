@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
-import { IconPhotoOff } from '@tabler/icons-react';
+import { IconEdit, IconPhotoOff, IconTrash } from '@tabler/icons-react';
 import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-react-table';
 import { z } from 'zod';
-import { Image } from '@mantine/core';
+import { ActionIcon, Group, Image } from '@mantine/core';
 import gameSchema from '@/schemas/gameSchema';
 import userSchema from '@/schemas/userSchema';
 import { getLink } from '@/utils/getLink';
@@ -10,9 +10,13 @@ import { getLink } from '@/utils/getLink';
 export default function AdminGameTable({
   data,
   users,
+  onEdit,
+  onDelete,
 }: {
   data: z.infer<typeof gameSchema>[];
   users: z.infer<typeof userSchema>[];
+  onEdit: (row: z.infer<typeof gameSchema>) => void;
+  onDelete: (row: z.infer<typeof gameSchema>) => void;
 }) {
   const columns: MRT_ColumnDef<z.infer<typeof gameSchema>>[] = useMemo(
     () => [
@@ -78,6 +82,19 @@ export default function AdminGameTable({
             </>
           );
         },
+      },
+      {
+        header: 'Toiminnot',
+        Cell: ({ row }) => (
+          <Group>
+            <ActionIcon variant="filled" aria-label="Muokkaa" onClick={() => onEdit(row.original)}>
+              <IconEdit />
+            </ActionIcon>
+            <ActionIcon variant="filled" aria-label="Poista" onClick={() => onDelete(row.original)}>
+              <IconTrash />
+            </ActionIcon>
+          </Group>
+        ),
       },
     ],
     []

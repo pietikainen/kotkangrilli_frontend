@@ -4,7 +4,7 @@ import { useMemo } from 'react';
 import { IconEdit, IconTrash } from '@tabler/icons-react';
 import { MantineReactTable, MRT_ColumnDef, useMantineReactTable } from 'mantine-react-table';
 import { z } from 'zod';
-import { ActionIcon, Image } from '@mantine/core';
+import { ActionIcon, Group, Image } from '@mantine/core';
 import eventSchema from '@/schemas/eventSchema';
 import locationSchema from '@/schemas/locationSchema';
 import userSchema from '@/schemas/userSchema';
@@ -129,14 +129,14 @@ export default function EventTable({
         id: 'actions',
         header: 'Toiminnot',
         Cell: ({ row }) => (
-          <div>
+          <Group>
             <ActionIcon variant="filled" aria-label="Muokkaa" onClick={() => onEdit(row.original)}>
               <IconEdit />
             </ActionIcon>
             <ActionIcon variant="filled" aria-label="Poista" onClick={() => onDelete(row.original)}>
               <IconTrash />
             </ActionIcon>
-          </div>
+          </Group>
         ),
       },
     ],

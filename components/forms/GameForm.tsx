@@ -6,8 +6,10 @@ import { useForm } from 'react-hook-form';
 import { Checkbox, NumberInput, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
 import { Alert, Button, Checkbox as CheckboxM, Loader, Stack, Text } from '@mantine/core';
+import { notifications } from '@mantine/notifications';
 import useAddGame from '@/api/useAddGame.hook';
 import useGetStoreUrl from '@/api/useGetStoreUrl.hook';
+import useUpdateGame from '@/api/useUpdateGame.hook';
 import gameSchema from '@/schemas/gameSchema';
 
 function getStoreName(url: string) {
@@ -21,14 +23,18 @@ function getStoreName(url: string) {
   return 'Tuntematon';
 }
 
-export default function GameForm({ game, close, setTitle }: any) {
-  const { data: storeUrl, isLoading } = useGetStoreUrl(game.id);
+export default function GameForm({ game, searchedGame, close, setTitle }: any) {
+  if (game) {
+    game.price /= 100;
+  }
+
+  const { data: storeUrl, isLoading } = useGetStoreUrl(searchedGame?.id || game?.externalApiId);
   const { control, handleSubmit, setValue } = useForm<z.infer<typeof gameSchema>>({
     resolver: zodResolver(gameSchema),
-    defaultValues: {
-      externalApiId: game.id,
-      image: game.coverImageUrl,
-      title: game.name,
+    defaultValues: game || {
+      externalApiId: searchedGame.id,
+      image: searchedGame.coverImageUrl,
+      title: searchedGame.name,
       price: 0,
       store: '',
       description: '',
@@ -37,31 +43,73 @@ export default function GameForm({ game, close, setTitle }: any) {
       isLan: true,
     },
   });
-  const [isNas, setIsNas] = useState(false);
+  const [isNas, setIsNas] = useState(game?.store === 'NAS');
 
   const addGame = useAddGame();
+  const updateGame = useUpdateGame();
 
   async function onSubmit(values: z.infer<typeof gameSchema>) {
-    addGame.mutate({
-      externalApiId: values.externalApiId,
-      title: values.title,
-      image: values.image,
-      price: isNas ? 0 : values.price * 100,
-      link: values.link,
-      store: isNas ? 'NAS' : values.store,
-      players: values.players,
-      isLan: values.isLan,
-      description: values.description,
-    });
-  }
-
-  useEffect(() => {
-    if (addGame.isSuccess) {
-      setIsNas(false);
-      setTitle('');
-      close();
+    if (game) {
+      values.price = isNas ? 0 : values.price * 100;
+      values.store = isNas ? 'NAS' : values.store;
+      updateGame.mutate(
+        {
+          gameId: game.id,
+          game: values,
+        },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Peli päivitetty',
+              message: 'Peli on päivitetty onnistuneesti',
+              color: 'green',
+            });
+            close();
+          },
+          onError: () => {
+            notifications.show({
+              title: 'Virhe',
+              message: 'Peliä ei voitu päivittää',
+              color: 'red',
+            });
+          },
+        }
+      );
+    } else {
+      addGame.mutate(
+        {
+          externalApiId: values.externalApiId,
+          title: values.title,
+          image: values.image,
+          price: isNas ? 0 : values.price * 100,
+          link: values.link,
+          store: isNas ? 'NAS' : values.store,
+          players: values.players,
+          isLan: values.isLan,
+          description: values.description,
+        },
+        {
+          onSuccess: () => {
+            notifications.show({
+              title: 'Peli lisätty',
+              message: 'Peli on lisätty onnistuneesti',
+              color: 'green',
+            });
+            close();
+            setIsNas(false);
+            setTitle('');
+          },
+          onError: () => {
+            notifications.show({
+              title: 'Virhe',
+              message: 'Peliä ei voitu lisätä',
+              color: 'red',
+            });
+          },
+        }
+      );
     }
-  }, [addGame.isSuccess]);
+  }
 
   useEffect(() => {
     if (isNas) {

@@ -28,6 +28,11 @@ export default function LocationsPage() {
     }
   }, [opened, deleteOpened]);
 
+  function onEdit(row: z.infer<typeof eventSchema>) {
+    setEventObject(row);
+    open();
+  }
+
   function onDelete(row: z.infer<typeof eventSchema>) {
     setEventObject(row);
     openDelete();
@@ -59,11 +64,6 @@ export default function LocationsPage() {
         },
       });
     }
-  }
-
-  function onEdit(row: z.infer<typeof eventSchema>) {
-    setEventObject(row);
-    open();
   }
 
   return (
@@ -100,6 +100,7 @@ export default function LocationsPage() {
         title="Poista tapahtuma"
       >
         <Text>Haluatko varmasti poistaa tapahtuman?</Text>
+        <h3>{eventObject?.title}</h3>
         <Group>
           <Button
             onClick={() => {

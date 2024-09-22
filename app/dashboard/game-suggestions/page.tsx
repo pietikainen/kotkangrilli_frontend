@@ -134,7 +134,7 @@ export default function GameSuggestionsPage() {
       )}
       {game && (
         <Modal opened={opened} onClose={close} title={game.name}>
-          <GameForm game={game} close={close} setTitle={setTitle} />
+          <GameForm searchedGame={game} close={close} setTitle={setTitle} />
         </Modal>
       )}
     </Stack>
