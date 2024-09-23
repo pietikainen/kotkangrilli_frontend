@@ -1,7 +1,8 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AppShell, Divider, NavLink } from '@mantine/core';
+import { AppShell, Divider, Loader, NavLink } from '@mantine/core';
+import useGetEvents from '@/api/useGetEvents.hook';
 import useGetUser from '@/api/useGetUser.hook';
 
 function AdminNav({ pathname }: { pathname: string }) {
@@ -39,7 +40,14 @@ function AdminNav({ pathname }: { pathname: string }) {
 
 export default function Navbar() {
   const { data: user } = useGetUser();
+  const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const pathname = usePathname();
+
+  if (isLoadingEvents) return <Loader />;
+
+  const activeEvent = events?.data.data.find(
+    (event: { active: boolean; votingOpen: boolean }) => event.active && event.votingOpen
+  );
 
   return (
     <AppShell.Navbar p="md">
@@ -49,12 +57,23 @@ export default function Navbar() {
         label="Etusivu"
         active={pathname === '/dashboard'}
       />
-      <NavLink
-        component={Link}
-        href="/dashboard/game-suggestions"
-        label="Peliehdotukset"
-        active={pathname === '/dashboard/game-suggestions'}
-      />
+      {!activeEvent && (
+        <NavLink
+          component={Link}
+          href="/dashboard/game-suggestions"
+          label="Peliehdotukset"
+          active={pathname === '/dashboard/game-suggestions'}
+        />
+      )}
+      {activeEvent && (
+        <NavLink
+          component={Link}
+          href={`/dashboard/vote/${activeEvent.id}`}
+          label="Äänestys"
+          active={pathname.startsWith('/dashboard/vote/')}
+        />
+      )}
+
       {user?.data.userlevel > 7 && <AdminNav pathname={pathname} />}
     </AppShell.Navbar>
   );

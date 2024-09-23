@@ -1,10 +1,12 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import Link from 'next/link';
 import { IconPhotoOff } from '@tabler/icons-react';
 import axios from 'axios';
-import { Group, Image, Loader, Menu, Modal, Stack, TextInput, Title } from '@mantine/core';
+import { Anchor, Group, Image, Loader, Menu, Modal, Stack, TextInput, Title } from '@mantine/core';
 import { useDebouncedValue, useDisclosure } from '@mantine/hooks';
+import useGetEvents from '@/api/useGetEvents.hook';
 import useGetGames from '@/api/useGetGames.hook';
 import useGetGamesSearch from '@/api/useGetGamesSearch.hook';
 import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
@@ -30,6 +32,7 @@ export default function GameSuggestionsPage() {
     isFetching: isFetchingGamesSearch,
     isSuccess: isSuccessGamesSearch,
   } = useGetGamesSearch(debounced);
+  const { data: events, isLoading: isLoadingEvents } = useGetEvents();
 
   useEffect(() => {
     async function fetchCoverImages() {
@@ -71,6 +74,23 @@ export default function GameSuggestionsPage() {
 
   const games = data?.data.data || [];
   const userProfiles = upData?.data || [];
+
+  if (isLoadingEvents) return <Loader />;
+
+  const activeEvent = events?.data.data.find(
+    (event: { active: boolean; votingOpen: boolean }) => event.active && event.votingOpen
+  );
+
+  if (activeEvent) {
+    return (
+      <div>
+        Äänestys on avoinna eikä peliehdotuksia voi lisätä.{' '}
+        <Anchor component={Link} href={`/dashboard/vote/${activeEvent.id}`}>
+          Siirry äänestyssivulle
+        </Anchor>
+      </div>
+    );
+  }
 
   return (
     <Stack>
