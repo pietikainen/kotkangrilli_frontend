@@ -96,7 +96,7 @@ export default function EventTable({
       {
         accessorKey: 'winnerGamesCount',
         header: 'Pelejä',
-        Cell: ({ cell }) => cell.getValue() || '—',
+        Cell: ({ cell }) => <span>{cell.getValue<number | undefined>() || '—'}</span>,
       },
       {
         accessorKey: 'lanMaster',

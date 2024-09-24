@@ -2,9 +2,9 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { IconInfoCircle } from '@tabler/icons-react';
 import { isAxiosError } from 'axios';
 import { useForm } from 'react-hook-form';
-import { Checkbox, DateTimePicker, Select, Textarea, TextInput } from 'react-hook-form-mantine';
+import { Checkbox, DateTimePicker, Textarea, TextInput } from 'react-hook-form-mantine';
 import { z } from 'zod';
-import { Alert, Button, Loader, Radio, Stack } from '@mantine/core';
+import { Alert, Button, Loader, Radio, Select, Stack } from '@mantine/core';
 import { notifications } from '@mantine/notifications';
 import useAddEvent from '@/api/useAddEvent.hook';
 import useGetLocations from '@/api/useGetLocations.hook';
@@ -115,7 +115,6 @@ export default function EventForm({
         <Select
           name="location"
           label="Paikka"
-          control={control}
           data={locations?.data.data.map((location: any) => ({
             value: String(location.id),
             label: location.name,
@@ -140,7 +139,6 @@ export default function EventForm({
         <Select
           name="lanMaster"
           label="LAN mestari"
-          control={control}
           data={selectUsers}
           value={String(watch('lanMaster'))}
           onChange={(selected) => setValue('lanMaster', Number(selected))}
@@ -150,7 +148,6 @@ export default function EventForm({
         <Select
           name="paintCompoWinner"
           label="Paint compo voittaja"
-          control={control}
           data={selectUsers}
           value={String(watch('paintCompoWinner'))}
           onChange={(selected) => setValue('paintCompoWinner', Number(selected))}
@@ -160,7 +157,6 @@ export default function EventForm({
         <Select
           name="organizer"
           label="Organisaattori"
-          control={control}
           data={selectUsers}
           value={String(watch('organizer'))}
           onChange={(selected) => setValue('organizer', Number(selected))}
