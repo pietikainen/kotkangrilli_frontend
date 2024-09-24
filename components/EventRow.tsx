@@ -3,8 +3,8 @@ import localizedFormat from 'dayjs/plugin/localizedFormat';
 import { useState } from 'react';
 import Link from 'next/link';
 import { z } from 'zod';
-import { Anchor, Button, Group, Modal, SegmentedControl, Table, Text } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { Anchor, Button, Group, Modal, SegmentedControl, Table } from '@mantine/core';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import useAddParticipation from '@/api/useAddParticipation.hook';
 import useDeleteParticipation from '@/api/useDeleteParticipation.hook';
@@ -30,6 +30,7 @@ export default function EventRow({
   const [arrivalDate, setArrivalDate] = useState(0);
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
+  const isMobile = useMediaQuery('(max-width: 50em)');
 
   const addParticipation = useAddParticipation();
   const deleteParticipation = useDeleteParticipation();
@@ -97,8 +98,15 @@ export default function EventRow({
         {!participations?.data.data.some((p: { userId: number }) => p.userId === user?.data.id) ? (
           <>
             <Button onClick={open}>Ilmoittaudu</Button>
-            <Modal opened={opened} onClose={close} title="Ilmoittautuminen">
-              <Text>Saapumispäivä</Text>
+            <Modal
+              opened={opened}
+              onClose={close}
+              title="Ilmoittautuminen"
+              fullScreen={isMobile}
+              transitionProps={{ transition: 'fade', duration: 200 }}
+            >
+              <h3>{lanEvent.title}</h3>
+              <h4>Saapumispäivä</h4>
               <SegmentedControl
                 value={String(arrivalDate)}
                 onChange={(val) => setArrivalDate(Number(val))}
@@ -108,9 +116,11 @@ export default function EventRow({
                   { label: 'Lauantai', value: '2' },
                 ]}
               />
-              <Group>
+              <Group mt={40}>
                 <Button onClick={onAddParticipation}>Ilmoittaudu</Button>
-                <Button onClick={close}>Peruuta</Button>
+                <Button onClick={close} variant="default">
+                  Peruuta
+                </Button>
               </Group>
             </Modal>
           </>
@@ -122,14 +132,28 @@ export default function EventRow({
               </Anchor>
             )}
             <Button onClick={openDelete}>Peru ilmoittautuminen</Button>
-            <Modal opened={deleteOpened} onClose={closeDelete} title="Peru ilmoittautuminen">
+            <Modal
+              opened={deleteOpened}
+              onClose={closeDelete}
+              title="Peru ilmoittautuminen"
+              fullScreen={isMobile}
+              transitionProps={{
+                transition: 'fade',
+                duration: 200,
+              }}
+            >
+              <h3>{lanEvent.title}</h3>
               <p>
                 Haluatko varmasti perua ilmoittautumisen? Tämä toiminto poistaa myös annetut
                 peliäänesi.
               </p>
-              <Group>
-                <Button onClick={onDeleteParticipation}>Peru ilmoittautuminen</Button>
-                <Button onClick={closeDelete}>Peruuta</Button>
+              <Group mt={40}>
+                <Button onClick={onDeleteParticipation} color="red">
+                  Peru ilmoittautuminen
+                </Button>
+                <Button onClick={closeDelete} variant="default">
+                  Peruuta
+                </Button>
               </Group>
             </Modal>
           </Group>

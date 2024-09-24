@@ -27,7 +27,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <Paper shadow="xs" p="xl">
+    <Paper shadow="xs" p={{ base: 'xs', sm: 'md', lg: 'xl' }}>
       <h2>Tulevat tapahtumat</h2>
       {upcomingEvents.length > 0 ? (
         <UpcomingEventTable data={upcomingEvents} locations={locations?.data.data} />
