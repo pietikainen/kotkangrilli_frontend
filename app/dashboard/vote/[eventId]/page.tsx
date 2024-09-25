@@ -21,6 +21,8 @@ import useAddVote from '@/api/useAddVote.hook';
 import useDeleteVote from '@/api/useDeleteVote.hook';
 import useGetEvent from '@/api/useGetEvent.hook';
 import useGetGames from '@/api/useGetGames.hook';
+import useGetParticipationsByEventId from '@/api/useGetParticipationsByEventId.hook';
+import useGetUser from '@/api/useGetUser.hook';
 import useGetVotes from '@/api/useGetVotes.hook';
 import { getLink } from '@/utils/getLink';
 
@@ -35,9 +37,12 @@ function shuffleArray(array: any[]) {
 
 export default function VotePage({ params }: { params: { eventId: string } }) {
   const eventId = parseInt(params.eventId, 10);
+  const { data: user } = useGetUser();
   const { data: event, isLoading } = useGetEvent(eventId);
   const { data: games, isLoading: isLoadingGames } = useGetGames();
   const { data: votes, isLoading: isLoadingVotes } = useGetVotes(eventId);
+  const { data: participations, isLoading: isLoadingParticipations } =
+    useGetParticipationsByEventId(eventId);
 
   const addVote = useAddVote();
   const deleteVote = useDeleteVote();
@@ -87,16 +92,25 @@ export default function VotePage({ params }: { params: { eventId: string } }) {
     setGamesToVoteRandomized(newGamesToVoteRandomized);
   }, [games, votes, filter]);
 
-  if (isLoading || isLoadingGames || isLoadingVotes) return <Loader />;
+  if (isLoading || isLoadingGames || isLoadingVotes || isLoadingParticipations) return <Loader />;
   if (!event || event.data.data.active !== true) return <div>Tapahtumaa ei löytynyt</div>;
   if (!event.data.data.votingOpen) return <div>Äänestys ei ole avoinna</div>;
   if (!games || !votes) return <div>Tapahtumaa ei löytynyt</div>;
+
+  const participation = participations?.data.data.find(
+    (p: { userId: number }) => p.userId === user?.data.id
+  );
+
+  if (!participation) return <div>Ilmoittaudu ensin tapahtumaan etusivulla.</div>;
 
   return (
     <>
       <h2>Peliäänestys - {event.data.data.title}</h2>
       <Group>
-        <p>Voit antaa {event.data.data.winnerGamesCount} ääntä</p>
+        <p>
+          Voit antaa yhteensä {event.data.data.winnerGamesCount} ääntä. Pelit esitetään
+          sattumanvaraisessa järjestyksessä.
+        </p>
         <TextInput
           placeholder="Hae peliä"
           value={filter}

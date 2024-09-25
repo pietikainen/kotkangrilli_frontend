@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { AppShell, Divider, Loader, NavLink } from '@mantine/core';
 import useGetEvents from '@/api/useGetEvents.hook';
+import useGetParticipationsByUserId from '@/api/useGetParticipationsByUserId.hook';
 import useGetUser from '@/api/useGetUser.hook';
 
 function AdminNav({ pathname }: { pathname: string }) {
@@ -42,12 +43,19 @@ export default function Navbar() {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const pathname = usePathname();
+  const { data: participations, isLoading: isLoadingParticipations } = useGetParticipationsByUserId(
+    user?.data.id
+  );
 
-  if (isLoadingEvents) return <Loader />;
+  if (isLoadingEvents || isLoadingParticipations) return <Loader />;
 
   const activeEvent = events?.data.data.find(
     (event: { active: boolean; votingOpen: boolean }) => event.active && event.votingOpen
   );
+
+  const isParticipating =
+    activeEvent &&
+    participations?.data.data.find((p: { eventId: number }) => p.eventId === activeEvent.id);
 
   return (
     <AppShell.Navbar p="md">
@@ -69,8 +77,9 @@ export default function Navbar() {
         <NavLink
           component={Link}
           href={`/dashboard/vote/${activeEvent.id}`}
-          label="Äänestys"
+          label={isParticipating ? 'Peliäänestys' : 'Peliäänestys (ilmoittaudu ensin)'}
           active={pathname.startsWith('/dashboard/vote/')}
+          disabled={!isParticipating}
         />
       )}
 

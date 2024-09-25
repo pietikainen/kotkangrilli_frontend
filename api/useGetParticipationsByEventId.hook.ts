@@ -7,7 +7,7 @@ async function getParticipations(eventId: number | undefined) {
   });
 }
 
-export default function useGetParticipations(eventId: number | undefined) {
+export default function useGetParticipationsByEventId(eventId: number | undefined) {
   return useQuery({
     queryKey: ['participations'],
     queryFn: () => getParticipations(eventId),

@@ -8,7 +8,7 @@ import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import { notifications } from '@mantine/notifications';
 import useAddParticipation from '@/api/useAddParticipation.hook';
 import useDeleteParticipation from '@/api/useDeleteParticipation.hook';
-import useGetParticipations from '@/api/useGetParticipations.hook';
+import useGetParticipationsByEventId from '@/api/useGetParticipationsByEventId.hook';
 import useGetUser from '@/api/useGetUser.hook';
 import eventSchema from '@/schemas/eventSchema';
 import locationSchema from '@/schemas/locationSchema';
@@ -26,7 +26,7 @@ export default function EventRow({
   locations: z.infer<typeof locationSchema>[];
 }) {
   const { data: user } = useGetUser();
-  const { data: participations } = useGetParticipations(lanEvent.id);
+  const { data: participations } = useGetParticipationsByEventId(lanEvent.id);
   const [arrivalDate, setArrivalDate] = useState(0);
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteOpened, { open: openDelete, close: closeDelete }] = useDisclosure(false);
