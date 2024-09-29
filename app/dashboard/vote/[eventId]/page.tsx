@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { IconInfoSmall, IconUser } from '@tabler/icons-react';
+import { IconDeviceGamepad, IconInfoSmall } from '@tabler/icons-react';
 import {
   ActionIcon,
   AspectRatio,
@@ -101,16 +101,21 @@ export default function VotePage({ params }: { params: { eventId: string } }) {
     (p: { userId: number }) => p.userId === user?.data.id
   );
 
-  if (!participation) return <div>Ilmoittaudu ensin tapahtumaan etusivulla.</div>;
-
   return (
     <>
       <h2>Peliäänestys - {event.data.data.title}</h2>
       <Group>
-        <p>
-          Voit antaa yhteensä {event.data.data.winnerGamesCount} ääntä. Pelit esitetään
-          sattumanvaraisessa järjestyksessä.
-        </p>
+        {participation ? (
+          <p>
+            Voit antaa yhteensä {event.data.data.winnerGamesCount} ääntä. Pelit esitetään
+            sattumanvaraisessa järjestyksessä.
+          </p>
+        ) : (
+          <p>
+            Voit äänestää ilmoittautumisen jälkeen. Pelit esitetään sattumanvaraisessa
+            järjestyksessä.
+          </p>
+        )}
         <TextInput
           placeholder="Hae peliä"
           value={filter}
@@ -188,7 +193,7 @@ export default function VotePage({ params }: { params: { eventId: string } }) {
                 )}
                 <Group gap={2}>
                   {game.players}
-                  <IconUser />
+                  <IconDeviceGamepad />
                 </Group>
               </Group>
 
@@ -200,6 +205,7 @@ export default function VotePage({ params }: { params: { eventId: string } }) {
                     );
                   }}
                   color="red"
+                  disabled={!participation}
                 >
                   Poista ääni
                 </Button>
@@ -221,7 +227,9 @@ export default function VotePage({ params }: { params: { eventId: string } }) {
                       }
                     );
                   }}
-                  disabled={votes.data.data.length >= event.data.data.winnerGamesCount}
+                  disabled={
+                    votes.data.data.length >= event.data.data.winnerGamesCount || !participation
+                  }
                 >
                   Äänestä
                 </Button>

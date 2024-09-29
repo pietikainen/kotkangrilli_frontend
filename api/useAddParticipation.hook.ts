@@ -21,6 +21,7 @@ export default function useAddParticipation() {
       postParticipation(eventId, arrivalDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['participations'] });
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
     },
   });
 }

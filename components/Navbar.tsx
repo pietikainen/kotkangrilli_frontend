@@ -1,10 +1,11 @@
 import React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { AppShell, Divider, Loader, NavLink } from '@mantine/core';
+import { AppShell, Divider, Group, Loader, NavLink } from '@mantine/core';
 import useGetEvents from '@/api/useGetEvents.hook';
-import useGetParticipationsByUserId from '@/api/useGetParticipationsByUserId.hook';
 import useGetUser from '@/api/useGetUser.hook';
+import ColorSchemeToggle from '@/components/ColorSchemeToggle';
+import UserMenu from '@/components/UserMenu';
 
 function AdminNav({ pathname }: { pathname: string }) {
   return (
@@ -43,19 +44,12 @@ export default function Navbar() {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const pathname = usePathname();
-  const { data: participations, isLoading: isLoadingParticipations } = useGetParticipationsByUserId(
-    user?.data.id
-  );
 
-  if (isLoadingEvents || isLoadingParticipations) return <Loader />;
+  if (isLoadingEvents) return <Loader />;
 
   const activeEvent = events?.data.data.find(
     (event: { active: boolean; votingOpen: boolean }) => event.active && event.votingOpen
   );
-
-  const isParticipating =
-    activeEvent &&
-    participations?.data.data.find((p: { eventId: number }) => p.eventId === activeEvent.id);
 
   return (
     <AppShell.Navbar p="md">
@@ -77,13 +71,24 @@ export default function Navbar() {
         <NavLink
           component={Link}
           href={`/dashboard/vote/${activeEvent.id}`}
-          label={isParticipating ? 'Peliäänestys' : 'Peliäänestys (ilmoittaudu ensin)'}
+          label="Peliäänestys"
           active={pathname.startsWith('/dashboard/vote/')}
-          disabled={!isParticipating}
         />
       )}
-
+      {activeEvent && (
+        <NavLink
+          component={Link}
+          href={`/dashboard/meals/${activeEvent.id}`}
+          label="Ateriat"
+          active={pathname.startsWith('/dashboard/meals/')}
+        />
+      )}
       {user?.data.userlevel > 7 && <AdminNav pathname={pathname} />}
+      <Divider hiddenFrom="sm" />
+      <Group hiddenFrom="sm" mt="md">
+        <ColorSchemeToggle />
+        <UserMenu />
+      </Group>
     </AppShell.Navbar>
   );
 }

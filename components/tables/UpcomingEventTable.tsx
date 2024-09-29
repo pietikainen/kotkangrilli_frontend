@@ -25,11 +25,8 @@ export default function UpcomingEventTable({
       <Table>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>Nimi</Table.Th>
-            <Table.Th>Kuvaus</Table.Th>
-            <Table.Th>Paikka</Table.Th>
-            <Table.Th>Alkaa</Table.Th>
-            <Table.Th>Päättyy</Table.Th>
+            <Table.Th>Tapahtuma</Table.Th>
+            <Table.Th>Koska?</Table.Th>
             <Table.Th>Äänestys auki</Table.Th>
           </Table.Tr>
         </Table.Thead>

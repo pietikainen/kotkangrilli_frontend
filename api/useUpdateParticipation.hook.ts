@@ -21,6 +21,7 @@ export default function useUpdateParticipation() {
       putParticipation(id, arrivalDate),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['participations'] });
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
     },
   });
 }

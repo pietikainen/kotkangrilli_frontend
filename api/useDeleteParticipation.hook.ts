@@ -14,6 +14,7 @@ export default function useDeleteParticipation() {
     mutationFn: (id: number) => deleteParticipation(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['participations'] });
+      queryClient.invalidateQueries({ queryKey: ['participants'] });
     },
   });
 }

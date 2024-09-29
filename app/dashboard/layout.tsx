@@ -64,7 +64,7 @@ export default function DashboardLayout({
             />
             <Title order={1}>Kotkangrilli</Title>
           </Group>
-          <Group>
+          <Group visibleFrom="sm">
             <ColorSchemeToggle />
             <UserMenu />
           </Group>

@@ -9,7 +9,7 @@ async function getParticipations(eventId: number | undefined) {
 
 export default function useGetParticipationsByEventId(eventId: number | undefined) {
   return useQuery({
-    queryKey: ['participations'],
+    queryKey: ['participants', eventId],
     queryFn: () => getParticipations(eventId),
     enabled: !!eventId,
   });

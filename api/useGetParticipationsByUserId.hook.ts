@@ -9,7 +9,7 @@ async function getParticipations(userId: number | undefined) {
 
 export default function useGetParticipationsByUserId(userId: number | undefined) {
   return useQuery({
-    queryKey: ['participations'],
+    queryKey: ['participations', userId],
     queryFn: () => getParticipations(userId),
     enabled: !!userId,
   });
