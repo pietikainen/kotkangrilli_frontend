@@ -24,24 +24,22 @@ function getStoreName(url: string) {
 }
 
 export default function GameForm({ game, searchedGame, close, setTitle }: any) {
-  if (game) {
-    game.price /= 100;
-  }
-
   const { data: storeUrl, isLoading } = useGetStoreUrl(searchedGame?.id || game?.externalApiId);
   const { control, handleSubmit, setValue } = useForm<z.infer<typeof gameSchema>>({
     resolver: zodResolver(gameSchema),
-    defaultValues: game || {
-      externalApiId: searchedGame.id,
-      image: searchedGame.coverImageUrl,
-      title: searchedGame.name,
-      price: 0,
-      store: '',
-      description: '',
-      link: '',
-      players: 16,
-      isLan: true,
-    },
+    defaultValues: game
+      ? { ...game, price: game.price / 100 }
+      : {
+          externalApiId: searchedGame.id,
+          image: searchedGame.coverImageUrl,
+          title: searchedGame.name,
+          price: 0,
+          store: '',
+          description: '',
+          link: '',
+          players: 16,
+          isLan: true,
+        },
   });
   const [isNas, setIsNas] = useState(game?.store === 'NAS');
 
@@ -49,13 +47,17 @@ export default function GameForm({ game, searchedGame, close, setTitle }: any) {
   const updateGame = useUpdateGame();
 
   async function onSubmit(values: z.infer<typeof gameSchema>) {
+    const submissionValues = {
+      ...values,
+      price: Math.round(values.price * 100),
+      store: isNas ? 'NAS' : values.store,
+    };
+
     if (game) {
-      values.price = isNas ? 0 : values.price * 100;
-      values.store = isNas ? 'NAS' : values.store;
       updateGame.mutate(
         {
           gameId: game.id,
-          game: values,
+          game: submissionValues,
         },
         {
           onSuccess: () => {
@@ -76,38 +78,25 @@ export default function GameForm({ game, searchedGame, close, setTitle }: any) {
         }
       );
     } else {
-      addGame.mutate(
-        {
-          externalApiId: values.externalApiId,
-          title: values.title,
-          image: values.image,
-          price: isNas ? 0 : values.price * 100,
-          link: values.link,
-          store: isNas ? 'NAS' : values.store,
-          players: values.players,
-          isLan: values.isLan,
-          description: values.description,
+      addGame.mutate(submissionValues, {
+        onSuccess: () => {
+          notifications.show({
+            title: 'Peli lisätty',
+            message: 'Peli on lisätty onnistuneesti',
+            color: 'green',
+          });
+          close();
+          setIsNas(false);
+          setTitle('');
         },
-        {
-          onSuccess: () => {
-            notifications.show({
-              title: 'Peli lisätty',
-              message: 'Peli on lisätty onnistuneesti',
-              color: 'green',
-            });
-            close();
-            setIsNas(false);
-            setTitle('');
-          },
-          onError: () => {
-            notifications.show({
-              title: 'Virhe',
-              message: 'Peliä ei voitu lisätä',
-              color: 'red',
-            });
-          },
-        }
-      );
+        onError: () => {
+          notifications.show({
+            title: 'Virhe',
+            message: 'Peliä ei voitu lisätä',
+            color: 'red',
+          });
+        },
+      });
     }
   }
 

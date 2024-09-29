@@ -1,7 +1,7 @@
 'use client';
 
 import { Button, Grid, Group, Loader, Modal, Paper } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
+import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import useGetEvent from '@/api/useGetEvent.hook';
 import useGetMeals from '@/api/useGetMeals.hook';
 import useGetParticipationsByEventId from '@/api/useGetParticipationsByEventId.hook';
@@ -17,6 +17,7 @@ export default function MealsPage({ params }: { params: { eventId: string } }) {
   const { data: participations, isLoading: isLoadingParticipations } =
     useGetParticipationsByEventId(eventId);
   const [opened, { open, close }] = useDisclosure(false);
+  const isMobile = useMediaQuery('(max-width: 50em)');
 
   if (isLoadingEvent || isLoadingMeals || isLoadingParticipations) return <Loader />;
 
@@ -35,12 +36,12 @@ export default function MealsPage({ params }: { params: { eventId: string } }) {
           Lisää ateria
         </Button>
       </Group>
-      <Modal opened={opened} onClose={close} title="Aterian tiedot">
+      <Modal opened={opened} onClose={close} title="Aterian tiedot" fullScreen={isMobile}>
         <MealForm close={close} eventId={eventId} />
       </Modal>
       <Grid grow>
         {meals?.data.data.map((meal: any) => (
-          <Grid.Col span={4} key={meal.id}>
+          <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={meal.id}>
             <Paper shadow="sm" p={{ base: 'xs', sm: 'md', lg: 'xl' }}>
               <MealWidget meal={meal} participation={participation} />
             </Paper>

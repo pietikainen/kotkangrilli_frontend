@@ -16,38 +16,42 @@ export default function MealForm({
 }: {
   close: () => void;
   meal?: any;
-  eventId: number;
+  eventId?: number;
 }) {
-  if (meal) {
-    meal.price /= 100;
-  }
-
   const { data: user } = useGetUser();
 
   const { control, handleSubmit } = useForm<z.infer<typeof mealSchema>>({
     resolver: zodResolver(mealSchema),
-    defaultValues: meal || {
-      eventId,
-      chefId: user?.data.id,
-      name: '',
-      description: '',
-      price: 0,
-      mobilepay: true,
-      banktransfer: false,
-    },
+    defaultValues: meal
+      ? {
+          ...meal,
+          price: meal.price / 100,
+        }
+      : {
+          eventId,
+          chefId: user?.data.id,
+          name: '',
+          description: '',
+          price: 0,
+          mobilepay: true,
+          banktransfer: false,
+        },
   });
 
   const addMeal = useAddMeal();
   const updateMeal = useUpdateMeal();
 
   async function onSubmit(values: any) {
-    values.price *= 100;
+    const submissionValues = {
+      ...values,
+      price: Math.round(values.price * 100),
+    };
 
     if (meal) {
       updateMeal.mutate(
         {
           mealId: meal.id,
-          meal: values,
+          meal: submissionValues,
         },
         {
           onSuccess: () => {
@@ -61,7 +65,7 @@ export default function MealForm({
         }
       );
     } else {
-      addMeal.mutate(values, {
+      addMeal.mutate(submissionValues, {
         onSuccess: () => {
           notifications.show({
             title: 'Ateria lisätty',
@@ -87,9 +91,19 @@ export default function MealForm({
           label="Kuvaus"
           description="Mainitse kuvauksessa myös kokkauspäivä"
         />
-        <NumberInput name="price" control={control} label="Hinta" step={0.01} withAsterisk />
-        <Checkbox name="mobilepay" control={control} label="MobilePay" />
-        <Checkbox name="banktransfer" control={control} label="Pankkitili" />
+        <NumberInput name="price" control={control} label="Hinta (€)" step={0.01} withAsterisk />
+        <Checkbox
+          name="mobilepay"
+          control={control}
+          label="MobilePay"
+          description="Vahva suositus"
+        />
+        <Checkbox
+          name="banktransfer"
+          control={control}
+          label="Pankkitili"
+          description="Valitse sitten edes tämä jos ei MobilePay kelpaa..."
+        />
         <Button type="submit">Lähetä</Button>
       </Stack>
     </form>

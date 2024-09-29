@@ -1,7 +1,7 @@
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
 import Link from 'next/link';
-import { Accordion, Anchor, Grid, Group, List, Loader, Paper } from '@mantine/core';
+import { Accordion, Anchor, Grid, Group, Image, List, Loader, Paper } from '@mantine/core';
 import useGetParticipationsByEventId from '@/api/useGetParticipationsByEventId.hook';
 import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
 
@@ -35,11 +35,25 @@ export default function EventWidget({ event }: { event: any }) {
             <Accordion.Control>Osallistujat: {participants?.data.data.length}</Accordion.Control>
             <Accordion.Panel>
               <List>
-                {participants?.data.data.map((p: { userId: number }) => (
-                  <List.Item key={p.userId}>
-                    {users?.data.find((u: { id: number }) => u.id === p.userId)?.username}
-                  </List.Item>
-                ))}
+                {participants?.data.data.map((p: { userId: number }) => {
+                  const user = users?.data.find((u: { id: number }) => u.id === p.userId);
+                  return (
+                    <List.Item key={p.userId}>
+                      <Group>
+                        {user?.avatar && (
+                          <Image
+                            src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=16`}
+                            alt={`${user.username} avatar`}
+                            mah={16}
+                            w="auto"
+                            fit="contain"
+                          />
+                        )}
+                        {user?.username}
+                      </Group>
+                    </List.Item>
+                  );
+                })}
               </List>
             </Accordion.Panel>
           </Accordion.Item>
