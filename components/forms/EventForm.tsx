@@ -19,28 +19,29 @@ export default function EventForm({
   close: () => void;
   eventObject?: z.infer<typeof eventSchema>;
 }) {
-  if (eventObject) {
-    eventObject.startDate = new Date(eventObject.startDate);
-    eventObject.endDate = new Date(eventObject.endDate);
-  }
-
   const { data: users, isLoading } = useGetUsers();
   const { data: locations, isLoading: isLocationsLoading } = useGetLocations();
   const { control, handleSubmit, watch, setValue } = useForm<z.infer<typeof eventSchema>>({
     resolver: zodResolver(eventSchema),
-    defaultValues: eventObject || {
-      title: '',
-      description: '',
-      location: undefined,
-      startDate: new Date(),
-      endDate: new Date(),
-      winnerGamesCount: 4,
-      votingOpen: false,
-      active: false,
-      lanMaster: undefined,
-      paintCompoWinner: undefined,
-      organizer: undefined,
-    },
+    defaultValues: eventObject
+      ? {
+          ...eventObject,
+          startDate: new Date(eventObject.startDate),
+          endDate: new Date(eventObject.endDate),
+        }
+      : {
+          title: '',
+          description: '',
+          location: undefined,
+          startDate: new Date(),
+          endDate: new Date(),
+          winnerGamesCount: 4,
+          votingOpen: false,
+          active: false,
+          lanMaster: undefined,
+          paintCompoWinner: undefined,
+          organizer: undefined,
+        },
   });
 
   const addEvent = useAddEvent();

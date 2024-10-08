@@ -68,20 +68,26 @@ export default function Navbar() {
         />
       )}
       {activeEvent && (
-        <NavLink
-          component={Link}
-          href={`/dashboard/vote/${activeEvent.id}`}
-          label="Peliäänestys"
-          active={pathname.startsWith('/dashboard/vote/')}
-        />
-      )}
-      {activeEvent && (
-        <NavLink
-          component={Link}
-          href={`/dashboard/meals/${activeEvent.id}`}
-          label="Ateriat"
-          active={pathname.startsWith('/dashboard/meals/')}
-        />
+        <>
+          <NavLink
+            component={Link}
+            href={`/dashboard/vote/${activeEvent.id}`}
+            label="Peliäänestys"
+            active={pathname.startsWith('/dashboard/vote/')}
+          />
+          <NavLink
+            component={Link}
+            href={`/dashboard/meals/${activeEvent.id}`}
+            label="Ateriat"
+            active={pathname.startsWith('/dashboard/meals/')}
+          />
+          <NavLink
+            component={Link}
+            href={`/dashboard/carpools/${activeEvent.id}`}
+            label="Kimppakyydit"
+            active={pathname.startsWith('/dashboard/carpools/')}
+          />
+        </>
       )}
       {user?.data.userlevel > 7 && <AdminNav pathname={pathname} />}
       <Divider hiddenFrom="sm" />
