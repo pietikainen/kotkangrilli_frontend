@@ -1,4 +1,4 @@
-import { Badge, Button, Group, Image, Loader, Modal, Stack, Text } from '@mantine/core';
+import { Badge, Button, Group, Image, List, Loader, Modal, Stack, Text } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import useAddEater from '@/api/useAddEater.hook';
 import useDeleteEater from '@/api/useDeleteEater.hook';
@@ -51,6 +51,27 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
         <span>Syöjiä: {eaters?.data.data.length}</span>
+        <List>
+          {eaters?.data.data.map((eater: { id: number; eaterId: number }) => {
+            const eaterUser = users?.data.find((u: { id: number }) => u.id === eater.eaterId);
+            return (
+              <List.Item key={eater.id}>
+                <Group>
+                  {eaterUser?.avatar && (
+                    <Image
+                      src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
+                      alt={`${eaterUser.username} avatar`}
+                      mah={16}
+                      w="auto"
+                      fit="contain"
+                    />
+                  )}
+                  {eaterUser?.username}
+                </Group>
+              </List.Item>
+            );
+          })}
+        </List>
       </Stack>
       <Group mt={40}>
         {eaters?.data.data.find((eater: { eaterId: number }) => eater.eaterId === user?.data.id) ? (

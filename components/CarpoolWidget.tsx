@@ -1,6 +1,6 @@
 import dayjs from 'dayjs';
 import localizedFormat from 'dayjs/plugin/localizedFormat';
-import { Button, Group, Image, List, Loader, Modal, Stack, Text } from '@mantine/core';
+import { Button, Group, Image, List, Loader, Modal, Stack, Text, Title } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import useAddPassenger from '@/api/useAddPassenger.hook';
 import useDeleteCarpool from '@/api/useDeleteCarpool.hook';
@@ -132,12 +132,12 @@ export default function CarpoolWidget({
           </Button>
         </Group>
       )}
-      <Modal opened={opened} onClose={close} title="Muokkaa ateriaa" fullScreen={isMobile}>
+      <Modal opened={opened} onClose={close} title="Muokkaa kimppakyytiä" fullScreen={isMobile}>
         <CarpoolForm carpool={carpool} close={close} />
       </Modal>
       <Modal opened={deleteOpened} onClose={closeDelete} title="Poista kyyti" fullScreen={isMobile}>
         <Text>Haluatko varmasti poistaa kimppakyydin?</Text>
-        <h3>{carpool.departureCity}</h3>
+        <Title order={3}>{carpool.departureCity}</Title>
         <span>Ilmoittautuneita kyytiläisiä: {passengers?.data.data.length}</span>
         {passengers?.data.data.length && <p>Poista kyytiläiset ennen kimppakyydin poistoa.</p>}
         <Group>

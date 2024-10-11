@@ -4,6 +4,7 @@ import { usePathname } from 'next/navigation';
 import { AppShell, Divider, Group, Loader, NavLink } from '@mantine/core';
 import useGetEvents from '@/api/useGetEvents.hook';
 import useGetUser from '@/api/useGetUser.hook';
+import useVotecount from '@/api/useVotecount.hook';
 import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import UserMenu from '@/components/UserMenu';
 
@@ -44,12 +45,13 @@ export default function Navbar() {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const pathname = usePathname();
-
-  if (isLoadingEvents) return <Loader />;
-
   const activeEvent = events?.data.data.find(
-    (event: { active: boolean; votingOpen: boolean }) => event.active && event.votingOpen
+    (event: { active: boolean; votingOpen: boolean; id: number }) => event.active
   );
+
+  const { data: votecount, isLoading: isLoadingVotecount } = useVotecount(activeEvent?.id);
+
+  if (isLoadingEvents || isLoadingVotecount) return <Loader />;
 
   return (
     <AppShell.Navbar p="md">
@@ -69,12 +71,22 @@ export default function Navbar() {
       )}
       {activeEvent && (
         <>
-          <NavLink
-            component={Link}
-            href={`/dashboard/vote/${activeEvent.id}`}
-            label="Peliäänestys"
-            active={pathname.startsWith('/dashboard/vote/')}
-          />
+          {activeEvent.votingOpen && (
+            <NavLink
+              component={Link}
+              href={`/dashboard/vote/${activeEvent.id}`}
+              label="Peliäänestys"
+              active={pathname.startsWith('/dashboard/vote/')}
+            />
+          )}
+          {!activeEvent.votingOpen && votecount?.data.data && (
+            <NavLink
+              component={Link}
+              href={`/dashboard/results/${activeEvent.id}`}
+              label="Peliäänestyksen tulokset"
+              active={pathname.startsWith('/dashboard/results/')}
+            />
+          )}
           <NavLink
             component={Link}
             href={`/dashboard/meals/${activeEvent.id}`}

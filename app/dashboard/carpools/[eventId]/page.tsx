@@ -1,6 +1,6 @@
 'use client';
 
-import { Button, Grid, Group, Loader, Modal, Paper } from '@mantine/core';
+import { Button, Grid, Group, Loader, Modal, Paper, Title } from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
 import useGetCarpoolsByEventId from '@/api/useGetCarpoolsByEventId.hook';
 import useGetEvent from '@/api/useGetEvent.hook';
@@ -27,7 +27,7 @@ export default function MealsPage({ params }: { params: { eventId: string } }) {
 
   return (
     <>
-      <h2>Kimppakyydit - {event?.data.data.title}</h2>
+      <Title order={2}>Kimppakyydit - {event?.data.data.title}</Title>
       <Group>
         {!participation && (
           <p>
