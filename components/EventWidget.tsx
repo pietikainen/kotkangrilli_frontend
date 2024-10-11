@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { Accordion, Anchor, Grid, Group, Image, List, Loader, Paper } from '@mantine/core';
 import useGetParticipationsByEventId from '@/api/useGetParticipationsByEventId.hook';
 import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
+import useVotecount from '@/api/useVotecount.hook';
 
 dayjs.locale('fi');
 dayjs.extend(localizedFormat);
@@ -13,8 +14,9 @@ export default function EventWidget({ event }: { event: any }) {
   const { data: participants, isLoading: isLoadingParticipants } = useGetParticipationsByEventId(
     event.id
   );
+  const { data: votecount, isLoading: isLoadingVotecount } = useVotecount(event.id);
 
-  if (isLoadingUserProfiles || isLoadingParticipants) return <Loader />;
+  if (isLoadingUserProfiles || isLoadingParticipants || isLoadingVotecount) return <Loader />;
 
   return (
     <Grid.Col span={6}>
@@ -61,9 +63,16 @@ export default function EventWidget({ event }: { event: any }) {
             <Accordion.Control>Toiminnot</Accordion.Control>
             <Accordion.Panel>
               <Group>
-                <Anchor component={Link} href={`/dashboard/vote/${event.id}`}>
-                  Äänestys
-                </Anchor>
+                {event.votingOpen && (
+                  <Anchor component={Link} href={`/dashboard/vote/${event.id}`}>
+                    Äänestys
+                  </Anchor>
+                )}
+                {!event.votingOpen && votecount?.data.data && (
+                  <Anchor component={Link} href={`/dashboard/results/${event.id}`}>
+                    Peliäänestyksen tulokset
+                  </Anchor>
+                )}
               </Group>
             </Accordion.Panel>
           </Accordion.Item>
