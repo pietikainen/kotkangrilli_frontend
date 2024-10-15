@@ -65,7 +65,7 @@ export default function Schedule({ eventId, admin }: { eventId: number; admin?: 
   const [lastDate, setLastDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!activities?.data.data) return;
+    if (!activities?.data.data || activities?.data.data.length === 0) return;
     const sortedActivities = activities?.data.data.sort(
       (a: Activity, b: Activity) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime()

@@ -10,7 +10,9 @@ export default function SchedulePage({ params }: { params: { eventId: string } }
 
   if (isLoadingActivities) return <Loader />;
 
-  if (!activities?.data.data) return <div>Aikataulua ei löytynyt, pahoittelut!</div>;
+  if (!activities?.data.data || activities?.data.data.length === 0) {
+    return <div>Aikataulua ei löytynyt, pahoittelut!</div>;
+  }
 
   return <Schedule eventId={eventId} />;
 }
