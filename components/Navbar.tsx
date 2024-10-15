@@ -115,6 +115,12 @@ export default function Navbar() {
             label="Kimppakyydit"
             active={pathname.startsWith('/dashboard/carpools/')}
           />
+          <NavLink
+            component={Link}
+            href="/dashboard/memo"
+            label="Muistilista"
+            active={pathname === '/dashboard/memo'}
+          />
         </>
       )}
       {user?.data.userlevel > 7 && <AdminNav pathname={pathname} eventId={activeEvent?.id} />}
