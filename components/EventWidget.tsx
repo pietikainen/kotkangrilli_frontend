@@ -68,6 +68,9 @@ export default function EventWidget({ event }: { event: any }) {
                     Äänestys
                   </Anchor>
                 )}
+                <Anchor component={Link} href={`/dashboard/schedule/${event.id}`}>
+                  Aikataulu
+                </Anchor>
                 {!event.votingOpen && votecount?.data.data && (
                   <Anchor component={Link} href={`/dashboard/results/${event.id}`}>
                     Peliäänestyksen tulokset

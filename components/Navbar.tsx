@@ -8,11 +8,19 @@ import useVotecount from '@/api/useVotecount.hook';
 import ColorSchemeToggle from '@/components/ColorSchemeToggle';
 import UserMenu from '@/components/UserMenu';
 
-function AdminNav({ pathname }: { pathname: string }) {
+function AdminNav({ pathname, eventId }: { pathname: string; eventId?: number }) {
   return (
     <>
       <Divider />
       <NavLink component={Link} href="/admin" label="ADMIN" active={pathname === '/admin'} />
+      {eventId && (
+        <NavLink
+          component={Link}
+          href={`/admin/schedule/${eventId}`}
+          label="Aikataulu"
+          active={pathname.startsWith('/admin/schedule/')}
+        />
+      )}
       <NavLink
         component={Link}
         href="/admin/events"
@@ -61,6 +69,14 @@ export default function Navbar() {
         label="Etusivu"
         active={pathname === '/dashboard'}
       />
+      {activeEvent && (
+        <NavLink
+          component={Link}
+          href={`/dashboard/schedule/${activeEvent.id}`}
+          label="Aikataulu"
+          active={pathname.startsWith('/dashboard/schedule/')}
+        />
+      )}
       {!activeEvent && (
         <NavLink
           component={Link}
@@ -101,7 +117,7 @@ export default function Navbar() {
           />
         </>
       )}
-      {user?.data.userlevel > 7 && <AdminNav pathname={pathname} />}
+      {user?.data.userlevel > 7 && <AdminNav pathname={pathname} eventId={activeEvent?.id} />}
       <Divider hiddenFrom="sm" />
       <Group hiddenFrom="sm" mt="md">
         <ColorSchemeToggle />

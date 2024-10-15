@@ -11,6 +11,7 @@ import useGetLocations from '@/api/useGetLocations.hook';
 import useGetUsers from '@/api/useGetUsers.hook';
 import useUpdateEvent from '@/api/useUpdateEvent.hook';
 import eventSchema from '@/schemas/eventSchema';
+import roundToNearestMinute from '@/utils/roundToNearestMinute';
 
 export default function EventForm({
   close,
@@ -57,9 +58,14 @@ export default function EventForm({
     if (values.organizer === 0) {
       values.organizer = undefined;
     }
+    const roundedValues = {
+      ...values,
+      startDate: roundToNearestMinute(values.startDate),
+      endDate: roundToNearestMinute(values.endDate),
+    };
     if (eventObject?.id) {
       updateEvent.mutate(
-        { eventId: eventObject.id, event: values },
+        { eventId: eventObject.id, event: roundedValues },
         {
           onSuccess: () => {
             notifications.show({
@@ -79,7 +85,7 @@ export default function EventForm({
         }
       );
     } else {
-      addEvent.mutate(values, {
+      addEvent.mutate(roundedValues, {
         onSuccess: () => {
           notifications.show({
             title: 'Tapahtuma lisätty',

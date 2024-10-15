@@ -8,6 +8,7 @@ import useAddCarpool from '@/api/useAddCarpool.hook';
 import useGetUser from '@/api/useGetUser.hook';
 import useUpdateCarpool from '@/api/useUpdateCarpool.hook';
 import carpoolSchema from '@/schemas/carpoolSchema';
+import roundToNearestMinute from '@/utils/roundToNearestMinute';
 
 export default function CarpoolForm({
   close,
@@ -37,11 +38,15 @@ export default function CarpoolForm({
   const updateCarpool = useUpdateCarpool();
 
   async function onSubmit(values: any) {
+    const roundedValues = {
+      ...values,
+      departureTime: roundToNearestMinute(values.departureTime),
+    };
     if (carpool) {
       updateCarpool.mutate(
         {
           carpoolId: carpool.id,
-          carpool: values,
+          carpool: roundedValues,
         },
         {
           onSuccess: () => {
@@ -55,7 +60,7 @@ export default function CarpoolForm({
         }
       );
     } else {
-      addCarpool.mutate(values, {
+      addCarpool.mutate(roundedValues, {
         onSuccess: () => {
           notifications.show({
             title: 'Kimppakyyti lisätty',
