@@ -110,7 +110,7 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
                           size="xs"
                           variant="outline"
                           color="red"
-                          onClick={() => deleteEater.mutate(e.id)}
+                          onClick={() => deleteEater.mutate({ mealId: meal.id, eaterId: e.id })}
                         >
                           Poista syöjä
                         </Button>
@@ -182,14 +182,13 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
           <>
             {eater.paid === 0 && (
               <>
-                {' '}
                 <Button
-                  onClick={() => deleteEater.mutate(meal.id)}
+                  onClick={() => deleteEater.mutate({ mealId: meal.id, eaterId: eater.id })}
                   color="red"
                   disabled={!participation}
                 >
                   Poista ilmoittautuminen
-                </Button>{' '}
+                </Button>
                 <Button
                   onClick={() =>
                     updateEaterPaid.mutate({ mealId: meal.id, eaterId: eater.id, paidLevel: 1 })
