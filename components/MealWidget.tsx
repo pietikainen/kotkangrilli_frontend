@@ -1,11 +1,25 @@
-import { Badge, Button, Group, Image, List, Loader, Modal, Stack, Text } from '@mantine/core';
+import { IconCurrencyEuro, IconCurrencyEuroOff } from '@tabler/icons-react';
+import {
+  Badge,
+  Button,
+  Group,
+  Image,
+  List,
+  Loader,
+  Modal,
+  Stack,
+  Text,
+  ThemeIcon,
+} from '@mantine/core';
 import { useDisclosure, useMediaQuery } from '@mantine/hooks';
+import { notifications } from '@mantine/notifications';
 import useAddEater from '@/api/useAddEater.hook';
 import useDeleteEater from '@/api/useDeleteEater.hook';
 import useDeleteMeal from '@/api/useDeleteMeal.hook';
 import useGetEaters from '@/api/useGetEaters.hook';
 import useGetUser from '@/api/useGetUser.hook';
 import useGetUserProfiles from '@/api/useGetUserProfiles.hook';
+import useUpdateEaterPaid from '@/api/useUpdateEaterPaid.hook';
 import MealForm from '@/components/forms/MealForm';
 
 export default function MealWidget({ meal, participation }: { meal: any; participation?: any }) {
@@ -19,10 +33,13 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
   const addEater = useAddEater();
   const deleteEater = useDeleteEater();
   const deleteMeal = useDeleteMeal();
+  const updateEaterPaid = useUpdateEaterPaid();
 
   if (isLoadingEaters || isLoadingUsers) return <Loader />;
 
   const chef = users?.data.find((u: { id: number }) => u.id === meal.chefId);
+  const isChef = meal.chefId === user?.data.id;
+  const eater = eaters?.data.data.find((e: { eaterId: number }) => e.eaterId === user?.data.id);
 
   return (
     <div>
@@ -52,10 +69,10 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
         </Group>
         <span>Syöjiä: {eaters?.data.data.length}</span>
         <List>
-          {eaters?.data.data.map((eater: { id: number; eaterId: number }) => {
-            const eaterUser = users?.data.find((u: { id: number }) => u.id === eater.eaterId);
+          {eaters?.data.data.map((e: { id: number; eaterId: number; paid: number }) => {
+            const eaterUser = users?.data.find((u: { id: number }) => u.id === e.eaterId);
             return (
-              <List.Item key={eater.id}>
+              <List.Item key={e.id}>
                 <Group>
                   {eaterUser?.avatar && (
                     <Image
@@ -67,6 +84,93 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
                     />
                   )}
                   {eaterUser?.username}
+
+                  {e.paid === 0 && (
+                    <ThemeIcon size="sm" color="red">
+                      <IconCurrencyEuroOff />
+                    </ThemeIcon>
+                  )}
+
+                  {e.paid === 1 && (
+                    <ThemeIcon size="sm" color="yellow">
+                      <IconCurrencyEuro />
+                    </ThemeIcon>
+                  )}
+
+                  {e.paid === 2 && (
+                    <ThemeIcon size="sm" color="green">
+                      <IconCurrencyEuro />
+                    </ThemeIcon>
+                  )}
+
+                  {isChef && (
+                    <>
+                      {e.paid === 0 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="red"
+                          onClick={() => deleteEater.mutate(e.id)}
+                        >
+                          Poista syöjä
+                        </Button>
+                      )}
+                      {e.paid < 2 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="green"
+                          onClick={() =>
+                            updateEaterPaid.mutate(
+                              {
+                                mealId: meal.id,
+                                eaterId: e.id,
+                                paidLevel: 2,
+                              },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: 'Maksettu',
+                                    message: 'Syöjä merkattu maksetuksi',
+                                    color: 'green',
+                                  });
+                                },
+                              }
+                            )
+                          }
+                        >
+                          Merkkaa maksu
+                        </Button>
+                      )}
+                      {e.paid > 0 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="red"
+                          onClick={() =>
+                            updateEaterPaid.mutate(
+                              {
+                                mealId: meal.id,
+                                eaterId: e.id,
+                                paidLevel: 0,
+                              },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: 'Maksu poistettu',
+                                    message: 'Syöjä merkattu maksamattomaksi',
+                                    color: 'green',
+                                  });
+                                },
+                              }
+                            )
+                          }
+                        >
+                          Poista maksu
+                        </Button>
+                      )}
+                    </>
+                  )}
                 </Group>
               </List.Item>
             );
@@ -74,16 +178,44 @@ export default function MealWidget({ meal, participation }: { meal: any; partici
         </List>
       </Stack>
       <Group mt={40}>
-        {eaters?.data.data.find((eater: { eaterId: number }) => eater.eaterId === user?.data.id) ? (
-          <Button onClick={() => deleteEater.mutate(meal.id)} color="red" disabled={!participation}>
-            Poista ilmoittautuminen
-          </Button>
+        {eater ? (
+          <>
+            {eater.paid === 0 && (
+              <>
+                {' '}
+                <Button
+                  onClick={() => deleteEater.mutate(meal.id)}
+                  color="red"
+                  disabled={!participation}
+                >
+                  Poista ilmoittautuminen
+                </Button>{' '}
+                <Button
+                  onClick={() =>
+                    updateEaterPaid.mutate({ mealId: meal.id, eaterId: eater.id, paidLevel: 1 })
+                  }
+                >
+                  Merkitse maksetuksi
+                </Button>
+              </>
+            )}
+            {eater.paid === 1 && (
+              <Button
+                onClick={() =>
+                  updateEaterPaid.mutate({ mealId: meal.id, eaterId: eater.id, paidLevel: 0 })
+                }
+                color="orange"
+              >
+                Merkitse maksamattomaksi
+              </Button>
+            )}
+          </>
         ) : (
           <Button onClick={() => addEater.mutate(meal.id)} disabled={!participation}>
             Ilmoittaudu syöjäksi
           </Button>
         )}
-        {meal.chefId === user?.data.id && (
+        {isChef && (
           <>
             <Button onClick={open} disabled={!participation}>
               Muokkaa
