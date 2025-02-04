@@ -64,7 +64,8 @@ export default function AdminGameTable({
       {
         accessorKey: "link",
         header: "Linkki",
-        Cell: ({ cell }) => getLink(cell.getValue<string>()),
+        Cell: ({ cell, row }) =>
+          getLink(cell.getValue<string>(), row.original.store),
       },
       { accessorKey: "players", header: "Pelaajat" },
       {

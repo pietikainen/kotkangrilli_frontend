@@ -21,7 +21,7 @@ import useGetGames from "../../api/useGetGames.hook";
 import useGetGamesSearch from "../../api/useGetGamesSearch.hook";
 import useGetUserProfiles from "../../api/useGetUserProfiles.hook";
 import GameForm from "../../components/forms/GameForm";
-import GameTable from "../../components/tables/GameTable";
+import GameSuggestionsList from "../../components/GameSuggestionList";
 
 export const Route = createFileRoute("/dashboard/game-suggestions")({
   component: RouteComponent,
@@ -184,16 +184,23 @@ function RouteComponent() {
         olla myös virallisilta tai epävirallisilta jälleenmyyjiltä.
         <br />
         Hinnan löytämiseen voit käyttää{" "}
-        <Anchor href="https://isthereanydeal.com/">IsThereAnyDeal</Anchor>
-        (vain virallisia), <Anchor href="https://gg.deals/">GG.deals</Anchor>
+        <Anchor href="https://isthereanydeal.com/" target="_blank">
+          IsThereAnyDeal
+        </Anchor>
+        (vain virallisia),{" "}
+        <Anchor href="https://gg.deals/" target="_blank">
+          GG.deals
+        </Anchor>
         (erottelee viralliset) tai{" "}
-        <Anchor href="https://www.allkeyshop.com/blog/">AllKeyShop</Anchor>{" "}
+        <Anchor href="https://www.allkeyshop.com/blog/" target="_blank">
+          AllKeyShop
+        </Anchor>{" "}
         sivustoa.
       </Text>
       {isLoading || isLoadingUserProfiles ? (
         <Loader />
       ) : (
-        <GameTable data={games} userProfiles={userProfiles} />
+        <GameSuggestionsList games={games} userProfiles={userProfiles} />
       )}
       {game && (
         <Modal opened={opened} onClose={close} title={game.name}>

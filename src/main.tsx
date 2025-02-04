@@ -1,4 +1,4 @@
-import { MantineProvider } from "@mantine/core";
+import { ColorSchemeScript, MantineProvider } from "@mantine/core";
 import { DatesProvider } from "@mantine/dates";
 import { Notifications } from "@mantine/notifications";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
@@ -31,13 +31,16 @@ const queryClient = new QueryClient();
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
-    <MantineProvider defaultColorScheme="auto">
-      <DatesProvider settings={{ locale: "fi" }}>
-        <QueryClientProvider client={queryClient}>
-          <RouterProvider router={router} />
-        </QueryClientProvider>
-      </DatesProvider>
-      <Notifications />
-    </MantineProvider>,
+    <>
+      <ColorSchemeScript defaultColorScheme="auto" />
+      <MantineProvider defaultColorScheme="auto">
+        <DatesProvider settings={{ locale: "fi" }}>
+          <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+          </QueryClientProvider>
+        </DatesProvider>
+        <Notifications />
+      </MantineProvider>
+    </>,
   );
 }

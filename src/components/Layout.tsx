@@ -11,6 +11,7 @@ import { useDisclosure } from "@mantine/hooks";
 import { useNavigate } from "@tanstack/react-router";
 import React, { useEffect } from "react";
 import useGetUser from "../api/useGetUser.hook";
+import kgLogo from "../assets/kg.jpg";
 import ColorSchemeToggle from "./ColorSchemeToggle";
 import Navbar from "./Navbar";
 import UserMenu from "./UserMenu";
@@ -58,7 +59,7 @@ export const Layout = ({ children }: CommonLayoutProps) => {
               size="sm"
             />
             <Image
-              src="/src/assets/kg.jpg"
+              src={kgLogo}
               alt="Kotkangrilli logo"
               w={47.28}
               h={48}

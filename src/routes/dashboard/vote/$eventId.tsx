@@ -176,7 +176,7 @@ function RouteComponent() {
                 <Text size={fontSizes[game.id] || "md"}>{game.title}</Text>
               </Flex>
               <Group mb={5}>
-                {getLink(game.link)}
+                {getLink(game.link, game.store)}
                 {game.isLan && (
                   <Badge color="blue" radius="sm">
                     LAN

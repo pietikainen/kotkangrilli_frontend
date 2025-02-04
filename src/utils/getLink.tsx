@@ -3,7 +3,7 @@ import {
   SiGogdotcom,
   SiUbisoft,
 } from "@icons-pack/react-simple-icons";
-import { ActionIcon } from "@mantine/core";
+import { Badge } from "@mantine/core";
 import {
   IconBrandSteam,
   IconBrandXbox,
@@ -12,49 +12,98 @@ import {
 } from "@tabler/icons-react";
 import React from "react";
 
-export function getLink(link: string | null | undefined) {
+export function getLink(link: string | null | undefined, store: string) {
   if (link) {
     if (link.includes("steampowered.com")) {
       return (
-        <ActionIcon component="a" href={link} target="_blank">
-          <IconBrandSteam />
-        </ActionIcon>
+        <Badge
+          leftSection={<IconBrandSteam size={14} />}
+          variant="gradient"
+          gradient={{ from: "#111d2e", to: "#1387b8", deg: 180 }}
+          component="a"
+          href={link}
+          target="_blank"
+          styles={{ root: { cursor: "pointer" } }}
+        >
+          {store}
+        </Badge>
       );
     }
     if (link.includes("gog.com")) {
       return (
-        <ActionIcon component="a" href={link} target="_blank">
-          <SiGogdotcom />
-        </ActionIcon>
+        <Badge
+          leftSection={<SiGogdotcom size={14} />}
+          variant="default"
+          color="gray"
+          component="a"
+          href={link}
+          target="_blank"
+          styles={{ root: { cursor: "pointer" } }}
+        >
+          {store}
+        </Badge>
       );
     }
     if (link.includes("epicgames.com")) {
       return (
-        <ActionIcon component="a" href={link} target="_blank">
-          <SiEpicgames />
-        </ActionIcon>
+        <Badge
+          leftSection={<SiEpicgames size={14} />}
+          variant="default"
+          color="gray"
+          component="a"
+          href={link}
+          target="_blank"
+          styles={{ root: { cursor: "pointer" } }}
+        >
+          {store}
+        </Badge>
       );
     }
     if (link.includes("ubisoft.com") || link.includes("ubi.com")) {
       return (
-        <ActionIcon component="a" href={link} target="_blank">
-          <SiUbisoft />
-        </ActionIcon>
+        <Badge
+          leftSection={<SiUbisoft size={14} />}
+          variant="default"
+          color="gray"
+          component="a"
+          href={link}
+          target="_blank"
+          styles={{ root: { cursor: "pointer" } }}
+        >
+          {store}
+        </Badge>
       );
     }
     if (link.includes("xbox.com") || link.includes("microsoft.com")) {
       return (
-        <ActionIcon component="a" href={link} target="_blank">
-          <IconBrandXbox />
-        </ActionIcon>
+        <Badge
+          leftSection={<IconBrandXbox size={14} />}
+          color="#107810"
+          component="a"
+          href={link}
+          target="_blank"
+          styles={{ root: { cursor: "pointer" } }}
+        >
+          {store}
+        </Badge>
       );
     }
     return (
-      <ActionIcon component="a" href={link} target="_blank">
-        <IconLink />
-      </ActionIcon>
+      <Badge
+        leftSection={<IconLink size={14} />}
+        component="a"
+        href={link}
+        target="_blank"
+        styles={{ root: { cursor: "pointer" } }}
+      >
+        {store}
+      </Badge>
     );
   }
 
-  return <IconLinkOff />;
+  return (
+    <Badge leftSection={<IconLinkOff size={14} />} color="gray">
+      {store}
+    </Badge>
+  );
 }

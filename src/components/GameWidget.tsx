@@ -49,7 +49,7 @@ export default function GameWidget({
         <Text size={fontSize || "md"}>{game.title}</Text>
       </Flex>
       <Group mb={5}>
-        {getLink(game.link)}
+        {getLink(game.link, game.store)}
         {game.isLan && (
           <Badge color="blue" radius="sm">
             LAN

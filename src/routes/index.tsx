@@ -12,6 +12,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import * as React from "react";
 import { useEffect } from "react";
 import useGetUser from "../api/useGetUser.hook";
+import kgLogo from "../assets/kg.jpg";
 import ColorSchemeToggle from "../components/ColorSchemeToggle";
 
 export const Route = createFileRoute("/")({
@@ -41,7 +42,7 @@ function LoginComponent() {
       <Stack align="center">
         <Group>
           <Image
-            src="/src/assets/kg.jpg"
+            src={kgLogo}
             alt="Kotkangrilli logo"
             w={98.5}
             h={100}
