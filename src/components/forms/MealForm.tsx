@@ -108,6 +108,7 @@ export default function MealForm({
               onBlur={handleBlur}
               label="Nimi"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -122,6 +123,7 @@ export default function MealForm({
               onBlur={handleBlur}
               label="Kuvaus"
               description="Mainitse kuvauksessa myös kokkauspäivä"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -140,6 +142,7 @@ export default function MealForm({
               min={0}
               step={0.01}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -152,6 +155,7 @@ export default function MealForm({
               checked={state.value}
               label="MobilePay"
               description="Vahva suositus"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -164,6 +168,7 @@ export default function MealForm({
               checked={state.value}
               label="Pankkitili"
               description="Valitse sitten edes tämä jos ei MobilePay kelpaa..."
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

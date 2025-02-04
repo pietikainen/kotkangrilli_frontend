@@ -103,7 +103,7 @@ function RouteComponent() {
         title="Poista peliehdotus"
       >
         <Text>Haluatko varmasti poistaa peliehdotuksen?</Text>
-        <h3>{game?.title}</h3>
+        <Title order={3}>{game?.title}</Title>
         <Group>
           <Button onClick={closeDelete}>Peruuta</Button>
           <Button color="red" onClick={() => onSubmitDelete(game?.id)}>

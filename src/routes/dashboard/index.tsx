@@ -14,6 +14,7 @@ import { IconClockPause, IconExclamationMark } from "@tabler/icons-react";
 import { z } from "zod";
 import useGetActivitiesByEventId from "../../api/useGetActivitiesByEventId.hook";
 import EventWidget from "../../components/EventWidget";
+import PastEventTable from "../../components/tables/PastEventTable";
 import UpcomingEventTable from "../../components/tables/UpcomingEventTable";
 import activitySchema from "../../schemas/activitySchema";
 import eventSchema from "../../schemas/eventSchema";
@@ -61,9 +62,24 @@ function RouteComponent() {
     return <Loader />;
   }
 
-  const upcomingEvents = data?.data.data.filter(
-    (lanEvent: z.infer<typeof eventSchema>) =>
-      lanEvent.active && new Date() < new Date(lanEvent.startDate),
+  const { upcomingEvents, pastEvents } = (data?.data.data ?? []).reduce(
+    (
+      acc: {
+        upcomingEvents: z.infer<typeof eventSchema>[];
+        pastEvents: z.infer<typeof eventSchema>[];
+      },
+      lanEvent: z.infer<typeof eventSchema>,
+    ) => {
+      if (lanEvent.active) {
+        if (new Date() < new Date(lanEvent.startDate)) {
+          acc.upcomingEvents.push(lanEvent);
+        } else if (new Date() > new Date(lanEvent.endDate)) {
+          acc.pastEvents.push(lanEvent);
+        }
+      }
+      return acc;
+    },
+    { upcomingEvents: [], pastEvents: [] },
   );
 
   const participatingEvents = data?.data.data.filter(
@@ -139,7 +155,20 @@ function RouteComponent() {
               locations={locations?.data.data}
             />
           ) : (
-            <p>Ei tulevia tapahtumia</p>
+            <Text>Ei tulevia tapahtumia</Text>
+          )}
+        </Paper>
+      </Grid.Col>
+      <Grid.Col span={12}>
+        <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
+          <Title order={2}>Menneet tapahtumat</Title>
+          {pastEvents.length > 0 ? (
+            <PastEventTable
+              data={pastEvents}
+              locations={locations?.data.data}
+            />
+          ) : (
+            <Text>Ei menneitä tapahtumia</Text>
           )}
         </Paper>
       </Grid.Col>

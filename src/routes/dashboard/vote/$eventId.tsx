@@ -12,6 +12,7 @@ import {
   SimpleGrid,
   Text,
   TextInput,
+  Title,
 } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import { IconDeviceGamepad, IconInfoSmall } from "@tabler/icons-react";
@@ -104,7 +105,8 @@ function RouteComponent() {
     return <Loader />;
   if (!event || event.data.data.active !== true)
     return <div>Tapahtumaa ei löytynyt</div>;
-  if (!event.data.data.votingOpen) return <div>Äänestys ei ole avoinna</div>;
+  if (event.data.data.votingState !== 1)
+    return <div>Äänestys ei ole avoinna</div>;
   if (!games || !votes) return <div>Tapahtumaa ei löytynyt</div>;
 
   const participation = participations?.data.data.find(
@@ -113,18 +115,18 @@ function RouteComponent() {
 
   return (
     <>
-      <h2>Peliäänestys - {event.data.data.title}</h2>
+      <Title order={2}>Peliäänestys - {event.data.data.title}</Title>
       <Group>
         {participation ? (
-          <p>
+          <Text>
             Voit antaa yhteensä {event.data.data.winnerGamesCount} ääntä. Pelit
             esitetään sattumanvaraisessa järjestyksessä.
-          </p>
+          </Text>
         ) : (
-          <p>
+          <Text>
             Voit äänestää ilmoittautumisen jälkeen. Pelit esitetään
             sattumanvaraisessa järjestyksessä.
-          </p>
+          </Text>
         )}
         <TextInput
           placeholder="Hae peliä"
@@ -171,9 +173,7 @@ function RouteComponent() {
                 <AspectRatio ratio={3 / 4} maw={40}>
                   <Image src={game.image} alt={game.title} />
                 </AspectRatio>
-                <Text size={fontSizes[game.id] || "md"} span>
-                  {game.title}
-                </Text>
+                <Text size={fontSizes[game.id] || "md"}>{game.title}</Text>
               </Flex>
               <Group mb={5}>
                 {getLink(game.link)}

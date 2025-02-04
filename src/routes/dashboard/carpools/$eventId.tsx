@@ -5,6 +5,7 @@ import {
   Loader,
   Modal,
   Paper,
+  Text,
   Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
@@ -46,10 +47,10 @@ function RouteComponent() {
       <Title order={2}>Kimppakyydit - {event?.data.data.title}</Title>
       <Group>
         {!participation && (
-          <p>
+          <Text>
             Voit lisätä kimppakyydin tai ilmoittautua kyytiläiseksi
             lan-ilmoittautumisen jälkeen.
-          </p>
+          </Text>
         )}
         <Button onClick={open} disabled={!participation}>
           Lisää kimppakyyti

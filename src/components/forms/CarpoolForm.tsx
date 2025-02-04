@@ -94,6 +94,7 @@ export default function CarpoolForm({
               label="Kyytipaikkoja"
               min={1}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -108,6 +109,7 @@ export default function CarpoolForm({
               onBlur={handleBlur}
               label="Lähtökaupunki"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -120,6 +122,7 @@ export default function CarpoolForm({
               onBlur={handleBlur}
               label="Lähtöaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

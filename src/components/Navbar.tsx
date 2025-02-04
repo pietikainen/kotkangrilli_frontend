@@ -1,13 +1,20 @@
 import { AppShell, Divider, Group, Loader, NavLink } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
+import dayjs from "dayjs";
 import React from "react";
+import { z } from "zod";
 import useGetEvents from "../api/useGetEvents.hook";
 import useGetUser from "../api/useGetUser.hook";
 import useVotecount from "../api/useVotecount.hook";
 import UserMenu from "../components/UserMenu";
+import eventSchema from "../schemas/eventSchema";
 import ColorSchemeToggle from "./ColorSchemeToggle";
 
-function AdminNav({ eventId }: { eventId?: number }) {
+function AdminNav({ events }: { events: z.infer<typeof eventSchema>[] }) {
+  const eventId = events?.findLast(
+    (event) => event.active && dayjs().isBefore(event.endDate),
+  )?.id;
+
   return (
     <>
       <Divider />
@@ -35,8 +42,8 @@ export default function Navbar() {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const activeEvent = events?.data.data.find(
-    (event: { active: boolean; votingOpen: boolean; id: number }) =>
-      event.active,
+    (event: z.infer<typeof eventSchema>) =>
+      event.active && dayjs().isBefore(event.endDate),
   );
 
   const { data: votecount, isLoading: isLoadingVotecount } = useVotecount(
@@ -48,14 +55,7 @@ export default function Navbar() {
   return (
     <AppShell.Navbar p="md">
       <NavLink component={Link} to="/dashboard" label="Etusivu" />
-      {activeEvent && (
-        <NavLink
-          component={Link}
-          to={`/dashboard/schedule/${activeEvent.id}`}
-          label="Aikataulu"
-        />
-      )}
-      {!activeEvent && (
+      {(!activeEvent || activeEvent.votingState === 0) && (
         <NavLink
           component={Link}
           to="/dashboard/game-suggestions"
@@ -64,18 +64,25 @@ export default function Navbar() {
       )}
       {activeEvent && (
         <>
-          {activeEvent.votingOpen && (
+          {activeEvent.votingState === 1 && (
             <NavLink
               component={Link}
               to={`/dashboard/vote/${activeEvent.id}`}
               label="Peliäänestys"
             />
           )}
-          {!activeEvent.votingOpen && votecount?.data.data && (
+          {activeEvent.votingState === 3 && votecount?.data.data && (
             <NavLink
               component={Link}
               to={`/dashboard/results/${activeEvent.id}`}
               label="Peliäänestyksen tulokset"
+            />
+          )}
+          {activeEvent.votingState === 3 && (
+            <NavLink
+              component={Link}
+              to={`/dashboard/schedule/${activeEvent.id}`}
+              label="Aikataulu"
             />
           )}
           <NavLink
@@ -91,7 +98,7 @@ export default function Navbar() {
           <NavLink component={Link} to="/dashboard/memo" label="Muistilista" />
         </>
       )}
-      {user?.data.userlevel > 7 && <AdminNav eventId={activeEvent?.id} />}
+      {user?.data.userlevel > 7 && <AdminNav events={events?.data.data} />}
       <Divider hiddenFrom="sm" />
       <Group hiddenFrom="sm" mt="md">
         <ColorSchemeToggle />

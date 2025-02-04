@@ -1,4 +1,4 @@
-import { Grid, Loader, Title } from "@mantine/core";
+import { Grid, Loader, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useEffect, useState } from "react";
 import { z } from "zod";
@@ -55,7 +55,7 @@ function RouteComponent() {
           ))}
         </Grid>
       ) : (
-        <p>Äänestyksen tuloksia ei löytynyt</p>
+        <Text>Äänestyksen tuloksia ei löytynyt</Text>
       )}
     </>
   );

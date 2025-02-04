@@ -1,4 +1,4 @@
-import { ActionIcon, Group, Image } from "@mantine/core";
+import { ActionIcon, Group } from "@mantine/core";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -15,33 +15,11 @@ import eventSchema from "../../schemas/eventSchema";
 import locationSchema from "../../schemas/locationSchema";
 import userSchema from "../../schemas/userSchema";
 import "dayjs/locale/fi";
+import { getVotingState } from "../../utils/getVotingState";
+import User from "../User";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
-
-function User({
-  userId,
-  users,
-}: {
-  userId: number;
-  users: z.infer<typeof userSchema>[];
-}) {
-  const user = users.find(
-    (u: { id?: number }) => u.id !== undefined && u.id === userId,
-  );
-  return (
-    <>
-      <Image
-        src={`https://cdn.discordapp.com/avatars/${user?.snowflake}/${user?.avatar}.png?size=32`}
-        alt={`${user?.username} avatar`}
-        mah={32}
-        w="auto"
-        fit="contain"
-      />
-      {user?.username}
-    </>
-  );
-}
 
 export default function EventTable({
   data,
@@ -98,9 +76,9 @@ export default function EventTable({
         },
       },
       {
-        accessorKey: "votingOpen",
+        accessorKey: "votingState",
         header: "Äänestys",
-        Cell: ({ cell }) => (cell.getValue() ? "Kyllä" : "Ei"),
+        Cell: ({ cell }) => getVotingState(cell.getValue<number>()),
       },
       {
         accessorKey: "active",
@@ -110,9 +88,8 @@ export default function EventTable({
       {
         accessorKey: "winnerGamesCount",
         header: "Pelejä",
-        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) => (
-          <span>{cell.getValue<number | undefined>() || "—"}</span>
-        ),
+        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) =>
+          cell.getValue<number | undefined>() || "—",
       },
       {
         accessorKey: "lanMaster",

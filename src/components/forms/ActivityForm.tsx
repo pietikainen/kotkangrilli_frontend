@@ -104,6 +104,7 @@ export default function ActivityForm({
               onBlur={handleBlur}
               label="Otsikko"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -116,6 +117,7 @@ export default function ActivityForm({
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -128,6 +130,7 @@ export default function ActivityForm({
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

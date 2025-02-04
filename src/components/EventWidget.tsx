@@ -7,6 +7,8 @@ import {
   List,
   Loader,
   Paper,
+  Text,
+  Title,
 } from "@mantine/core";
 import { Link } from "@tanstack/react-router";
 import dayjs from "dayjs";
@@ -46,14 +48,14 @@ export default function EventWidget({
         >
           <Accordion.Item value={event.title}>
             <Accordion.Control>
-              <h3>{event.title}</h3>
+              <Title order={3}>{event.title}</Title>
             </Accordion.Control>
             <Accordion.Panel>
-              <span>
+              <Text>
                 {dayjs(event.startDate).format("L LT")} -{" "}
                 {dayjs(event.endDate).format("L LT")}
-              </span>
-              <p>{event.description}</p>
+              </Text>
+              <Text>{event.description}</Text>
             </Accordion.Panel>
           </Accordion.Item>
           <Accordion.Item value="Osallistujat">
@@ -90,7 +92,7 @@ export default function EventWidget({
             <Accordion.Control>Toiminnot</Accordion.Control>
             <Accordion.Panel>
               <Group>
-                {event.votingOpen && (
+                {event.votingState === 1 && (
                   <Anchor component={Link} href={`/dashboard/vote/${event.id}`}>
                     Äänestys
                   </Anchor>
@@ -101,7 +103,7 @@ export default function EventWidget({
                 >
                   Aikataulu
                 </Anchor>
-                {!event.votingOpen && votecount?.data.data && (
+                {event.votingState === 3 && votecount?.data.data && (
                   <Anchor
                     component={Link}
                     href={`/dashboard/results/${event.id}`}

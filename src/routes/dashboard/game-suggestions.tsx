@@ -6,6 +6,7 @@ import {
   Menu,
   Modal,
   Stack,
+  Text,
   TextInput,
   Title,
 } from "@mantine/core";
@@ -13,6 +14,7 @@ import { useDebouncedValue, useDisclosure } from "@mantine/hooks";
 import { IconPhotoOff } from "@tabler/icons-react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import axios from "axios";
+import dayjs from "dayjs";
 import React, { useEffect, useState } from "react";
 import useGetEvents from "../../api/useGetEvents.hook";
 import useGetGames from "../../api/useGetGames.hook";
@@ -100,8 +102,8 @@ function RouteComponent() {
   if (isLoadingEvents) return <Loader />;
 
   const activeEvent = events?.data.data.find(
-    (event: { active: boolean; votingOpen: boolean }) =>
-      event.active && event.votingOpen,
+    (event: { active: boolean; votingState: number; endDate: Date }) =>
+      event.active && event.votingState > 0 && dayjs().isBefore(event.endDate),
   );
 
   if (activeEvent) {
@@ -177,16 +179,17 @@ function RouteComponent() {
           </Menu>
         </Group>
       </Group>
-      <p>
+      <Text>
         Pelin kauppa ilmoitetaan aina virallisella kaupalla, mutta hinta voi
         olla myös virallisilta tai epävirallisilta jälleenmyyjiltä.
         <br />
         Hinnan löytämiseen voit käyttää{" "}
-        <a href="https://isthereanydeal.com/">IsThereAnyDeal</a>
-        (vain virallisia), <a href="https://gg.deals/">GG.deals</a>(erottelee
-        viralliset) tai{" "}
-        <a href="https://www.allkeyshop.com/blog/">AllKeyShop</a> sivustoa.
-      </p>
+        <Anchor href="https://isthereanydeal.com/">IsThereAnyDeal</Anchor>
+        (vain virallisia), <Anchor href="https://gg.deals/">GG.deals</Anchor>
+        (erottelee viralliset) tai{" "}
+        <Anchor href="https://www.allkeyshop.com/blog/">AllKeyShop</Anchor>{" "}
+        sivustoa.
+      </Text>
       {isLoading || isLoadingUserProfiles ? (
         <Loader />
       ) : (

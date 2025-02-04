@@ -54,17 +54,20 @@ export default function GameForm({
           externalApiId: searchedGame?.id || -1,
           image: searchedGame?.coverImageUrl,
           title: searchedGame?.name || "",
-          price: 0,
+          price: undefined,
           store: "",
           description: "",
           link: "",
-          players: 16,
+          players: undefined,
           isLan: true,
         },
     validators: {
       onChange: gameSchema,
     },
     onSubmit: async ({ value }) => {
+      if (!value.price) return;
+      if (!value.players) return;
+
       const submissionValues = {
         ...value,
         price: Math.round(value.price * 100),
@@ -161,6 +164,7 @@ export default function GameForm({
               }
               onBlur={handleBlur}
               style={{ display: "none" }}
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -174,6 +178,7 @@ export default function GameForm({
               }
               onBlur={handleBlur}
               style={{ display: "none" }}
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -199,6 +204,7 @@ export default function GameForm({
               }}
               step={0.01}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -220,6 +226,7 @@ export default function GameForm({
                 opacity: isNas || storeUrl?.data.data !== "" ? 0.5 : 1,
               }}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -240,6 +247,7 @@ export default function GameForm({
                 opacity: storeUrl?.data.data !== "" ? 0.5 : 1,
               }}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -254,6 +262,7 @@ export default function GameForm({
               onBlur={handleBlur}
               label="Lisätiedot/Kuvaus"
               description="Voi esimerkiksi sisältää lisätietoja mahdollisista LAN-ongelmista."
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -270,6 +279,7 @@ export default function GameForm({
               onBlur={handleBlur}
               label="Pelaajat"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -282,6 +292,7 @@ export default function GameForm({
               checked={state.value}
               label="LAN?"
               description="Älä aina luota täysin viralliseen sanaan. Kts. Wreckfest ja Natural Selection 2."
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

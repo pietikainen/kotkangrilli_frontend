@@ -1,4 +1,4 @@
-import { Button, Group, SegmentedControl } from "@mantine/core";
+import { Button, Group, SegmentedControl, Title } from "@mantine/core";
 import { notifications } from "@mantine/notifications";
 import dayjs from "dayjs";
 import React, { useState } from "react";
@@ -83,8 +83,8 @@ export default function ParticipationForm({
 
   return (
     <div>
-      <h3>{lanEvent.title}</h3>
-      <h4>Saapumispäivä</h4>
+      <Title order={3}>{lanEvent.title}</Title>
+      <Title order={4}>Saapumispäivä</Title>
       <SegmentedControl
         value={String(arrivalDate)}
         onChange={(val) => setArrivalDate(Number(val))}

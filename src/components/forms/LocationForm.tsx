@@ -64,6 +64,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Nimi"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -77,6 +78,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Osoite"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -90,6 +92,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Kaupunki"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -103,6 +106,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               label="Kapasiteetti"
               min={2}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -116,6 +120,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Kuvaus"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -134,6 +139,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               min={0}
               step={0.01}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

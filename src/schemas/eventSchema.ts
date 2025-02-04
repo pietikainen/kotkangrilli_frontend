@@ -9,7 +9,7 @@ const eventSchema = z
     winnerGamesCount: z.number().min(3).max(5),
     startDate: z.date(),
     endDate: z.date(),
-    votingOpen: z.boolean(),
+    votingState: z.number().min(0).max(3),
     active: z.boolean(),
     lanMaster: z.coerce.number().optional(),
     paintCompoWinner: z.coerce.number().optional(),

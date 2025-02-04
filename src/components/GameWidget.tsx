@@ -46,9 +46,7 @@ export default function GameWidget({
         <AspectRatio ratio={3 / 4} maw={40}>
           <img src={game.image} alt={game.title} />
         </AspectRatio>
-        <Text size={fontSize || "md"} span>
-          {game.title}
-        </Text>
+        <Text size={fontSize || "md"}>{game.title}</Text>
       </Flex>
       <Group mb={5}>
         {getLink(game.link)}

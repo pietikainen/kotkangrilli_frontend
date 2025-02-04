@@ -61,7 +61,7 @@ export default function CarpoolWidget({
   return (
     <div>
       <Stack>
-        <h3>{carpool.departureCity}</h3>
+        <Title order={3}>{carpool.departureCity}</Title>
         <Stack>
           <Group>
             Kuljettaja:
@@ -78,10 +78,10 @@ export default function CarpoolWidget({
             )}
             {driver?.username}
           </Group>
-          <span>Lähtöaika: {dayjs(carpool.departureTime).format("L LT")}</span>
-          <span>Kyytipaikkoja: {carpool.seats}</span>
+          <Text>Lähtöaika: {dayjs(carpool.departureTime).format("L LT")}</Text>
+          <Text>Kyytipaikkoja: {carpool.seats}</Text>
         </Stack>
-        <span>Kyytiläisiä: {passengers?.data.data.length}</span>
+        <Text>Kyytiläisiä: {passengers?.data.data.length}</Text>
         <List>
           {passengers?.data.data.map(
             (passenger: { id: number; passengerId: number }) => {
@@ -169,11 +169,11 @@ export default function CarpoolWidget({
       >
         <Text>Haluatko varmasti poistaa kimppakyydin?</Text>
         <Title order={3}>{carpool.departureCity}</Title>
-        <span>
+        <Text>
           Ilmoittautuneita kyytiläisiä: {passengers?.data.data.length}
-        </span>
+        </Text>
         {passengers?.data.data.length && (
-          <p>Poista kyytiläiset ennen kimppakyydin poistoa.</p>
+          <Text>Poista kyytiläiset ennen kimppakyydin poistoa.</Text>
         )}
         <Group>
           <Button onClick={closeDelete}>Peruuta</Button>

@@ -9,6 +9,7 @@ import {
   Stack,
   Text,
   ThemeIcon,
+  Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
@@ -58,7 +59,7 @@ export default function MealWidget({
     <div>
       <Stack>
         <Group>
-          <h3>{meal.name}</h3>à la{" "}
+          <Title order={3}>{meal.name}</Title>à la{" "}
           <>
             {chef?.avatar && (
               <Image
@@ -74,13 +75,13 @@ export default function MealWidget({
             {chef?.username}
           </>
         </Group>
-        {meal.description && <p>{meal.description}</p>}
+        {meal.description && <Text>{meal.description}</Text>}
         <Group>
-          <span>Hinta: {meal.price / 100} €</span>
+          <Text>Hinta: {meal.price / 100} €</Text>
           {meal.mobilepay && <Badge color="indigo">MobilePay</Badge>}
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
-        <span>Syöjiä: {eaters?.data.data.length}</span>
+        <Text>Syöjiä: {eaters?.data.data.length}</Text>
         <List>
           {eaters?.data.data.map(
             (e: { id: number; eaterId: number; paid: number }) => {
@@ -286,13 +287,13 @@ export default function MealWidget({
         fullScreen={isMobile}
       >
         <Text>Haluatko varmasti poistaa aterian?</Text>
-        <h3>{meal.name}</h3>
-        <span>Syöjiä: {eaters?.data.data.length}</span>
+        <Title order={3}>{meal.name}</Title>
+        <Text>Syöjiä: {eaters?.data.data.length}</Text>
         {eaters?.data.data.length && (
-          <p>
+          <Text>
             Poistaminen ei ainakaan vielä toimi jos syöjiä on jo ilmoittautunut.
             Ota yhteyttä ylläpitoon kiitos!
-          </p>
+          </Text>
         )}
         <Group>
           <Button onClick={closeDelete}>Peruuta</Button>

@@ -1,4 +1,13 @@
-import { Button, Grid, Group, Loader, Modal, Paper } from "@mantine/core";
+import {
+  Button,
+  Grid,
+  Group,
+  Loader,
+  Modal,
+  Paper,
+  Text,
+  Title,
+} from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
@@ -34,13 +43,13 @@ function RouteComponent() {
 
   return (
     <>
-      <h2>Ateriat - {event?.data.data.title}</h2>
+      <Title order={2}>Ateriat - {event?.data.data.title}</Title>
       <Group>
         {!participation && (
-          <p>
+          <Text>
             Voit lisätä aterioita tai ilmoittautua syöjäksi ilmoittautumisen
             jälkeen.
-          </p>
+          </Text>
         )}
         <Button onClick={open} disabled={!participation}>
           Lisää ateria

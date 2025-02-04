@@ -23,6 +23,7 @@ import useUpdateEvent from "../../api/useUpdateEvent.hook";
 import eventSchema from "../../schemas/eventSchema";
 import locationSchema from "../../schemas/locationSchema";
 import userSchema from "../../schemas/userSchema";
+import { votingStates } from "../../utils/getVotingState";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
 
 export default function EventForm({
@@ -48,7 +49,7 @@ export default function EventForm({
           startDate: new Date(),
           endDate: new Date(),
           winnerGamesCount: 4,
-          votingOpen: false,
+          votingState: 0,
           active: false,
           lanMaster: undefined,
           paintCompoWinner: undefined,
@@ -144,6 +145,7 @@ export default function EventForm({
               onBlur={handleBlur}
               label="Otsikko"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -157,6 +159,7 @@ export default function EventForm({
               }) => handleChange(e.target.value)}
               onBlur={handleBlur}
               label="Kuvaus"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -180,6 +183,7 @@ export default function EventForm({
               onChange={(selected) => handleChange(Number(selected))}
               onBlur={handleBlur}
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -192,6 +196,7 @@ export default function EventForm({
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -204,6 +209,7 @@ export default function EventForm({
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -215,6 +221,7 @@ export default function EventForm({
               label="Pelien määrä"
               onChange={(value) => handleChange(Number(value))}
               onBlur={handleBlur}
+              error={state.meta.errors.join(", ")}
             >
               <Radio value="3" label="3" />
               <Radio value="4" label="4" />
@@ -223,13 +230,19 @@ export default function EventForm({
           )}
         />
         <Field
-          name="votingOpen"
+          name="votingState"
           children={({ state, handleChange, handleBlur }) => (
-            <Checkbox
-              onChange={(e) => handleChange(e.target.checked)}
-              onBlur={handleBlur}
-              checked={state.value}
+            <Select
+              defaultValue={
+                typeof state.value === "number"
+                  ? state.value.toString()
+                  : undefined
+              }
               label="Äänestys auki"
+              data={votingStates}
+              onChange={(selected) => handleChange(Number(selected))}
+              onBlur={handleBlur}
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -241,6 +254,7 @@ export default function EventForm({
               onBlur={handleBlur}
               checked={state.value}
               label="Aktiivinen"
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -259,6 +273,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -277,6 +292,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
+              error={state.meta.errors.join(", ")}
             />
           )}
         />
@@ -295,6 +311,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
+              error={state.meta.errors.join(", ")}
             />
           )}
         />

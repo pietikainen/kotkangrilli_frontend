@@ -1,4 +1,4 @@
-import { Button, Group, Modal, Table } from "@mantine/core";
+import { Button, Group, Modal, Table, Text, Title } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import dayjs from "dayjs";
@@ -11,6 +11,7 @@ import useGetUser from "../api/useGetUser.hook";
 import eventSchema from "../schemas/eventSchema";
 import locationSchema from "../schemas/locationSchema";
 import "dayjs/locale/fi";
+import { getVotingState } from "../utils/getVotingState";
 import ParticipationForm from "./forms/ParticipationForm";
 
 dayjs.locale("fi");
@@ -60,15 +61,15 @@ export default function EventRow({
   return (
     <Table.Tr key={lanEvent.id}>
       <Table.Td>
-        <h3>{lanEvent.title}</h3>
-        <span>@ {locations.find((l) => l.id === lanEvent.location)?.name}</span>
-        <p>{lanEvent.description}</p>
+        <Title order={4}>{lanEvent.title}</Title>
+        <Text>@ {locations.find((l) => l.id === lanEvent.location)?.name}</Text>
+        <Text>{lanEvent.description}</Text>
       </Table.Td>
       <Table.Td>
-        <p>{dayjs(lanEvent.startDate).format("L LT")}</p>
-        <p>{dayjs(lanEvent.endDate).format("L LT")}</p>
+        <Text>{dayjs(lanEvent.startDate).format("L LT")}</Text>
+        <Text>{dayjs(lanEvent.endDate).format("L LT")}</Text>
       </Table.Td>
-      <Table.Td>{lanEvent.votingOpen ? "Kyllä" : "Ei"}</Table.Td>
+      <Table.Td>{getVotingState(lanEvent.votingState)}</Table.Td>
       <Table.Td>
         {!participations?.data.data.some(
           (p: { userId: number }) => p.userId === user?.data.id,
@@ -98,11 +99,11 @@ export default function EventRow({
                 duration: 200,
               }}
             >
-              <h3>{lanEvent.title}</h3>
-              <p>
+              <Title order={3}>{lanEvent.title}</Title>
+              <Text>
                 Haluatko varmasti perua ilmoittautumisen? Tämä toiminto poistaa
                 myös annetut peliäänesi.
-              </p>
+              </Text>
               <Group mt={40}>
                 <Button onClick={onDeleteParticipation} color="red">
                   Peru ilmoittautuminen
