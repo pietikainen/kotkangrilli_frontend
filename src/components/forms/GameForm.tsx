@@ -65,8 +65,22 @@ export default function GameForm({
       onChange: gameSchema,
     },
     onSubmit: async ({ value }) => {
-      if (!value.price) return;
-      if (!value.players) return;
+      if (value.price === undefined) {
+        notifications.show({
+          title: "Virhe",
+          message: "Hinta ei voi olla tyhjä",
+          color: "red",
+        });
+        return;
+      }
+      if (value.players === undefined) {
+        notifications.show({
+          title: "Virhe",
+          message: "Pelaajamäärä ei voi olla tyhjä",
+          color: "red",
+        });
+        return;
+      }
 
       const submissionValues = {
         ...value,
