@@ -1,8 +1,9 @@
 export const votingStates = [
   { value: "0", label: "Ei" },
-  { value: "1", label: "Kyllä" },
-  { value: "2", label: "Ääntenlaskenta" },
-  { value: "3", label: "Tulokset" },
+  { value: "1", label: "Ääntenlaskenta/peliehdotukset disabloitu tms." },
+  { value: "2", label: "Ensimmäinen kierros" },
+  { value: "3", label: "Jatkokierros" },
+  { value: "4", label: "Lopulliset tulokset" },
 ];
 
 export function getVotingState(votingState: number) {
@@ -18,6 +19,8 @@ export function getVotingState(votingState: number) {
       case 2:
         return state.label;
       case 3:
+        return state.label;
+      case 4:
         return state.label;
       default:
         return "Ei";

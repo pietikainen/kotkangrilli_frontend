@@ -3,14 +3,14 @@ import axios from "axios";
 
 async function postVote({
   eventId,
-  gameId,
+  externalApiId,
 }: {
   eventId: number;
-  gameId: number;
+  externalApiId: number;
 }) {
   return axios.post(
-    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/votes/${eventId}/${gameId}`,
-    {},
+    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/votes/${eventId}`,
+    { externalApiId },
     {
       withCredentials: true,
     },
@@ -20,10 +20,16 @@ async function postVote({
 export default function useAddVote() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ eventId, gameId }: { eventId: number; gameId: number }) =>
+    mutationFn: ({
+      eventId,
+      externalApiId,
+    }: {
+      eventId: number;
+      externalApiId: number;
+    }) =>
       postVote({
         eventId,
-        gameId,
+        externalApiId,
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["votes"] });

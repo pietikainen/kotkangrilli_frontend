@@ -11,17 +11,28 @@ import {
 } from "@mantine/core";
 import { IconDeviceGamepad, IconInfoSmall } from "@tabler/icons-react";
 import React, { useEffect, useState } from "react";
-import { z } from "zod";
-import gameSchema from "../schemas/gameSchema";
 import { getLink } from "../utils/getLink";
 
-export default function GameWidget({
-  game,
-  votes,
-}: {
-  game: z.infer<typeof gameSchema>;
-  votes: number;
-}) {
+interface GameVote {
+  id: number;
+  eventId: number;
+  voting_round: number;
+  externalApiId: number;
+  title: string;
+  image: string;
+  price: number;
+  link: string;
+  store: string;
+  players: number;
+  isLan: boolean;
+  submittedBy: number;
+  description: string;
+  votes_amount: number;
+  is_winner: boolean;
+  finalized: boolean;
+}
+
+export default function GameWidget({ game }: { game: GameVote }) {
   const [fontSize, setFontSize] = useState("sm");
 
   useEffect(() => {
@@ -78,7 +89,7 @@ export default function GameWidget({
           <IconDeviceGamepad />
         </Group>
       </Group>
-      <Title order={4}>Ääniä: {votes}</Title>
+      <Title order={4}>Ääniä: {game.votes_amount}</Title>
     </Paper>
   );
 }

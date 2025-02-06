@@ -5,7 +5,6 @@ import React from "react";
 import { z } from "zod";
 import useGetEvents from "../api/useGetEvents.hook";
 import useGetUser from "../api/useGetUser.hook";
-import useVotecount from "../api/useVotecount.hook";
 import UserMenu from "../components/UserMenu";
 import eventSchema from "../schemas/eventSchema";
 import ColorSchemeToggle from "./ColorSchemeToggle";
@@ -20,11 +19,18 @@ function AdminNav({ events }: { events: z.infer<typeof eventSchema>[] }) {
       <Divider />
       <NavLink component={Link} to="/admin" label="ADMIN" />
       {eventId && (
-        <NavLink
-          component={Link}
-          to={`/admin/schedule/${eventId}`}
-          label="Aikataulu"
-        />
+        <>
+          <NavLink
+            component={Link}
+            to={`/admin/schedule/${eventId}`}
+            label="Aikataulu"
+          />
+          <NavLink
+            component={Link}
+            to={`/admin/results/${eventId}`}
+            label="Tulokset"
+          />
+        </>
       )}
       <NavLink component={Link} to="/admin/events" label="Tapahtumat" />
       <NavLink component={Link} to="/admin/users" label="Käyttäjät" />
@@ -46,11 +52,7 @@ export default function Navbar() {
       event.active && dayjs().isBefore(event.endDate),
   );
 
-  const { data: votecount, isLoading: isLoadingVotecount } = useVotecount(
-    activeEvent?.id,
-  );
-
-  if (isLoadingEvents || isLoadingVotecount) return <Loader />;
+  if (isLoadingEvents) return <Loader />;
 
   return (
     <AppShell.Navbar p="md">
@@ -64,21 +66,21 @@ export default function Navbar() {
       )}
       {activeEvent && (
         <>
-          {activeEvent.votingState === 1 && (
+          {(activeEvent.votingState === 2 || activeEvent.votingState === 3) && (
             <NavLink
               component={Link}
               to={`/dashboard/vote/${activeEvent.id}`}
               label="Peliäänestys"
             />
           )}
-          {activeEvent.votingState === 3 && votecount?.data.data && (
+          {activeEvent.votingState >= 3 && (
             <NavLink
               component={Link}
               to={`/dashboard/results/${activeEvent.id}`}
               label="Peliäänestyksen tulokset"
             />
           )}
-          {activeEvent.votingState === 3 && (
+          {activeEvent.votingState >= 3 && (
             <NavLink
               component={Link}
               to={`/dashboard/schedule/${activeEvent.id}`}

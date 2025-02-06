@@ -1,8 +1,9 @@
-import { Grid, Loader, Text, Title } from "@mantine/core";
+import { Button, Grid, Loader, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
 import useGetEvent from "../../../api/useGetEvent.hook";
 import useGetGameVotesByEventId from "../../../api/useGetGameVotesByEventId.hook";
+import usePostCountVotesByEventId from "../../../api/usePostCalculateVotesByEventId.hook";
 import GameWidget from "../../../components/GameWidget";
 
 interface GameVote {
@@ -24,7 +25,7 @@ interface GameVote {
   finalized: boolean;
 }
 
-export const Route = createFileRoute("/dashboard/results/$eventId")({
+export const Route = createFileRoute("/admin/results/$eventId")({
   component: RouteComponent,
 });
 
@@ -32,11 +33,13 @@ function RouteComponent() {
   const eventId = Number(Route.useParams().eventId);
   const { data: event, isPending: isPendingEvent } = useGetEvent(eventId);
   const { data: gameVotes, isPending } = useGetGameVotesByEventId(eventId);
+  const mutate = usePostCountVotesByEventId();
 
   if (isPending || isPendingEvent) return <Loader />;
 
   return (
     <>
+      <Button onClick={() => mutate.mutate(eventId)}>Laske äänet</Button>
       <Title order={2}>
         Peliäänestyksen tulokset - {event?.data.data.title}
       </Title>

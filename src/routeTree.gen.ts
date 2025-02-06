@@ -28,6 +28,7 @@ import { Route as DashboardResultsEventIdImport } from './routes/dashboard/resul
 import { Route as DashboardMealsEventIdImport } from './routes/dashboard/meals/$eventId'
 import { Route as DashboardCarpoolsEventIdImport } from './routes/dashboard/carpools/$eventId'
 import { Route as AdminScheduleEventIdImport } from './routes/admin/schedule/$eventId'
+import { Route as AdminResultsEventIdImport } from './routes/admin/results/$eventId'
 
 // Create/Update Routes
 
@@ -133,6 +134,12 @@ const AdminScheduleEventIdRoute = AdminScheduleEventIdImport.update({
   getParentRoute: () => AdminRoute,
 } as any)
 
+const AdminResultsEventIdRoute = AdminResultsEventIdImport.update({
+  id: '/results/$eventId',
+  path: '/results/$eventId',
+  getParentRoute: () => AdminRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
@@ -214,6 +221,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardIndexImport
       parentRoute: typeof DashboardImport
     }
+    '/admin/results/$eventId': {
+      id: '/admin/results/$eventId'
+      path: '/results/$eventId'
+      fullPath: '/admin/results/$eventId'
+      preLoaderRoute: typeof AdminResultsEventIdImport
+      parentRoute: typeof AdminImport
+    }
     '/admin/schedule/$eventId': {
       id: '/admin/schedule/$eventId'
       path: '/schedule/$eventId'
@@ -267,6 +281,7 @@ interface AdminRouteChildren {
   AdminLocationsRoute: typeof AdminLocationsRoute
   AdminUsersRoute: typeof AdminUsersRoute
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminResultsEventIdRoute: typeof AdminResultsEventIdRoute
   AdminScheduleEventIdRoute: typeof AdminScheduleEventIdRoute
 }
 
@@ -276,6 +291,7 @@ const AdminRouteChildren: AdminRouteChildren = {
   AdminLocationsRoute: AdminLocationsRoute,
   AdminUsersRoute: AdminUsersRoute,
   AdminIndexRoute: AdminIndexRoute,
+  AdminResultsEventIdRoute: AdminResultsEventIdRoute,
   AdminScheduleEventIdRoute: AdminScheduleEventIdRoute,
 }
 
@@ -319,6 +335,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/memo': typeof DashboardMemoRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/admin/results/$eventId': typeof AdminResultsEventIdRoute
   '/admin/schedule/$eventId': typeof AdminScheduleEventIdRoute
   '/dashboard/carpools/$eventId': typeof DashboardCarpoolsEventIdRoute
   '/dashboard/meals/$eventId': typeof DashboardMealsEventIdRoute
@@ -337,6 +354,7 @@ export interface FileRoutesByTo {
   '/dashboard/memo': typeof DashboardMemoRoute
   '/admin': typeof AdminIndexRoute
   '/dashboard': typeof DashboardIndexRoute
+  '/admin/results/$eventId': typeof AdminResultsEventIdRoute
   '/admin/schedule/$eventId': typeof AdminScheduleEventIdRoute
   '/dashboard/carpools/$eventId': typeof DashboardCarpoolsEventIdRoute
   '/dashboard/meals/$eventId': typeof DashboardMealsEventIdRoute
@@ -358,6 +376,7 @@ export interface FileRoutesById {
   '/dashboard/memo': typeof DashboardMemoRoute
   '/admin/': typeof AdminIndexRoute
   '/dashboard/': typeof DashboardIndexRoute
+  '/admin/results/$eventId': typeof AdminResultsEventIdRoute
   '/admin/schedule/$eventId': typeof AdminScheduleEventIdRoute
   '/dashboard/carpools/$eventId': typeof DashboardCarpoolsEventIdRoute
   '/dashboard/meals/$eventId': typeof DashboardMealsEventIdRoute
@@ -380,6 +399,7 @@ export interface FileRouteTypes {
     | '/dashboard/memo'
     | '/admin/'
     | '/dashboard/'
+    | '/admin/results/$eventId'
     | '/admin/schedule/$eventId'
     | '/dashboard/carpools/$eventId'
     | '/dashboard/meals/$eventId'
@@ -397,6 +417,7 @@ export interface FileRouteTypes {
     | '/dashboard/memo'
     | '/admin'
     | '/dashboard'
+    | '/admin/results/$eventId'
     | '/admin/schedule/$eventId'
     | '/dashboard/carpools/$eventId'
     | '/dashboard/meals/$eventId'
@@ -416,6 +437,7 @@ export interface FileRouteTypes {
     | '/dashboard/memo'
     | '/admin/'
     | '/dashboard/'
+    | '/admin/results/$eventId'
     | '/admin/schedule/$eventId'
     | '/dashboard/carpools/$eventId'
     | '/dashboard/meals/$eventId'
@@ -463,6 +485,7 @@ export const routeTree = rootRoute
         "/admin/locations",
         "/admin/users",
         "/admin/",
+        "/admin/results/$eventId",
         "/admin/schedule/$eventId"
       ]
     },
@@ -510,6 +533,10 @@ export const routeTree = rootRoute
     "/dashboard/": {
       "filePath": "dashboard/index.tsx",
       "parent": "/dashboard"
+    },
+    "/admin/results/$eventId": {
+      "filePath": "admin/results/$eventId.tsx",
+      "parent": "/admin"
     },
     "/admin/schedule/$eventId": {
       "filePath": "admin/schedule/$eventId.tsx",

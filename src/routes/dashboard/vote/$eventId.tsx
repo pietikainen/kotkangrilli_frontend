@@ -56,6 +56,7 @@ function RouteComponent() {
   const [gamesToVoteRandomized, setGamesToVoteRandomized] = useState<
     {
       id: number;
+      externalApiId: number;
       title: string;
       image: string;
       link: string;
@@ -83,15 +84,18 @@ function RouteComponent() {
   useEffect(() => {
     if (!games || !votes) return;
     const gamesToVote = games.data.data.filter(
-      (game: { id: number }) =>
+      (game: { externalApiId: number }) =>
         !votes.data.data.find(
-          (vote: { gameId: number }) => vote.gameId === game.id,
+          (vote: { externalApiId: number }) =>
+            vote.externalApiId === game.externalApiId,
         ),
     );
-    const alreadyVotedGames = games.data.data.filter((game: { id: number }) =>
-      votes.data.data.find(
-        (vote: { gameId: number }) => vote.gameId === game.id,
-      ),
+    const alreadyVotedGames = games.data.data.filter(
+      (game: { externalApiId: number }) =>
+        votes.data.data.find(
+          (vote: { externalApiId: number }) =>
+            vote.externalApiId === game.externalApiId,
+        ),
     );
     const filteredGames = gamesToVote.filter((game: { title: string }) =>
       game.title.toLowerCase().includes(filter.toLowerCase()),
@@ -105,7 +109,7 @@ function RouteComponent() {
     return <Loader />;
   if (!event || event.data.data.active !== true)
     return <div>Tapahtumaa ei löytynyt</div>;
-  if (event.data.data.votingState !== 1)
+  if (event.data.data.votingState !== 2 && event.data.data.votingState !== 3)
     return <div>Äänestys ei ole avoinna</div>;
   if (!games || !votes) return <div>Tapahtumaa ei löytynyt</div>;
 
@@ -152,6 +156,7 @@ function RouteComponent() {
         {gamesToVoteRandomized.map(
           (game: {
             id: number;
+            externalApiId: number;
             title: string;
             image: string;
             link: string;
@@ -207,13 +212,15 @@ function RouteComponent() {
               </Group>
 
               {votes.data.data.find(
-                (vote: { gameId: number }) => vote.gameId === game.id,
+                (vote: { externalApiId: number }) =>
+                  vote.externalApiId === game.externalApiId,
               ) ? (
                 <Button
                   onClick={() => {
                     deleteVote.mutate(
                       votes.data.data.find(
-                        (vote: { gameId: number }) => vote.gameId === game.id,
+                        (vote: { externalApiId: number }) =>
+                          vote.externalApiId === game.externalApiId,
                       ).id,
                     );
                   }}
@@ -228,7 +235,7 @@ function RouteComponent() {
                     addVote.mutate(
                       {
                         eventId,
-                        gameId: game.id,
+                        externalApiId: game.externalApiId,
                       },
                       {
                         onSuccess: () => {

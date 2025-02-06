@@ -17,7 +17,6 @@ import React from "react";
 import { z } from "zod";
 import useGetParticipationsByEventId from "../api/useGetParticipationsByEventId.hook";
 import useGetUserProfiles from "../api/useGetUserProfiles.hook";
-import useVotecount from "../api/useVotecount.hook";
 import eventSchema from "../schemas/eventSchema";
 
 dayjs.locale("fi");
@@ -32,12 +31,8 @@ export default function EventWidget({
     useGetUserProfiles();
   const { data: participants, isLoading: isLoadingParticipants } =
     useGetParticipationsByEventId(event.id);
-  const { data: votecount, isLoading: isLoadingVotecount } = useVotecount(
-    event.id,
-  );
 
-  if (isLoadingUserProfiles || isLoadingParticipants || isLoadingVotecount)
-    return <Loader />;
+  if (isLoadingUserProfiles || isLoadingParticipants) return <Loader />;
 
   return (
     <Grid.Col span={6}>
@@ -92,7 +87,7 @@ export default function EventWidget({
             <Accordion.Control>Toiminnot</Accordion.Control>
             <Accordion.Panel>
               <Group>
-                {event.votingState === 1 && (
+                {(event.votingState === 2 || event.votingState === 3) && (
                   <Anchor component={Link} href={`/dashboard/vote/${event.id}`}>
                     Äänestys
                   </Anchor>
@@ -103,7 +98,7 @@ export default function EventWidget({
                 >
                   Aikataulu
                 </Anchor>
-                {event.votingState === 3 && votecount?.data.data && (
+                {event.votingState >= 2 && (
                   <Anchor
                     component={Link}
                     href={`/dashboard/results/${event.id}`}
