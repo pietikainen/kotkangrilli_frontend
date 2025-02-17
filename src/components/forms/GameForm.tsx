@@ -30,7 +30,7 @@ function getStoreName(url: string) {
     if (url.includes("xbox.com") || url.includes("microsoft.com"))
       return "Xbox";
   }
-  return "Tuntematon";
+  return "Muu";
 }
 
 export default function GameForm({
@@ -47,7 +47,7 @@ export default function GameForm({
   const { data: storeUrl, isLoading } = useGetStoreUrl(
     searchedGame?.id || game?.externalApiId,
   );
-  const { Field, handleSubmit, setFieldValue } = useForm({
+  const { Field, handleSubmit, setFieldValue, getFieldValue } = useForm({
     defaultValues: game
       ? { ...game, price: game.price / 100 }
       : {
@@ -55,7 +55,7 @@ export default function GameForm({
           image: searchedGame?.coverImageUrl,
           title: searchedGame?.name || "",
           price: undefined,
-          store: "",
+          store: "Muu",
           description: "",
           link: "",
           players: undefined,
@@ -85,7 +85,7 @@ export default function GameForm({
       const submissionValues = {
         ...value,
         price: Math.round(value.price * 100),
-        store: isNas ? "NAS" : value.store,
+        store: isNas ? "NAS" : getStoreName(value.link),
       };
 
       if (game && game.id) {
@@ -144,14 +144,17 @@ export default function GameForm({
     if (isNas) {
       setFieldValue("store", "NAS");
       setFieldValue("price", 0);
+      if (storeUrl?.data.data) {
+        setFieldValue("link", storeUrl.data.data);
+      }
     }
-    if (storeUrl?.data.data && !isNas) {
-      setFieldValue("store", getStoreName(storeUrl.data.data));
-      setFieldValue("link", storeUrl.data.data);
-    }
-    if (storeUrl?.data.data && isNas) {
-      setFieldValue("store", "NAS");
-      setFieldValue("link", storeUrl.data.data);
+    if (!isNas) {
+      if (storeUrl?.data.data) {
+        setFieldValue("store", getStoreName(storeUrl.data.data));
+        setFieldValue("link", storeUrl.data.data);
+      } else {
+        setFieldValue("store", getStoreName(getFieldValue("link")));
+      }
     }
   }, [storeUrl, isNas]);
 
@@ -213,7 +216,7 @@ export default function GameForm({
               styles={{
                 input: {
                   cursor: isNas ? "not-allowed" : "auto",
-                  opacity: isNas ? 0.5 : 1,
+                  opacity: isNas ? 0.6 : 1,
                 },
               }}
               step={0.01}
@@ -224,28 +227,29 @@ export default function GameForm({
         />
         <Field
           name="store"
-          children={({ state, handleChange, handleBlur }) => (
+          children={({ state }) => (
             <TextInput
-              defaultValue={state.value}
-              onChange={(e: { target: { value: Updater<string> } }) =>
-                handleChange(e.target.value)
-              }
-              onBlur={handleBlur}
+              value={state.value}
               label="Kauppa"
-              description="Hinnasta riippumaton virallinen kauppa, ehkä enemmänkin mistä peli ladataan."
-              readOnly={isNas || storeUrl?.data.data !== ""}
+              disabled
               style={{
-                cursor:
-                  isNas || storeUrl?.data.data !== "" ? "not-allowed" : "auto",
-                opacity: isNas || storeUrl?.data.data !== "" ? 0.5 : 1,
+                opacity: 0.6,
               }}
-              withAsterisk
               error={state.meta.errors.join(", ")}
             />
           )}
         />
         <Field
           name="link"
+          listeners={{
+            onChange: ({ value }) => {
+              if (isNas) {
+                setFieldValue("store", "NAS");
+              } else {
+                setFieldValue("store", getStoreName(value));
+              }
+            },
+          }}
           children={({ state, handleChange, handleBlur }) => (
             <TextInput
               defaultValue={state.value}
@@ -254,11 +258,11 @@ export default function GameForm({
               }
               onBlur={handleBlur}
               label="Linkki"
-              description="Virallinen kauppa tai kotisivut mistä peli ladataan."
+              description="Pelin kauppasivu, kotisivut, lataussivu tms."
               readOnly={storeUrl?.data.data !== ""}
               style={{
                 cursor: storeUrl?.data.data !== "" ? "not-allowed" : "auto",
-                opacity: storeUrl?.data.data !== "" ? 0.5 : 1,
+                opacity: storeUrl?.data.data !== "" ? 0.6 : 1,
               }}
               withAsterisk
               error={state.meta.errors.join(", ")}
