@@ -1,16 +1,25 @@
 import {
-  ActionIcon,
-  AspectRatio,
+  Avatar,
   Badge,
-  Flex,
+  Card,
   Group,
-  HoverCard,
-  Paper,
+  Image,
+  Spoiler,
   Text,
   Title,
+  Tooltip,
 } from "@mantine/core";
-import { IconDeviceGamepad, IconInfoSmall } from "@tabler/icons-react";
-import React, { useEffect, useState } from "react";
+import { useMediaQuery } from "@mantine/hooks";
+import {
+  IconCurrencyEuro,
+  IconCurrencyEuroOff,
+  IconHomeLink,
+  IconNetwork,
+  IconUsers,
+} from "@tabler/icons-react";
+import React from "react";
+import { z } from "zod";
+import gameSchema from "../schemas/gameSchema";
 import { getLink } from "../utils/getLink";
 
 interface GameVote {
@@ -32,64 +41,92 @@ interface GameVote {
   finalized: boolean;
 }
 
-export default function GameWidget({ game }: { game: GameVote }) {
-  const [fontSize, setFontSize] = useState("sm");
-
-  useEffect(() => {
-    let newFontSize = "sm";
-    const { length } = game.title;
-    if (length <= 20) newFontSize = "xl";
-    else if (length <= 30) newFontSize = "lg";
-    else if (length <= 40) newFontSize = "md";
-    setFontSize(newFontSize);
-  }, [game]);
+export default function GameWidget({
+  game,
+  user,
+}: {
+  game: GameVote | z.infer<typeof gameSchema>;
+  user: {
+    id: number;
+    username: string;
+    snowflake: string;
+    avatar: string;
+  };
+}) {
+  const isMobile = useMediaQuery("(max-width: 50em)");
 
   return (
-    <Paper shadow="sm" p="lg" withBorder>
-      <Flex
-        mih={50}
-        gap="xs"
-        justify="flex-start"
-        align="flex-start"
-        direction="row"
-        wrap="nowrap"
-      >
-        <AspectRatio ratio={3 / 4} maw={40}>
-          <img src={game.image} alt={game.title} />
-        </AspectRatio>
-        <Text size={fontSize || "md"}>{game.title}</Text>
-      </Flex>
-      <Group mb={5}>
-        {getLink(game.link, game.store)}
-        {game.isLan && (
-          <Badge color="blue" radius="sm">
-            LAN
-          </Badge>
-        )}
-        {game.store === "NAS" ? (
-          <Badge color="blue" radius="sm">
-            NAS
-          </Badge>
-        ) : (
-          `${game.price / 100} €`
-        )}
-
-        {game.description && (
-          <HoverCard shadow="md">
-            <HoverCard.Target>
-              <ActionIcon>
-                <IconInfoSmall />
-              </ActionIcon>
-            </HoverCard.Target>
-            <HoverCard.Dropdown>{game.description}</HoverCard.Dropdown>
-          </HoverCard>
-        )}
-        <Group gap={2}>
-          {game.players}
-          <IconDeviceGamepad />
-        </Group>
+    <Card shadow="md" radius="md" withBorder p="xs">
+      <Group wrap="nowrap">
+        <Image src={game.image} h={100} w="auto" alt={game.title} />
+        <Spoiler maxHeight={110} showLabel="Näytä lisää" hideLabel="Piilota">
+          <Title order={4}>{game.title}</Title>
+        </Spoiler>
       </Group>
-      <Title order={4}>Ääniä: {game.votes_amount}</Title>
-    </Paper>
+      <Group mt="xs">
+        {getLink(game.link, game.store)}
+        <Badge
+          leftSection={
+            game.price > 0 ? (
+              <IconCurrencyEuro size={14} />
+            ) : (
+              <IconCurrencyEuroOff size={14} />
+            )
+          }
+          color={game.price > 0 ? "yellow" : "gray"}
+        >
+          {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
+        </Badge>
+        <Badge leftSection={<IconUsers size={14} />} color="grape">
+          {game.players}
+        </Badge>
+        <Badge
+          leftSection={
+            game.isLan ? <IconHomeLink size={14} /> : <IconNetwork size={14} />
+          }
+          color={game.isLan ? "teal" : "orange"}
+        >
+          {game.isLan ? "LAN" : "Online"}
+        </Badge>
+      </Group>
+      <Group justify="space-between" mt="xs">
+        <Spoiler
+          maxHeight={isMobile ? 41 : undefined}
+          showLabel="Näytä lisää"
+          hideLabel="Piilota"
+        >
+          <Text c="dimmed" size="sm">
+            {game.description}
+          </Text>
+        </Spoiler>
+        <Tooltip
+          label={user?.username}
+          position="top"
+          events={{ hover: true, focus: true, touch: true }}
+          withArrow
+        >
+          <Avatar
+            src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png`}
+            size="sm"
+            radius="xl"
+            alt={user.username}
+          />
+        </Tooltip>
+      </Group>
+      {"votes_amount" in game && (
+        <Group justify="space-between" mt="xs">
+          <Text>Ääniä: {game.votes_amount}</Text>
+          {game.is_winner && game.finalized && (
+            <Badge color="green">Voittaja</Badge>
+          )}
+          {game.is_winner && !game.finalized && (
+            <Badge color="yellow">Uusi äänestyskierros</Badge>
+          )}
+          {!game.is_winner && !game.finalized && (
+            <Badge color="red">Ei voittoa</Badge>
+          )}
+        </Group>
+      )}
+    </Card>
   );
 }

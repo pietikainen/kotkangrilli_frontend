@@ -1,10 +1,13 @@
 import { Button, Grid, Loader, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
+import { z } from "zod";
 import useGetEvent from "../../../api/useGetEvent.hook";
 import useGetGameVotesByEventId from "../../../api/useGetGameVotesByEventId.hook";
+import useGetUserProfiles from "../../../api/useGetUserProfiles.hook";
 import usePostCountVotesByEventId from "../../../api/usePostCalculateVotesByEventId.hook";
 import GameWidget from "../../../components/GameWidget";
+import userSchema from "../../../schemas/userSchema";
 
 interface GameVote {
   id: number;
@@ -34,8 +37,9 @@ function RouteComponent() {
   const { data: event, isPending: isPendingEvent } = useGetEvent(eventId);
   const { data: gameVotes, isPending } = useGetGameVotesByEventId(eventId);
   const mutate = usePostCountVotesByEventId();
+  const { data: users, isPending: isPendingUsers } = useGetUserProfiles();
 
-  if (isPending || isPendingEvent) return <Loader />;
+  if (isPending || isPendingEvent || isPendingUsers) return <Loader />;
 
   return (
     <>
@@ -43,11 +47,17 @@ function RouteComponent() {
       <Title order={2}>
         Peliäänestyksen tulokset - {event?.data.data.title}
       </Title>
-      {gameVotes?.data.data.length > 0 ? (
+      {gameVotes?.data.data.length > 0 && users?.data.length > 0 ? (
         <Grid>
           {gameVotes?.data.data.map((result: GameVote) => (
             <Grid.Col key={result.id} span={{ base: 12, md: 6, lg: 3 }}>
-              <GameWidget game={result} />
+              <GameWidget
+                game={result}
+                user={users?.data.find(
+                  (u: z.infer<typeof userSchema>) =>
+                    u.id === result.submittedBy,
+                )}
+              />
             </Grid.Col>
           ))}
         </Grid>

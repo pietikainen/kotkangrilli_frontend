@@ -1,9 +1,12 @@
-import { Grid, Loader, Text, Title } from "@mantine/core";
+import { Loader, SimpleGrid, Text, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
+import { z } from "zod";
 import useGetEvent from "../../../api/useGetEvent.hook";
 import useGetGameVotesByEventId from "../../../api/useGetGameVotesByEventId.hook";
+import useGetUserProfiles from "../../../api/useGetUserProfiles.hook";
 import GameWidget from "../../../components/GameWidget";
+import userSchema from "../../../schemas/userSchema";
 
 interface GameVote {
   id: number;
@@ -32,22 +35,27 @@ function RouteComponent() {
   const eventId = Number(Route.useParams().eventId);
   const { data: event, isPending: isPendingEvent } = useGetEvent(eventId);
   const { data: gameVotes, isPending } = useGetGameVotesByEventId(eventId);
+  const { data: users, isPending: isPendingUsers } = useGetUserProfiles();
 
-  if (isPending || isPendingEvent) return <Loader />;
+  if (isPending || isPendingEvent || isPendingUsers) return <Loader />;
 
   return (
     <>
       <Title order={2}>
         Peliäänestyksen tulokset - {event?.data.data.title}
       </Title>
-      {gameVotes?.data.data.length > 0 ? (
-        <Grid>
+      {gameVotes?.data.data.length > 0 && users?.data.length > 0 ? (
+        <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }}>
           {gameVotes?.data.data.map((result: GameVote) => (
-            <Grid.Col key={result.id} span={{ base: 12, md: 6, lg: 3 }}>
-              <GameWidget game={result} />
-            </Grid.Col>
+            <GameWidget
+              key={result.id}
+              game={result}
+              user={users?.data.find(
+                (u: z.infer<typeof userSchema>) => u.id === result.submittedBy,
+              )}
+            />
           ))}
-        </Grid>
+        </SimpleGrid>
       ) : (
         <Text>Äänestyksen tuloksia ei löytynyt</Text>
       )}
