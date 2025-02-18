@@ -3,7 +3,7 @@ import axios from "axios";
 
 async function postEater(mealId: number) {
   return axios.post(
-    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/eaters/${mealId}`,
+    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/eaters/meals/${mealId}`,
     {},
     {
       withCredentials: true,

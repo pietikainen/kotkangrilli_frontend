@@ -8,6 +8,7 @@ const carpoolSchema = z
     seats: z.coerce.number().min(1),
     departureCity: z.string().min(1).max(255),
     departureTime: z.date(),
+    description: z.string().optional(),
   })
   .refine((data) => data.departureTime > new Date(), {
     message: "Lähtöajan tulee olla myöhemmin kuin nyt",

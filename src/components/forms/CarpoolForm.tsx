@@ -1,4 +1,11 @@
-import { Button, NumberInput, Stack, Text, TextInput } from "@mantine/core";
+import {
+  Button,
+  NumberInput,
+  Stack,
+  Text,
+  Textarea,
+  TextInput,
+} from "@mantine/core";
 import { DateTimePicker, DateValue } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
@@ -32,6 +39,7 @@ export default function CarpoolForm({
           seats: 1,
           departureCity: "",
           departureTime: new Date(),
+          description: "",
         },
     validators: {
       onChange: carpoolSchema,
@@ -122,6 +130,20 @@ export default function CarpoolForm({
               onBlur={handleBlur}
               label="Lähtöaika"
               withAsterisk
+              error={state.meta.errors.join(", ")}
+            />
+          )}
+        />
+        <Field
+          name="description"
+          children={({ state, handleChange, handleBlur }) => (
+            <Textarea
+              defaultValue={state.value}
+              onChange={(e: {
+                target: { value: Updater<string | undefined> };
+              }) => handleChange(e.target.value)}
+              onBlur={handleBlur}
+              label="Kuvaus"
               error={state.meta.errors.join(", ")}
             />
           )}

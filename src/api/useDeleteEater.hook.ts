@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-async function deleteEater(mealId: number, eaterId: number) {
+async function deleteEater(id: number) {
   return axios.delete(
-    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/eaters/${mealId}/${eaterId}`,
+    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/eaters/${id}`,
     {
       withCredentials: true,
     },
@@ -14,8 +14,7 @@ export default function useDeleteEater() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: ({ mealId, eaterId }: { mealId: number; eaterId: number }) =>
-      deleteEater(mealId, eaterId),
+    mutationFn: ({ id }: { id: number }) => deleteEater(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eaters"] });
     },

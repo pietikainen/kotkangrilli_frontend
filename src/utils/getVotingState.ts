@@ -1,9 +1,9 @@
 export const votingStates = [
   { value: "0", label: "Ei" },
-  { value: "1", label: "Ääntenlaskenta/peliehdotukset disabloitu tms." },
+  { value: "1", label: "Ääntenlaskenta" },
   { value: "2", label: "Ensimmäinen kierros" },
   { value: "3", label: "Jatkokierros" },
-  { value: "4", label: "Lopulliset tulokset" },
+  { value: "4", label: "Äänestystulokset" },
 ];
 
 export function getVotingState(votingState: number) {

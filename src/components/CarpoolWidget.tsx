@@ -82,6 +82,7 @@ export default function CarpoolWidget({
           <Text>Kyytipaikkoja: {carpool.seats}</Text>
         </Stack>
         <Text>Kyytiläisiä: {passengers?.data.data.length}</Text>
+        {carpool.description && <Text>{carpool.description}</Text>}
         <List>
           {passengers?.data.data.map(
             (passenger: { id: number; passengerId: number }) => {

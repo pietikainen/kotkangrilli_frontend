@@ -18,6 +18,7 @@ import { z } from "zod";
 import useGetParticipationsByEventId from "../api/useGetParticipationsByEventId.hook";
 import useGetUserProfiles from "../api/useGetUserProfiles.hook";
 import eventSchema from "../schemas/eventSchema";
+import participationSchema from "../schemas/participationSchema";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
@@ -59,27 +60,29 @@ export default function EventWidget({
             </Accordion.Control>
             <Accordion.Panel>
               <List>
-                {participants?.data.data.map((p: { userId: number }) => {
-                  const user = users?.data.find(
-                    (u: { id: number }) => u.id === p.userId,
-                  );
-                  return (
-                    <List.Item key={p.userId}>
-                      <Group>
-                        {user?.avatar && (
-                          <Image
-                            src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=16`}
-                            alt={`${user.username} avatar`}
-                            mah={16}
-                            w="auto"
-                            fit="contain"
-                          />
-                        )}
-                        {user?.username}
-                      </Group>
-                    </List.Item>
-                  );
-                })}
+                {participants?.data.data.map(
+                  (p: z.infer<typeof participationSchema>) => {
+                    const user = users?.data.find(
+                      (u: { id: number }) => u.id === p.userId,
+                    );
+                    return (
+                      <List.Item key={p.userId}>
+                        <Group>
+                          {user?.avatar && (
+                            <Image
+                              src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=16`}
+                              alt={`${user.username} avatar`}
+                              mah={16}
+                              w="auto"
+                              fit="contain"
+                            />
+                          )}
+                          {user?.username}
+                        </Group>
+                      </List.Item>
+                    );
+                  },
+                )}
               </List>
             </Accordion.Panel>
           </Accordion.Item>
@@ -92,19 +95,27 @@ export default function EventWidget({
                     Äänestys
                   </Anchor>
                 )}
-                <Anchor
-                  component={Link}
-                  href={`/dashboard/schedule/${event.id}`}
-                >
-                  Aikataulu
-                </Anchor>
-                {event.votingState >= 2 && (
-                  <Anchor
-                    component={Link}
-                    href={`/dashboard/results/${event.id}`}
-                  >
-                    Peliäänestyksen tulokset
+                {event.votingState === 0 && (
+                  <Anchor component={Link} href="/game-suggestions">
+                    Peliehdotukset
                   </Anchor>
+                )}
+                {event.votingState >= 2 && (
+                  <>
+                    <Anchor
+                      component={Link}
+                      href={`/dashboard/schedule/${event.id}`}
+                    >
+                      Aikataulu
+                    </Anchor>
+
+                    <Anchor
+                      component={Link}
+                      href={`/dashboard/results/${event.id}`}
+                    >
+                      Peliäänestyksen tulokset
+                    </Anchor>
+                  </>
                 )}
               </Group>
             </Accordion.Panel>

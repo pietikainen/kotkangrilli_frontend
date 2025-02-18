@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-async function patchEaterPaid(id: number, paidLevel: number) {
+async function patchParticipationPaid(id: number, paidLevel: number) {
   return axios.patch(
-    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/eaters/set-paid/${id}`,
+    `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/participations/set-paid/${id}`,
     { paidLevel },
     {
       withCredentials: true,
@@ -11,14 +11,14 @@ async function patchEaterPaid(id: number, paidLevel: number) {
   );
 }
 
-export default function useUpdateEaterPaid() {
+export default function useUpdateParticipationPaid() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: ({ id, paidLevel }: { id: number; paidLevel: number }) =>
-      patchEaterPaid(id, paidLevel),
+      patchParticipationPaid(id, paidLevel),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["eaters"] });
+      queryClient.invalidateQueries({ queryKey: ["participations"] });
     },
   });
 }

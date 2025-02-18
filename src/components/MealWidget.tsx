@@ -128,13 +128,11 @@ export default function MealWidget({
                             variant="outline"
                             color="red"
                             onClick={() =>
-                              meal.id &&
                               deleteEater.mutate({
-                                mealId: meal.id,
-                                eaterId: e.id,
+                                id: e.id,
                               })
                             }
-                            disabled={!meal.id}
+                            disabled={!e.id}
                           >
                             Poista syöjä
                           </Button>
@@ -145,11 +143,9 @@ export default function MealWidget({
                             variant="outline"
                             color="green"
                             onClick={() =>
-                              meal.id &&
                               updateEaterPaid.mutate(
                                 {
-                                  mealId: meal.id,
-                                  eaterId: e.id,
+                                  id: e.id,
                                   paidLevel: 2,
                                 },
                                 {
@@ -163,7 +159,7 @@ export default function MealWidget({
                                 },
                               )
                             }
-                            disabled={!meal.id}
+                            disabled={!e.id}
                           >
                             Merkkaa maksu
                           </Button>
@@ -174,11 +170,9 @@ export default function MealWidget({
                             variant="outline"
                             color="red"
                             onClick={() =>
-                              meal.id &&
                               updateEaterPaid.mutate(
                                 {
-                                  mealId: meal.id,
-                                  eaterId: e.id,
+                                  id: e.id,
                                   paidLevel: 0,
                                 },
                                 {
@@ -192,7 +186,7 @@ export default function MealWidget({
                                 },
                               )
                             }
-                            disabled={!meal.id}
+                            disabled={!e.id}
                           >
                             Poista maksu
                           </Button>
@@ -212,25 +206,20 @@ export default function MealWidget({
             {eater.paid === 0 && (
               <>
                 <Button
-                  onClick={() =>
-                    meal.id &&
-                    deleteEater.mutate({ mealId: meal.id, eaterId: eater.id })
-                  }
+                  onClick={() => deleteEater.mutate({ id: eater.id })}
                   color="red"
-                  disabled={!participation || !meal.id}
+                  disabled={!participation || !eater.id}
                 >
                   Poista ilmoittautuminen
                 </Button>
                 <Button
                   onClick={() =>
-                    meal.id &&
                     updateEaterPaid.mutate({
-                      mealId: meal.id,
-                      eaterId: eater.id,
+                      id: eater.id,
                       paidLevel: 1,
                     })
                   }
-                  disabled={!meal.id}
+                  disabled={!eater.id}
                 >
                   Merkitse maksetuksi
                 </Button>
@@ -239,15 +228,13 @@ export default function MealWidget({
             {eater.paid === 1 && (
               <Button
                 onClick={() =>
-                  meal.id &&
                   updateEaterPaid.mutate({
-                    mealId: meal.id,
-                    eaterId: eater.id,
+                    id: eater.id,
                     paidLevel: 0,
                   })
                 }
                 color="orange"
-                disabled={!meal.id}
+                disabled={!eater.id}
               >
                 Merkitse maksamattomaksi
               </Button>
