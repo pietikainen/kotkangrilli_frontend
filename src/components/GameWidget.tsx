@@ -114,7 +114,13 @@ export default function GameWidget({
         </Tooltip>
       </Group>
       {"votes_amount" in game && (
-        <Group justify="space-between" mt="xs">
+        <Group
+          mt="xs"
+          w="100%"
+          h="100%"
+          align="flex-end"
+          justify="space-between"
+        >
           <Text>Ääniä: {game.votes_amount}</Text>
           {game.is_winner && game.finalized && (
             <Badge color="green">Voittaja</Badge>

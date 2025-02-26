@@ -37,28 +37,76 @@ function RouteComponent() {
   const { data: gameVotes, isPending } = useGetGameVotesByEventId(eventId);
   const { data: users, isPending: isPendingUsers } = useGetUserProfiles();
 
+  const groupedVotes = React.useMemo(() => {
+    if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) return [];
+    const grouped: Record<number, GameVote[]> = {};
+
+    gameVotes.data.data.forEach((vote: GameVote) => {
+      if (!grouped[vote.voting_round]) grouped[vote.voting_round] = [];
+      grouped[vote.voting_round].push(vote);
+    });
+
+    // Sort keys in descending order to display highest round first
+    return Object.keys(grouped)
+      .map(Number)
+      .sort((a, b) => b - a)
+      .map((round) => ({ round, votes: grouped[round] }));
+  }, [gameVotes]);
+
+  const finalizedGames = React.useMemo(() => {
+    if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) return [];
+    return gameVotes.data.data.filter((game: GameVote) => game.finalized);
+  }, [gameVotes]);
+
   if (isPending || isPendingEvent || isPendingUsers) return <Loader />;
+
+  if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) {
+    return <Text>Äänestyksen tuloksia ei löytynyt</Text>;
+  }
 
   return (
     <>
       <Title order={2}>
         Peliäänestyksen tulokset - {event?.data.data.title}
       </Title>
-      {gameVotes?.data.data.length > 0 && users?.data.length > 0 ? (
-        <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }}>
-          {gameVotes?.data.data.map((result: GameVote) => (
-            <GameWidget
-              key={result.id}
-              game={result}
-              user={users?.data.find(
-                (u: z.infer<typeof userSchema>) => u.id === result.submittedBy,
-              )}
-            />
-          ))}
-        </SimpleGrid>
-      ) : (
-        <Text>Äänestyksen tuloksia ei löytynyt</Text>
+      {finalizedGames.length >= event?.data.data.winnerGamesCount && (
+        <>
+          <Title order={3} mt="12">
+            Voittajapelit
+          </Title>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }}>
+            {finalizedGames.map((result: GameVote) => (
+              <GameWidget
+                key={result.id}
+                game={result}
+                user={users?.data.find(
+                  (u: z.infer<typeof userSchema>) =>
+                    u.id === result.submittedBy,
+                )}
+              />
+            ))}
+          </SimpleGrid>
+        </>
       )}
+      {groupedVotes.map(({ round, votes }) => (
+        <div key={round}>
+          <Title order={3} mt="12">
+            Kierros {round}
+          </Title>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }}>
+            {votes.map((result: GameVote) => (
+              <GameWidget
+                key={result.id}
+                game={result}
+                user={users?.data.find(
+                  (u: z.infer<typeof userSchema>) =>
+                    u.id === result.submittedBy,
+                )}
+              />
+            ))}
+          </SimpleGrid>
+        </div>
+      ))}
     </>
   );
 }

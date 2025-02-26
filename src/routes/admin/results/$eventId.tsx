@@ -1,4 +1,4 @@
-import { Button, Grid, Loader, Text, Title } from "@mantine/core";
+import { Button, Loader, SimpleGrid, Title } from "@mantine/core";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
 import { z } from "zod";
@@ -39,31 +39,55 @@ function RouteComponent() {
   const mutate = usePostCountVotesByEventId();
   const { data: users, isPending: isPendingUsers } = useGetUserProfiles();
 
+  const groupedVotes = React.useMemo(() => {
+    if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) return [];
+    const grouped: Record<number, GameVote[]> = {};
+
+    gameVotes.data.data.forEach((vote: GameVote) => {
+      if (!grouped[vote.voting_round]) grouped[vote.voting_round] = [];
+      grouped[vote.voting_round].push(vote);
+    });
+
+    // Sort keys in descending order to display highest round first
+    return Object.keys(grouped)
+      .map(Number)
+      .sort((a, b) => b - a)
+      .map((round) => ({ round, votes: grouped[round] }));
+  }, [gameVotes]);
+
   if (isPending || isPendingEvent || isPendingUsers) return <Loader />;
+
+  if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) {
+    return <Button onClick={() => mutate.mutate(eventId)}>Laske äänet</Button>;
+  }
 
   return (
     <>
-      <Button onClick={() => mutate.mutate(eventId)}>Laske äänet</Button>
+      <Button onClick={() => mutate.mutate(eventId)}>
+        Laske äänet kierrokselle {groupedVotes[0].round + 1}
+      </Button>
       <Title order={2}>
         Peliäänestyksen tulokset - {event?.data.data.title}
       </Title>
-      {gameVotes?.data.data.length > 0 && users?.data.length > 0 ? (
-        <Grid>
-          {gameVotes?.data.data.map((result: GameVote) => (
-            <Grid.Col key={result.id} span={{ base: 12, md: 6, lg: 3 }}>
+      {groupedVotes.map(({ round, votes }) => (
+        <div key={round}>
+          <Title order={3} mt="12">
+            Kierros {round}
+          </Title>
+          <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }}>
+            {votes.map((result: GameVote) => (
               <GameWidget
+                key={result.id}
                 game={result}
                 user={users?.data.find(
                   (u: z.infer<typeof userSchema>) =>
                     u.id === result.submittedBy,
                 )}
               />
-            </Grid.Col>
-          ))}
-        </Grid>
-      ) : (
-        <Text>Äänestyksen tuloksia ei löytynyt</Text>
-      )}
+            ))}
+          </SimpleGrid>
+        </div>
+      ))}
     </>
   );
 }
