@@ -74,10 +74,19 @@ export default function GameTable({
           );
           return (
             <>
-              {user?.avatar && (
+              {user?.avatar ? (
                 <Image
                   src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=32`}
+                  fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
                   alt={`${user.username} avatar`}
+                  mah={32}
+                  w="auto"
+                  fit="contain"
+                />
+              ) : (
+                <Image
+                  src="https://cdn.discordapp.com/embed/avatars/0.png"
+                  alt={`${user?.username} avatar`}
                   mah={32}
                   w="auto"
                   fit="contain"

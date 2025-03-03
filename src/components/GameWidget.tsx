@@ -110,7 +110,14 @@ export default function GameWidget({
             size="sm"
             radius="xl"
             alt={user.username}
-          />
+          >
+            <Avatar
+              src="https://cdn.discordapp.com/embed/avatars/0.png"
+              size="sm"
+              radius="xl"
+              alt={user.username}
+            />
+          </Avatar>
         </Tooltip>
       </Group>
       {"votes_amount" in game && (

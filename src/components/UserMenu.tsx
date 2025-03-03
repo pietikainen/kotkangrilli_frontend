@@ -31,7 +31,12 @@ export default function UserMenu() {
                 user?.data.snowflake
               }/${user?.data.avatar}.png?size=24`}
               size="sm"
-            />
+            >
+              <Avatar
+                src="https://cdn.discordapp.com/embed/avatars/0.png"
+                size="sm"
+              />
+            </Avatar>
           }
         >
           {user?.data.username}

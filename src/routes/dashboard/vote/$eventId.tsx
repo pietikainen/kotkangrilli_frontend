@@ -284,7 +284,14 @@ function RouteComponent() {
                       size="sm"
                       radius="xl"
                       alt={submitter.username}
-                    />
+                    >
+                      <Avatar
+                        src="https://cdn.discordapp.com/embed/avatars/0.png"
+                        size="sm"
+                        radius="xl"
+                        alt={submitter.username}
+                      />
+                    </Avatar>
                   </Tooltip>
                 </Group>
                 <Group mt="xs" w="100%" h="100%" align="flex-end">

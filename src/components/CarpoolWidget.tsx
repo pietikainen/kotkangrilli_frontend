@@ -65,11 +65,20 @@ export default function CarpoolWidget({
         <Stack>
           <Group>
             Kuljettaja:
-            {driver?.avatar && (
+            {driver?.avatar ? (
               <Image
                 src={`https://cdn.discordapp.com/avatars/${
                   driver?.snowflake
                 }/${driver?.avatar}.png?size=24`}
+                fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                alt={`${driver?.username} avatar`}
+                mah={24}
+                w="auto"
+                fit="contain"
+              />
+            ) : (
+              <Image
+                src="https://cdn.discordapp.com/embed/avatars/0.png"
                 alt={`${driver?.username} avatar`}
                 mah={24}
                 w="auto"
@@ -92,9 +101,18 @@ export default function CarpoolWidget({
               return (
                 <List.Item key={passenger.id}>
                   <Group>
-                    {passengerUser?.avatar && (
+                    {passengerUser?.avatar ? (
                       <Image
                         src={`https://cdn.discordapp.com/avatars/${passengerUser.snowflake}/${passengerUser.avatar}.png?size=16`}
+                        fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                        alt={`${passengerUser.username} avatar`}
+                        mah={16}
+                        w="auto"
+                        fit="contain"
+                      />
+                    ) : (
+                      <Image
+                        src="https://cdn.discordapp.com/embed/avatars/0.png"
                         alt={`${passengerUser.username} avatar`}
                         mah={16}
                         w="auto"

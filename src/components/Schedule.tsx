@@ -7,6 +7,7 @@ import {
   Loader,
   Modal,
   Paper,
+  Table,
   Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
@@ -97,6 +98,33 @@ export default function Schedule({
   }
 
   if (isLoadingEvent || isLoadingActivities) return <Loader />;
+
+  const hoursPerActivity = activities?.data.data.reduce(
+    (acc: { [key: string]: number }, curr: z.infer<typeof activitySchema>) => {
+      const hours = dayjs(curr.endDate).diff(dayjs(curr.startDate), "hours");
+
+      if (curr.title === "Ei vielä" || curr.title === "Kotiin") return acc;
+
+      if (!acc[curr.title]) {
+        acc[curr.title] = 0;
+      }
+
+      acc[curr.title] += hours;
+      return acc;
+    },
+    {},
+  );
+
+  const sortedActivities = Object.entries(
+    hoursPerActivity as Record<string, number>,
+  ).sort((a, b) => b[1] - a[1]);
+
+  const rows = sortedActivities.map(([title, hours]) => (
+    <Table.Tr key={title}>
+      <Table.Td>{title}</Table.Td>
+      <Table.Td>{hours} h</Table.Td>
+    </Table.Tr>
+  ));
 
   return (
     <>
@@ -219,6 +247,13 @@ export default function Schedule({
             </Paper>
           </Grid.Col>
         ))}
+        <Grid.Col span={12}>
+          <Paper shadow="xs" p="sm" withBorder>
+            <Table>
+              <Table.Tbody>{rows}</Table.Tbody>
+            </Table>
+          </Paper>
+        </Grid.Col>
       </Grid>
     </>
   );

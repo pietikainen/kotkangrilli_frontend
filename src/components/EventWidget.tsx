@@ -68,9 +68,18 @@ export default function EventWidget({
                     return (
                       <List.Item key={p.userId}>
                         <Group>
-                          {user?.avatar && (
+                          {user?.avatar ? (
                             <Image
                               src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=16`}
+                              fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                              alt={`${user.username} avatar`}
+                              mah={16}
+                              w="auto"
+                              fit="contain"
+                            />
+                          ) : (
+                            <Image
+                              src="https://cdn.discordapp.com/embed/avatars/0.png"
                               alt={`${user.username} avatar`}
                               mah={16}
                               w="auto"

@@ -61,11 +61,20 @@ export default function MealWidget({
         <Group>
           <Title order={3}>{meal.name}</Title>à la{" "}
           <>
-            {chef?.avatar && (
+            {chef?.avatar ? (
               <Image
                 src={`https://cdn.discordapp.com/avatars/${
                   chef?.snowflake
                 }/${chef?.avatar}.png?size=32`}
+                fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                alt={`${chef?.username} avatar`}
+                mah={32}
+                w="auto"
+                fit="contain"
+              />
+            ) : (
+              <Image
+                src="https://cdn.discordapp.com/embed/avatars/0.png"
                 alt={`${chef?.username} avatar`}
                 mah={32}
                 w="auto"
@@ -91,9 +100,18 @@ export default function MealWidget({
               return (
                 <List.Item key={e.id}>
                   <Group>
-                    {eaterUser?.avatar && (
+                    {eaterUser?.avatar ? (
                       <Image
                         src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
+                        fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                        alt={`${eaterUser.username} avatar`}
+                        mah={16}
+                        w="auto"
+                        fit="contain"
+                      />
+                    ) : (
+                      <Image
+                        src="https://cdn.discordapp.com/embed/avatars/0.png"
                         alt={`${eaterUser.username} avatar`}
                         mah={16}
                         w="auto"
