@@ -4,9 +4,9 @@ import {
   Grid,
   Group,
   Image,
-  List,
   Loader,
   Paper,
+  SimpleGrid,
   Text,
   Title,
 } from "@mantine/core";
@@ -59,14 +59,14 @@ export default function EventWidget({
               Osallistujat: {participants?.data.data.length}
             </Accordion.Control>
             <Accordion.Panel>
-              <List>
+              <SimpleGrid spacing="xs" cols={{ base: 2, md: 3, lg: 6 }}>
                 {participants?.data.data.map(
                   (p: z.infer<typeof participationSchema>) => {
                     const user = users?.data.find(
                       (u: { id: number }) => u.id === p.userId,
                     );
                     return (
-                      <List.Item key={p.userId}>
+                      <div key={p.userId}>
                         <Group>
                           {user?.avatar ? (
                             <Image
@@ -88,11 +88,11 @@ export default function EventWidget({
                           )}
                           {user?.username}
                         </Group>
-                      </List.Item>
+                      </div>
                     );
                   },
                 )}
-              </List>
+              </SimpleGrid>
             </Accordion.Panel>
           </Accordion.Item>
           <Accordion.Item value="Toiminnot">

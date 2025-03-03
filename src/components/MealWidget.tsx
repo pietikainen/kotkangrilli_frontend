@@ -3,9 +3,9 @@ import {
   Button,
   Group,
   Image,
-  List,
   Loader,
   Modal,
+  SimpleGrid,
   Stack,
   Text,
   ThemeIcon,
@@ -91,14 +91,14 @@ export default function MealWidget({
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
         <Text>Syöjiä: {eaters?.data.data.length}</Text>
-        <List>
+        <SimpleGrid spacing="xs" cols={2}>
           {eaters?.data.data.map(
             (e: { id: number; eaterId: number; paid: number }) => {
               const eaterUser = users?.data.find(
                 (u: { id: number }) => u.id === e.eaterId,
               );
               return (
-                <List.Item key={e.id}>
+                <div key={e.id}>
                   <Group>
                     {eaterUser?.avatar ? (
                       <Image
@@ -212,11 +212,11 @@ export default function MealWidget({
                       </>
                     )}
                   </Group>
-                </List.Item>
+                </div>
               );
             },
           )}
-        </List>
+        </SimpleGrid>
       </Stack>
       <Group mt={40}>
         {eater ? (
