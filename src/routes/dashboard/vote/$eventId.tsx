@@ -274,7 +274,7 @@ function RouteComponent() {
                     </Text>
                   </Spoiler>
                   <Tooltip
-                    label={submitter?.username}
+                    label={submitter?.nickname || submitter?.username}
                     position="top"
                     events={{ hover: true, focus: true, touch: true }}
                     withArrow
@@ -283,13 +283,13 @@ function RouteComponent() {
                       src={`https://cdn.discordapp.com/avatars/${submitter.snowflake}/${submitter.avatar}.png`}
                       size="sm"
                       radius="xl"
-                      alt={submitter.username}
+                      alt={submitter.nickname || submitter.username}
                     >
                       <Avatar
                         src="https://cdn.discordapp.com/embed/avatars/0.png"
                         size="sm"
                         radius="xl"
-                        alt={submitter.username}
+                        alt={submitter.nickname || submitter.username}
                       />
                     </Avatar>
                   </Tooltip>

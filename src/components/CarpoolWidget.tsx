@@ -71,7 +71,7 @@ export default function CarpoolWidget({
                   driver?.snowflake
                 }/${driver?.avatar}.png?size=24`}
                 fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                alt={`${driver?.username} avatar`}
+                alt={`${driver?.nickname || driver?.username} avatar`}
                 mah={24}
                 w="auto"
                 fit="contain"
@@ -79,13 +79,13 @@ export default function CarpoolWidget({
             ) : (
               <Image
                 src="https://cdn.discordapp.com/embed/avatars/0.png"
-                alt={`${driver?.username} avatar`}
+                alt={`${driver?.nickname || driver?.username} avatar`}
                 mah={24}
                 w="auto"
                 fit="contain"
               />
             )}
-            {driver?.username}
+            {driver?.nickname || driver?.username}
           </Group>
           <Text>Lähtöaika: {dayjs(carpool.departureTime).format("L LT")}</Text>
           <Text>Kyytipaikkoja: {carpool.seats}</Text>
@@ -105,7 +105,7 @@ export default function CarpoolWidget({
                       <Image
                         src={`https://cdn.discordapp.com/avatars/${passengerUser.snowflake}/${passengerUser.avatar}.png?size=16`}
                         fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${passengerUser.username} avatar`}
+                        alt={`${passengerUser.nickname || passengerUser.username} avatar`}
                         mah={16}
                         w="auto"
                         fit="contain"
@@ -113,13 +113,13 @@ export default function CarpoolWidget({
                     ) : (
                       <Image
                         src="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${passengerUser.username} avatar`}
+                        alt={`${passengerUser.nickname || passengerUser.username} avatar`}
                         mah={16}
                         w="auto"
                         fit="contain"
                       />
                     )}
-                    {passengerUser?.username}
+                    {passengerUser?.nickname || passengerUser?.username}
 
                     {isDriver && (
                       <Button

@@ -72,7 +72,7 @@ export default function EventWidget({
                             <Image
                               src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png?size=16`}
                               fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                              alt={`${user.username} avatar`}
+                              alt={`${user.nickname || user.username} avatar`}
                               mah={16}
                               w="auto"
                               fit="contain"
@@ -80,13 +80,13 @@ export default function EventWidget({
                           ) : (
                             <Image
                               src="https://cdn.discordapp.com/embed/avatars/0.png"
-                              alt={`${user.username} avatar`}
+                              alt={`${user.nickname || user.username} avatar`}
                               mah={16}
                               w="auto"
                               fit="contain"
                             />
                           )}
-                          {user?.username}
+                          {user?.nickname || user?.username}
                         </Group>
                       </div>
                     );

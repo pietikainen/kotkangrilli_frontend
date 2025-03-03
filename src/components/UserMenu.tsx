@@ -39,7 +39,7 @@ export default function UserMenu() {
             </Avatar>
           }
         >
-          {user?.data.username}
+          {user?.data.nickname || user?.data.username}
         </Button>
       </Menu.Target>
       <Menu.Dropdown>

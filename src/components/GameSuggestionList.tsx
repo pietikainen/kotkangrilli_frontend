@@ -12,6 +12,7 @@ export default function GameSuggestionsList({
   userProfiles: {
     id: number;
     username: string;
+    nickname: string;
     snowflake: string;
     avatar: string;
   }[];

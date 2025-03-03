@@ -49,6 +49,7 @@ export default function GameWidget({
   user: {
     id: number;
     username: string;
+    nickname: string;
     snowflake: string;
     avatar: string;
   };
@@ -100,7 +101,7 @@ export default function GameWidget({
           </Text>
         </Spoiler>
         <Tooltip
-          label={user?.username}
+          label={user?.nickname || user?.username}
           position="top"
           events={{ hover: true, focus: true, touch: true }}
           withArrow
@@ -109,13 +110,13 @@ export default function GameWidget({
             src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png`}
             size="sm"
             radius="xl"
-            alt={user.username}
+            alt={user.nickname || user.username}
           >
             <Avatar
               src="https://cdn.discordapp.com/embed/avatars/0.png"
               size="sm"
               radius="xl"
-              alt={user.username}
+              alt={user.nickname || user.username}
             />
           </Avatar>
         </Tooltip>

@@ -87,12 +87,12 @@ export default function AdminGameTable({
                 src={`https://cdn.discordapp.com/avatars/${
                   user?.snowflake
                 }/${user?.avatar}.png?size=32`}
-                alt={`${user?.username} avatar`}
+                alt={`${user?.nickname || user?.username} avatar`}
                 mah={32}
                 w="auto"
                 fit="contain"
               />
-              {user?.username}
+              {user?.nickname || user?.username}
             </>
           );
         },

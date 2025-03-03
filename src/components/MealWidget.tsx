@@ -67,7 +67,7 @@ export default function MealWidget({
                   chef?.snowflake
                 }/${chef?.avatar}.png?size=32`}
                 fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                alt={`${chef?.username} avatar`}
+                alt={`${chef?.nickname || chef?.username} avatar`}
                 mah={32}
                 w="auto"
                 fit="contain"
@@ -75,13 +75,13 @@ export default function MealWidget({
             ) : (
               <Image
                 src="https://cdn.discordapp.com/embed/avatars/0.png"
-                alt={`${chef?.username} avatar`}
+                alt={`${chef?.nickname || chef?.username} avatar`}
                 mah={32}
                 w="auto"
                 fit="contain"
               />
             )}
-            {chef?.username}
+            {chef?.nickname || chef?.username}
           </>
         </Group>
         {meal.description && <Text>{meal.description}</Text>}
@@ -104,7 +104,7 @@ export default function MealWidget({
                       <Image
                         src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
                         fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${eaterUser.username} avatar`}
+                        alt={`${eaterUser.nickname || eaterUser.username} avatar`}
                         mah={16}
                         w="auto"
                         fit="contain"
@@ -112,13 +112,13 @@ export default function MealWidget({
                     ) : (
                       <Image
                         src="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${eaterUser.username} avatar`}
+                        alt={`${eaterUser.nickname || eaterUser.username} avatar`}
                         mah={16}
                         w="auto"
                         fit="contain"
                       />
                     )}
-                    {eaterUser?.username}
+                    {eaterUser?.nickname || eaterUser?.username}
 
                     {e.paid === 0 && (
                       <ThemeIcon size="sm" color="red">
