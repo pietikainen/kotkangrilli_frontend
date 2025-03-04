@@ -110,7 +110,6 @@ export default function MealWidget({
           type="ordered"
           style={{
             columnCount: 2,
-            columnGap: "20px",
           }}
         >
           {eaters?.data.data.map(
@@ -119,7 +118,7 @@ export default function MealWidget({
                 (u: { id: number }) => u.id === e.eaterId,
               );
               return (
-                <div key={e.id}>
+                <List.Item key={e.id}>
                   <Group>
                     {eaterUser?.avatar ? (
                       <Image
@@ -233,7 +232,7 @@ export default function MealWidget({
                       </>
                     )}
                   </Group>
-                </div>
+                </List.Item>
               );
             },
           )}
