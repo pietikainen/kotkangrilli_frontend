@@ -3,9 +3,9 @@ import {
   Button,
   Group,
   Image,
+  List,
   Loader,
   Modal,
-  SimpleGrid,
   Stack,
   Text,
   ThemeIcon,
@@ -14,6 +14,8 @@ import {
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { IconCurrencyEuro, IconCurrencyEuroOff } from "@tabler/icons-react";
+import dayjs from "dayjs";
+import localizedFormat from "dayjs/plugin/localizedFormat";
 import React from "react";
 import { z } from "zod";
 import useAddEater from "../api/useAddEater.hook";
@@ -26,6 +28,11 @@ import useUpdateEaterPaid from "../api/useUpdateEaterPaid.hook";
 import MealForm from "../components/forms/MealForm";
 import mealSchema from "../schemas/mealSchema";
 import participationSchema from "../schemas/participationSchema";
+
+dayjs.locale("fi");
+dayjs.extend(localizedFormat);
+
+const dayLabels = ["Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
 
 export default function MealWidget({
   meal,
@@ -84,6 +91,14 @@ export default function MealWidget({
             {chef?.nickname || chef?.username}
           </>
         </Group>
+        <Group>
+          {meal.days.map((d) => (
+            <Badge key={d}>{dayLabels[d]}</Badge>
+          ))}
+        </Group>
+        <Text>
+          Ilmoittautuminen päättyy: {dayjs(meal.signupEnd).format("L LT")}
+        </Text>
         {meal.description && <Text>{meal.description}</Text>}
         <Group>
           <Text>Hinta: {meal.price / 100} €</Text>
@@ -91,7 +106,13 @@ export default function MealWidget({
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
         <Text>Syöjiä: {eaters?.data.data.length}</Text>
-        <SimpleGrid spacing="xs" cols={2}>
+        <List
+          type="ordered"
+          style={{
+            columnCount: 2,
+            columnGap: "20px",
+          }}
+        >
           {eaters?.data.data.map(
             (e: { id: number; eaterId: number; paid: number }) => {
               const eaterUser = users?.data.find(
@@ -216,7 +237,7 @@ export default function MealWidget({
               );
             },
           )}
-        </SimpleGrid>
+        </List>
       </Stack>
       <Group mt={40}>
         {eater ? (
@@ -226,7 +247,11 @@ export default function MealWidget({
                 <Button
                   onClick={() => deleteEater.mutate({ id: eater.id })}
                   color="red"
-                  disabled={!participation || !eater.id}
+                  disabled={
+                    !participation ||
+                    !eater.id ||
+                    dayjs(meal.signupEnd) <= dayjs()
+                  }
                 >
                   Poista ilmoittautuminen
                 </Button>
@@ -261,7 +286,11 @@ export default function MealWidget({
         ) : (
           <Button
             onClick={() => meal.id && addEater.mutate(meal.id)}
-            disabled={!participation || !meal.id}
+            disabled={
+              !participation ||
+              !meal.id ||
+              (!isChef && dayjs(meal.signupEnd) <= dayjs())
+            }
           >
             Ilmoittaudu syöjäksi
           </Button>

@@ -1,12 +1,14 @@
 import {
   Button,
   Checkbox,
+  Group,
   NumberInput,
   Stack,
   Text,
   Textarea,
   TextInput,
 } from "@mantine/core";
+import { DateTimePicker, DateValue } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
 import React from "react";
@@ -15,6 +17,9 @@ import useAddMeal from "../../api/useAddMeal.hook";
 import useGetUser from "../../api/useGetUser.hook";
 import useUpdateMeal from "../../api/useUpdateMeal.hook";
 import mealSchema from "../../schemas/mealSchema";
+import roundToNearestMinute from "../../utils/roundToNearestMinute";
+
+const dayLabels = ["Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
 
 export default function MealForm({
   close,
@@ -35,6 +40,7 @@ export default function MealForm({
       ? {
           ...meal,
           price: meal.price / 100,
+          signupEnd: new Date(meal.signupEnd),
         }
       : {
           eventId,
@@ -44,6 +50,8 @@ export default function MealForm({
           price: 0,
           mobilepay: true,
           banktransfer: false,
+          signupEnd: new Date(),
+          days: [],
         },
     validators: {
       onChange: mealSchema,
@@ -52,6 +60,7 @@ export default function MealForm({
       const submissionValues = {
         ...value,
         price: Math.round(value.price * 100),
+        signupEnd: roundToNearestMinute(value.signupEnd),
       };
 
       if (meal && meal.id) {
@@ -113,6 +122,39 @@ export default function MealForm({
           )}
         />
         <Field
+          name="signupEnd"
+          children={({ state, handleChange, handleBlur }) => (
+            <DateTimePicker
+              defaultValue={state.value}
+              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onBlur={handleBlur}
+              label="Ilmoittautuminen päättyy"
+              withAsterisk
+              error={state.meta.errors.join(", ")}
+              highlightToday
+            />
+          )}
+        />
+        <Field
+          name="days"
+          children={({ state, handleChange, handleBlur }) => (
+            <Checkbox.Group
+              label="Tarjoilupäivät"
+              defaultValue={state.value.map(String)}
+              onChange={(values) => handleChange(values.map(Number))}
+              onBlur={handleBlur}
+              withAsterisk
+            >
+              <Group mt="xs">
+                {dayLabels.map((label, index) => (
+                  <Checkbox key={index} value={String(index)} label={label} />
+                ))}
+              </Group>
+            </Checkbox.Group>
+          )}
+        />
+
+        <Field
           name="description"
           children={({ state, handleChange, handleBlur }) => (
             <Textarea
@@ -122,7 +164,6 @@ export default function MealForm({
               }) => handleChange(e.target.value)}
               onBlur={handleBlur}
               label="Kuvaus"
-              description="Mainitse kuvauksessa myös kokkauspäivä"
               error={state.meta.errors.join(", ")}
             />
           )}
