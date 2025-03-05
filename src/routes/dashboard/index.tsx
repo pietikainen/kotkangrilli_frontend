@@ -13,11 +13,13 @@ import { Grid, Loader, Paper, Text, Timeline, Title } from "@mantine/core";
 import { IconClockPause, IconExclamationMark } from "@tabler/icons-react";
 import { z } from "zod";
 import useGetActivitiesByEventId from "../../api/useGetActivitiesByEventId.hook";
+import CountdownTimer from "../../components/CountdownTimer";
 import EventWidget from "../../components/EventWidget";
 import PastEventTable from "../../components/tables/PastEventTable";
 import UpcomingEventTable from "../../components/tables/UpcomingEventTable";
 import activitySchema from "../../schemas/activitySchema";
 import eventSchema from "../../schemas/eventSchema";
+import "./index.css";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
@@ -107,6 +109,17 @@ function RouteComponent() {
 
   return (
     <Grid grow>
+      {upcomingEvents.length > 0 &&
+        dayjs(upcomingEvents[0].startDate).isBetween(
+          dayjs().add(7, "day"),
+          now,
+        ) && (
+          <Grid.Col span={12}>
+            <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
+              <CountdownTimer startDate={upcomingEvents[0].startDate} />
+            </Paper>
+          </Grid.Col>
+        )}
       {currentEvent && (
         <Grid.Col span={12}>
           <Title order={2} mb="1rem">
