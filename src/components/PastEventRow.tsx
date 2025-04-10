@@ -1,4 +1,4 @@
-import { Loader, Table, Text, Title } from "@mantine/core";
+import { Anchor, Loader, Table, Text, Title } from "@mantine/core";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import React from "react";
@@ -34,7 +34,11 @@ export default function PastEventRow({
   return (
     <Table.Tr key={lanEvent.id}>
       <Table.Td>
-        <Title order={4}>{lanEvent.title}</Title>
+        <Title order={4}>
+          <Anchor href={`/dashboard/events/${lanEvent.id}`}>
+            {lanEvent.title}
+          </Anchor>
+        </Title>
         <Text>@ {locations.find((l) => l.id === lanEvent.location)?.name}</Text>
         <Text>{lanEvent.description}</Text>
       </Table.Td>

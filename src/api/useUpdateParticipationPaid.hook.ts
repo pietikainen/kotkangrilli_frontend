@@ -19,6 +19,7 @@ export default function useUpdateParticipationPaid() {
       patchParticipationPaid(id, paidLevel),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participations"] });
+      queryClient.invalidateQueries({ queryKey: ["participants"] });
     },
   });
 }
