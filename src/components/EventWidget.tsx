@@ -105,7 +105,7 @@ export default function EventWidget({
                   </Anchor>
                 )}
                 {event.votingState === 0 && (
-                  <Anchor component={Link} href="/game-suggestions">
+                  <Anchor component={Link} href="/dashboard/game-suggestions">
                     Peliehdotukset
                   </Anchor>
                 )}
