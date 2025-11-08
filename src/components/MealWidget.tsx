@@ -63,8 +63,6 @@ export default function MealWidget({
   const [comment, setComment] = useState<string>("");
   const [isEditingComment, setIsEditingComment] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
-  const [popoverOpened, { open: openPopover, close: closePopover }] =
-    useDisclosure(false);
 
   const addEater = useAddEater();
   const deleteEater = useDeleteEater();
@@ -181,14 +179,9 @@ export default function MealWidget({
                       position="bottom"
                       withArrow
                       shadow="md"
-                      opened={popoverOpened}
                     >
                       <Popover.Target>
-                        <ActionIcon
-                          size="sm"
-                          onMouseEnter={openPopover}
-                          onClick={closePopover}
-                        >
+                        <ActionIcon size="sm">
                           <IconMessage />
                         </ActionIcon>
                       </Popover.Target>
