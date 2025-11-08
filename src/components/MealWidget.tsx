@@ -1,6 +1,7 @@
 import {
   ActionIcon,
   Badge,
+  Blockquote,
   Button,
   Group,
   Image,
@@ -19,6 +20,7 @@ import { notifications } from "@mantine/notifications";
 import {
   IconCurrencyEuro,
   IconCurrencyEuroOff,
+  IconInfoCircle,
   IconMessage,
 } from "@tabler/icons-react";
 import dayjs from "dayjs";
@@ -401,7 +403,11 @@ export default function MealWidget({
         fullScreen={isMobile}
       >
         <Stack>
-          {meal.description && <Text c="dimmed">{meal.description}</Text>}
+          {meal.description && (
+            <Blockquote color="blue" icon={<IconInfoCircle />} mt="xs">
+              {meal.description}
+            </Blockquote>
+          )}
           <Textarea
             label={`Kommentti (JULKINEN!)${meal.requiresComment ? " *" : ""}`}
             description={
