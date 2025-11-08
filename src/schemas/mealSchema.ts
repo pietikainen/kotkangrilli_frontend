@@ -11,6 +11,7 @@ const mealSchema = z.object({
   banktransfer: z.boolean(),
   signupEnd: z.date(),
   days: z.array(z.number().min(0).max(3)),
+  requiresComment: z.boolean(),
 });
 
 export default mealSchema;

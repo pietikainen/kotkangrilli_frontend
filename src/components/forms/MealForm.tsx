@@ -52,6 +52,7 @@ export default function MealForm({
           banktransfer: false,
           signupEnd: new Date(),
           days: [],
+          requiresComment: false,
         },
     validators: {
       onChange: mealSchema,
@@ -151,6 +152,20 @@ export default function MealForm({
                 ))}
               </Group>
             </Checkbox.Group>
+          )}
+        />
+
+        <Field
+          name="requiresComment"
+          children={({ state, handleChange, handleBlur }) => (
+            <Checkbox
+              onChange={(e) => handleChange(e.target.checked)}
+              onBlur={handleBlur}
+              checked={!!state.value}
+              label="Kommentti pakollinen ilmoittautuessa"
+              description="Esim. toiveiden tai annosmäärän ilmoittamiseen"
+              error={state.meta.errors.join(", ")}
+            />
           )}
         />
 

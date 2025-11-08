@@ -1,4 +1,5 @@
 import {
+  ActionIcon,
   Badge,
   Button,
   Group,
@@ -6,17 +7,23 @@ import {
   List,
   Loader,
   Modal,
+  Popover,
   Stack,
   Text,
+  Textarea,
   ThemeIcon,
   Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconCurrencyEuro, IconCurrencyEuroOff } from "@tabler/icons-react";
+import {
+  IconCurrencyEuro,
+  IconCurrencyEuroOff,
+  IconMessage,
+} from "@tabler/icons-react";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useAddEater from "../api/useAddEater.hook";
 import useDeleteEater from "../api/useDeleteEater.hook";
@@ -24,8 +31,10 @@ import useDeleteMeal from "../api/useDeleteMeal.hook";
 import useGetEaters from "../api/useGetEaters.hook";
 import useGetUser from "../api/useGetUser.hook";
 import useGetUserProfiles from "../api/useGetUserProfiles.hook";
+import useUpdateEaterComment from "../api/useUpdateEaterComment.hook";
 import useUpdateEaterPaid from "../api/useUpdateEaterPaid.hook";
 import MealForm from "../components/forms/MealForm";
+import eaterSchema from "../schemas/eaterSchema";
 import mealSchema from "../schemas/mealSchema";
 import participationSchema from "../schemas/participationSchema";
 
@@ -47,19 +56,26 @@ export default function MealWidget({
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
+  const [commentOpened, { open: openComment, close: closeComment }] =
+    useDisclosure(false);
+  const [comment, setComment] = useState<string>("");
+  const [isEditingComment, setIsEditingComment] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
+  const [popoverOpened, { open: openPopover, close: closePopover }] =
+    useDisclosure(false);
 
   const addEater = useAddEater();
   const deleteEater = useDeleteEater();
   const deleteMeal = useDeleteMeal();
   const updateEaterPaid = useUpdateEaterPaid();
+  const updateEaterComment = useUpdateEaterComment();
 
   if (isLoadingEaters || isLoadingUsers) return <Loader />;
 
   const chef = users?.data.find((u: { id: number }) => u.id === meal.chefId);
   const isChef = meal.chefId === user?.data.id;
   const eater = eaters?.data.data.find(
-    (e: { eaterId: number }) => e.eaterId === user?.data.id,
+    (e: z.infer<typeof eaterSchema>) => e.eaterId === user?.data.id,
   );
 
   return (
@@ -112,130 +128,154 @@ export default function MealWidget({
             columnCount: 2,
           }}
         >
-          {eaters?.data.data.map(
-            (e: { id: number; eaterId: number; paid: number }) => {
-              const eaterUser = users?.data.find(
-                (u: { id: number }) => u.id === e.eaterId,
-              );
-              return (
-                <List.Item key={e.id}>
-                  <Group>
-                    {eaterUser?.avatar ? (
-                      <Image
-                        src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
-                        fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${eaterUser.nickname || eaterUser.username} avatar`}
-                        mah={16}
-                        w="auto"
-                        fit="contain"
-                      />
-                    ) : (
-                      <Image
-                        src="https://cdn.discordapp.com/embed/avatars/0.png"
-                        alt={`${eaterUser.nickname || eaterUser.username} avatar`}
-                        mah={16}
-                        w="auto"
-                        fit="contain"
-                      />
-                    )}
-                    {eaterUser?.nickname || eaterUser?.username}
+          {eaters?.data.data.map((e: z.infer<typeof eaterSchema>) => {
+            const eaterUser = users?.data.find(
+              (u: { id: number }) => u.id === e.eaterId,
+            );
+            return (
+              <List.Item key={e.id}>
+                <Group>
+                  {eaterUser?.avatar ? (
+                    <Image
+                      src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
+                      fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                      alt={`${eaterUser.nickname || eaterUser.username} avatar`}
+                      mah={16}
+                      w="auto"
+                      fit="contain"
+                    />
+                  ) : (
+                    <Image
+                      src="https://cdn.discordapp.com/embed/avatars/0.png"
+                      alt={`${eaterUser.nickname || eaterUser.username} avatar`}
+                      mah={16}
+                      w="auto"
+                      fit="contain"
+                    />
+                  )}
+                  {eaterUser?.nickname || eaterUser?.username}
 
-                    {e.paid === 0 && (
-                      <ThemeIcon size="sm" color="red">
-                        <IconCurrencyEuroOff />
-                      </ThemeIcon>
-                    )}
+                  {e.paid === 0 && (
+                    <ThemeIcon size="sm" color="red">
+                      <IconCurrencyEuroOff />
+                    </ThemeIcon>
+                  )}
 
-                    {e.paid === 1 && (
-                      <ThemeIcon size="sm" color="yellow">
-                        <IconCurrencyEuro />
-                      </ThemeIcon>
-                    )}
+                  {e.paid === 1 && (
+                    <ThemeIcon size="sm" color="yellow">
+                      <IconCurrencyEuro />
+                    </ThemeIcon>
+                  )}
 
-                    {e.paid === 2 && (
-                      <ThemeIcon size="sm" color="green">
-                        <IconCurrencyEuro />
-                      </ThemeIcon>
-                    )}
+                  {e.paid === 2 && (
+                    <ThemeIcon size="sm" color="green">
+                      <IconCurrencyEuro />
+                    </ThemeIcon>
+                  )}
 
-                    {isChef && (
-                      <>
-                        {e.paid === 0 && (
-                          <Button
-                            size="xs"
-                            variant="outline"
-                            color="red"
-                            onClick={() =>
-                              deleteEater.mutate({
+                  {e.comment && (
+                    <Popover
+                      width={200}
+                      position="bottom"
+                      withArrow
+                      shadow="md"
+                      opened={popoverOpened}
+                    >
+                      <Popover.Target>
+                        <ActionIcon
+                          size="sm"
+                          onMouseEnter={openPopover}
+                          onClick={closePopover}
+                        >
+                          <IconMessage />
+                        </ActionIcon>
+                      </Popover.Target>
+                      <Popover.Dropdown>
+                        <Text size="xs">{e.comment}</Text>
+                      </Popover.Dropdown>
+                    </Popover>
+                  )}
+
+                  {isChef && (
+                    <>
+                      {e.paid === 0 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="red"
+                          onClick={() =>
+                            e.id &&
+                            deleteEater.mutate({
+                              id: e.id,
+                            })
+                          }
+                          disabled={!e.id}
+                        >
+                          Poista syöjä
+                        </Button>
+                      )}
+                      {e.paid < 2 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="green"
+                          onClick={() =>
+                            e.id &&
+                            updateEaterPaid.mutate(
+                              {
                                 id: e.id,
-                              })
-                            }
-                            disabled={!e.id}
-                          >
-                            Poista syöjä
-                          </Button>
-                        )}
-                        {e.paid < 2 && (
-                          <Button
-                            size="xs"
-                            variant="outline"
-                            color="green"
-                            onClick={() =>
-                              updateEaterPaid.mutate(
-                                {
-                                  id: e.id,
-                                  paidLevel: 2,
+                                paidLevel: 2,
+                              },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: "Maksettu",
+                                    message: "Syöjä merkattu maksetuksi",
+                                    color: "green",
+                                  });
                                 },
-                                {
-                                  onSuccess: () => {
-                                    notifications.show({
-                                      title: "Maksettu",
-                                      message: "Syöjä merkattu maksetuksi",
-                                      color: "green",
-                                    });
-                                  },
+                              },
+                            )
+                          }
+                          disabled={!e.id}
+                        >
+                          Merkkaa maksu
+                        </Button>
+                      )}
+                      {e.paid > 0 && (
+                        <Button
+                          size="xs"
+                          variant="outline"
+                          color="red"
+                          onClick={() =>
+                            e.id &&
+                            updateEaterPaid.mutate(
+                              {
+                                id: e.id,
+                                paidLevel: 0,
+                              },
+                              {
+                                onSuccess: () => {
+                                  notifications.show({
+                                    title: "Maksu poistettu",
+                                    message: "Syöjä merkattu maksamattomaksi",
+                                    color: "green",
+                                  });
                                 },
-                              )
-                            }
-                            disabled={!e.id}
-                          >
-                            Merkkaa maksu
-                          </Button>
-                        )}
-                        {e.paid > 0 && (
-                          <Button
-                            size="xs"
-                            variant="outline"
-                            color="red"
-                            onClick={() =>
-                              updateEaterPaid.mutate(
-                                {
-                                  id: e.id,
-                                  paidLevel: 0,
-                                },
-                                {
-                                  onSuccess: () => {
-                                    notifications.show({
-                                      title: "Maksu poistettu",
-                                      message: "Syöjä merkattu maksamattomaksi",
-                                      color: "green",
-                                    });
-                                  },
-                                },
-                              )
-                            }
-                            disabled={!e.id}
-                          >
-                            Poista maksu
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </Group>
-                </List.Item>
-              );
-            },
-          )}
+                              },
+                            )
+                          }
+                          disabled={!e.id}
+                        >
+                          Poista maksu
+                        </Button>
+                      )}
+                    </>
+                  )}
+                </Group>
+              </List.Item>
+            );
+          })}
         </List>
       </Stack>
       <Group mt={40}>
@@ -265,6 +305,17 @@ export default function MealWidget({
                 >
                   Merkitse maksetuksi
                 </Button>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setIsEditingComment(true);
+                    setComment(eater.comment ?? "");
+                    openComment();
+                  }}
+                  disabled={dayjs(meal.signupEnd) <= dayjs()}
+                >
+                  Muokkaa kommenttia
+                </Button>
               </>
             )}
             {eater.paid === 1 && (
@@ -284,7 +335,11 @@ export default function MealWidget({
           </>
         ) : (
           <Button
-            onClick={() => meal.id && addEater.mutate(meal.id)}
+            onClick={() => {
+              setIsEditingComment(false);
+              setComment("");
+              openComment();
+            }}
             disabled={
               !participation ||
               !meal.id ||
@@ -338,6 +393,80 @@ export default function MealWidget({
             Poista
           </Button>
         </Group>
+      </Modal>
+      <Modal
+        opened={commentOpened}
+        onClose={closeComment}
+        title={isEditingComment ? "Muokkaa kommenttia" : "Ilmoittaudu syöjäksi"}
+        fullScreen={isMobile}
+      >
+        <Stack>
+          {meal.description && <Text c="dimmed">{meal.description}</Text>}
+          <Textarea
+            label={`Kommentti (JULKINEN!)${meal.requiresComment ? " *" : ""}`}
+            description={
+              meal.requiresComment
+                ? "Kommentti vaaditaan ilmoittautuessa, katso ohjeet yllä."
+                : "Voit kertoa esim. toiveista tai liittää mukavan viestin (valinnainen)"
+            }
+            value={comment}
+            onChange={(e) => setComment(e.currentTarget.value)}
+          />
+          <Group>
+            <Button onClick={closeComment} variant="default">
+              Peruuta
+            </Button>
+            <Button
+              onClick={async () => {
+                if (meal.requiresComment && !comment.trim()) {
+                  notifications.show({
+                    title: "Kommentti puuttuu",
+                    message: "Kommentti on pakollinen tälle aterialle",
+                    color: "red",
+                  });
+                  return;
+                }
+
+                if (isEditingComment) {
+                  if (!eater?.id) return;
+                  updateEaterComment.mutate(
+                    { id: eater.id, comment: comment.trim() || null },
+                    {
+                      onSuccess: () => {
+                        notifications.show({
+                          title: "Kommentti päivitetty",
+                          message: "Kommenttisi on tallennettu",
+                          color: "green",
+                        });
+                        closeComment();
+                      },
+                    },
+                  );
+                } else {
+                  if (!meal.id) return;
+                  addEater.mutate(
+                    { mealId: meal.id, comment: comment.trim() || null },
+                    {
+                      onSuccess: () => {
+                        notifications.show({
+                          title: "Ilmoittautuminen onnistui",
+                          message: "Olet ilmoittautunut syöjäksi",
+                          color: "green",
+                        });
+                        closeComment();
+                      },
+                    },
+                  );
+                }
+              }}
+              disabled={
+                !participation || (!isChef && dayjs(meal.signupEnd) <= dayjs())
+              }
+            >
+              {isEditingComment ? "Tallenna" : "Ilmoittaudu"}
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
     </div>
   );
