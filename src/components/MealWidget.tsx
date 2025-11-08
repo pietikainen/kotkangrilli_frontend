@@ -10,6 +10,7 @@ import {
   Modal,
   Popover,
   Stack,
+  Table,
   Text,
   Textarea,
   ThemeIcon,
@@ -60,6 +61,10 @@ export default function MealWidget({
     useDisclosure(false);
   const [commentOpened, { open: openComment, close: closeComment }] =
     useDisclosure(false);
+  const [
+    eatersModalOpened,
+    { open: openEatersModal, close: closeEatersModal },
+  ] = useDisclosure(false);
   const [comment, setComment] = useState<string>("");
   const [isEditingComment, setIsEditingComment] = useState(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
@@ -117,7 +122,9 @@ export default function MealWidget({
         </Text>
         {meal.description && <Text>{meal.description}</Text>}
         <Group>
-          <Text>Hinta: {meal.price / 100} €</Text>
+          <Text>
+            Hinta-arvio: {meal.price ? `${meal.price / 100} €` : "Ei tietoa"}
+          </Text>
           {meal.mobilepay && <Badge color="indigo">MobilePay</Badge>}
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
@@ -346,6 +353,13 @@ export default function MealWidget({
         )}
         {isChef && (
           <>
+            <Button
+              onClick={openEatersModal}
+              disabled={!participation}
+              variant="light"
+            >
+              Syöjälista
+            </Button>
             <Button onClick={open} disabled={!participation}>
               Muokkaa
             </Button>
@@ -388,6 +402,107 @@ export default function MealWidget({
             Poista
           </Button>
         </Group>
+      </Modal>
+      <Modal
+        opened={eatersModalOpened}
+        onClose={closeEatersModal}
+        title="Syöjälista"
+        fullScreen={isMobile}
+      >
+        <Table
+          striped
+          withTableBorder
+          highlightOnHover
+          verticalSpacing="xs"
+          horizontalSpacing="md"
+        >
+          <Table.Thead>
+            <Table.Tr>
+              <Table.Th>Syöjä</Table.Th>
+              <Table.Th>Maksu</Table.Th>
+              <Table.Th>Kommentti</Table.Th>
+            </Table.Tr>
+          </Table.Thead>
+          <Table.Tbody>
+            {eaters?.data.data.map((e: z.infer<typeof eaterSchema>) => {
+              const eaterUser = users?.data.find(
+                (u: { id: number }) => u.id === e.eaterId,
+              );
+              return (
+                <Table.Tr key={e.id}>
+                  <Table.Td>
+                    <Group gap="xs">
+                      {eaterUser?.avatar ? (
+                        <Image
+                          src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=24`}
+                          fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                          alt={`${eaterUser.nickname || eaterUser.username} avatar`}
+                          mah={24}
+                          w="auto"
+                          fit="contain"
+                        />
+                      ) : (
+                        <Image
+                          src="https://cdn.discordapp.com/embed/avatars/0.png"
+                          alt={`${eaterUser?.nickname || eaterUser?.username} avatar`}
+                          mah={24}
+                          w="auto"
+                          fit="contain"
+                        />
+                      )}
+                      <Text size="sm">
+                        {eaterUser?.nickname || eaterUser?.username}
+                      </Text>
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    <Group gap="xs">
+                      {e.paid === 0 && (
+                        <>
+                          <ThemeIcon size="sm" color="red" variant="light">
+                            <IconCurrencyEuroOff />
+                          </ThemeIcon>
+                          <Text size="sm" c="red.7">
+                            Maksamaton
+                          </Text>
+                        </>
+                      )}
+                      {e.paid === 1 && (
+                        <>
+                          <ThemeIcon size="sm" color="yellow" variant="light">
+                            <IconCurrencyEuro />
+                          </ThemeIcon>
+                          <Text size="sm" c="yellow.8">
+                            Maksettu
+                          </Text>
+                        </>
+                      )}
+                      {e.paid === 2 && (
+                        <>
+                          <ThemeIcon size="sm" color="green" variant="light">
+                            <IconCurrencyEuro />
+                          </ThemeIcon>
+                          <Text size="sm" c="green.8">
+                            Hyväksytty
+                          </Text>
+                        </>
+                      )}
+                    </Group>
+                  </Table.Td>
+                  <Table.Td>
+                    {e.comment ? (
+                      <Text size="sm">{e.comment}</Text>
+                    ) : (
+                      <Text size="sm" c="dimmed">
+                        –
+                      </Text>
+                    )}
+                  </Table.Td>
+                </Table.Tr>
+              );
+            })}
+          </Table.Tbody>
+        </Table>
       </Modal>
       <Modal
         opened={commentOpened}
