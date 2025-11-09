@@ -68,25 +68,33 @@ export default function Schedule({
   const [lastDate, setLastDate] = useState<Date>(new Date());
 
   useEffect(() => {
-    if (!activities?.data.data || activities?.data.data.length === 0) return;
-    const sortedActivities = activities?.data.data.sort(
+    if (!activities?.data.data || activities.data.data.length === 0) return;
+
+    const sortedActivities = [...activities.data.data].sort(
       (a: z.infer<typeof activitySchema>, b: z.infer<typeof activitySchema>) =>
         new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
     );
-    const lastActivity = sortedActivities.slice(-1)[0];
+
+    const lastActivity = sortedActivities[sortedActivities.length - 1];
     setLastDate(new Date(lastActivity.endDate));
-    let currentDay: dayjs.Dayjs | null = null;
+
+    const DAY_START_HOUR = 10;
     const newDays: z.infer<typeof activitySchema>[][] = [];
+    let currentKey: string | null = null;
+
     sortedActivities.forEach((activity: z.infer<typeof activitySchema>) => {
-      if (
-        !dayjs(currentDay).isSame(dayjs(activity.startDate), "day") &&
-        dayjs(activity.startDate).format("HH:mm") === "10:00"
-      ) {
+      const key = dayjs(activity.startDate)
+        .subtract(DAY_START_HOUR, "hour")
+        .format("YYYY-MM-DD");
+
+      if (currentKey === null || currentKey !== key) {
         newDays.push([]);
-        currentDay = dayjs(activity.startDate);
+        currentKey = key;
       }
+
       newDays[newDays.length - 1].push(activity);
     });
+
     setDays(newDays);
   }, [activities]);
 
