@@ -49,8 +49,8 @@ function LoginComponent() {
             style={{ borderRadius: "0.5rem" }}
           />
           <Title order={1}>Kotkangrilli</Title>
-          <ColorSchemeToggle />
         </Group>
+        <ColorSchemeToggle />
         <Button
           component="a"
           href={`${import.meta.env.VITE_PUBLIC_API_BASE_URL}/auth/discord`}

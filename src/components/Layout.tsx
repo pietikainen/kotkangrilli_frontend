@@ -73,7 +73,7 @@ export const Layout = ({ children }: CommonLayoutProps) => {
           </Group>
         </Group>
       </AppShell.Header>
-      <Navbar />
+      <Navbar toggle={toggle} />
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );

@@ -44,7 +44,7 @@ function AdminNav({ events }: { events: z.infer<typeof eventSchema>[] }) {
   );
 }
 
-export default function Navbar() {
+export default function Navbar({ toggle }: { toggle: () => void }) {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const activeEvent = events?.data.data.find(
@@ -56,12 +56,18 @@ export default function Navbar() {
 
   return (
     <AppShell.Navbar p="md">
-      <NavLink component={Link} to="/dashboard" label="Etusivu" />
+      <NavLink
+        component={Link}
+        to="/dashboard"
+        label="Etusivu"
+        onClick={toggle}
+      />
       {(!activeEvent || activeEvent.votingState === 0) && (
         <NavLink
           component={Link}
           to="/dashboard/game-suggestions"
           label="Peliehdotukset"
+          onClick={toggle}
         />
       )}
       {activeEvent && (
@@ -71,6 +77,7 @@ export default function Navbar() {
               component={Link}
               to={`/dashboard/vote/${activeEvent.id}`}
               label="Peliäänestys"
+              onClick={toggle}
             />
           )}
           {activeEvent.votingState >= 3 && (
@@ -78,6 +85,7 @@ export default function Navbar() {
               component={Link}
               to={`/dashboard/results/${activeEvent.id}`}
               label="Peliäänestyksen tulokset"
+              onClick={toggle}
             />
           )}
           {activeEvent.votingState >= 3 && (
@@ -85,19 +93,27 @@ export default function Navbar() {
               component={Link}
               to={`/dashboard/schedule/${activeEvent.id}`}
               label="Aikataulu"
+              onClick={toggle}
             />
           )}
           <NavLink
             component={Link}
             to={`/dashboard/meals/${activeEvent.id}`}
             label="Ateriat"
+            onClick={toggle}
           />
           <NavLink
             component={Link}
             to={`/dashboard/carpools/${activeEvent.id}`}
             label="Kimppakyydit"
+            onClick={toggle}
           />
-          <NavLink component={Link} to="/dashboard/memo" label="Muistilista" />
+          <NavLink
+            component={Link}
+            to="/dashboard/memo"
+            label="Muistilista"
+            onClick={toggle}
+          />
         </>
       )}
       {user?.data.userlevel > 7 && <AdminNav events={events?.data.data} />}
