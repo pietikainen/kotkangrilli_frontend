@@ -15,5 +15,6 @@ export default function useGetActivitiesByEventId(eventId?: number) {
     queryKey: ["activities", eventId],
     queryFn: () => getActivitiesByEventId(eventId),
     enabled: !!eventId,
+    refetchInterval: 120000,
   });
 }
