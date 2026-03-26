@@ -52,16 +52,41 @@ interface GameVote {
   isLan: boolean;
   submittedBy: number;
   description: string;
+  voteGroup?: string;
+  pendingReason?: string | null;
   votes_amount: number;
   is_winner: boolean;
   finalized: boolean;
 }
 
-function shuffleArray(array: (GameVote | z.infer<typeof gameSchema>)[]) {
+interface VoteCandidate extends Omit<GameVote, "id" | "submittedBy"> {
+  id: string;
+  submittedBy?: number;
+  memberTitles: string[];
+  memberExternalApiIds: number[];
+  representativeExternalApiId: number;
+  displayTitle: string;
+}
+
+function shuffleArray(array: VoteCandidate[]) {
   for (let i = array.length - 1; i >= 0; i -= 1) {
     const j = Math.floor(Math.random() * (i + 1));
     [array[i], array[j]] = [array[j], array[i]];
   }
+}
+
+function getCurrentGameVotes(gameVotes: GameVote[]) {
+  const latestVotesByGame = new Map<number, GameVote>();
+
+  gameVotes.forEach((gameVote) => {
+    const existingVote = latestVotesByGame.get(gameVote.externalApiId);
+
+    if (!existingVote || gameVote.voting_round > existingVote.voting_round) {
+      latestVotesByGame.set(gameVote.externalApiId, gameVote);
+    }
+  });
+
+  return [...latestVotesByGame.values()];
 }
 
 export const Route = createFileRoute("/dashboard/vote/$eventId")({
@@ -88,85 +113,255 @@ function RouteComponent() {
 
   const votingRound = useMemo(() => {
     if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) return 1;
-    const lastRound = gameVotes.data.data.sort(
-      (a: { voting_round: number }, b: { voting_round: number }) =>
-        a.voting_round - b.voting_round,
+    return (
+      Math.max(
+        ...gameVotes.data.data.map(
+          (roundVote: { voting_round: number }) => roundVote.voting_round,
+        ),
+      ) + 1
     );
-    return lastRound[0].voting_round + 1;
   }, [gameVotes]);
+
+  const currentGameVotes = useMemo(
+    () => getCurrentGameVotes(gameVotes?.data?.data ?? []),
+    [gameVotes],
+  );
+
+  const unresolvedVotes = useMemo(() => {
+    return currentGameVotes.filter(
+      (game: GameVote) => game.is_winner && !game.finalized,
+    );
+  }, [currentGameVotes]);
+
+  const votingPhase = useMemo<"normal" | "group_decider">(() => {
+    if (
+      unresolvedVotes.some(
+        (game: GameVote) => game.pendingReason === "cutoff_tie",
+      )
+    ) {
+      return "normal";
+    }
+
+    if (
+      unresolvedVotes.some(
+        (game: GameVote) => game.pendingReason === "group_member_decider",
+      )
+    ) {
+      return "group_decider";
+    }
+
+    return "normal";
+  }, [unresolvedVotes]);
 
   const maxVotes = React.useMemo(() => {
     if (!event?.data?.data) return 0;
     const finalizedGames =
-      gameVotes?.data?.data?.filter(
+      currentGameVotes.filter(
         (game: { finalized: boolean }) => game.finalized,
       ) ?? [];
-    return event.data.data.winnerGamesCount - finalizedGames.length;
-  }, [gameVotes, event]);
+    const reservedGroupSlots = new Set(
+      unresolvedVotes
+        .filter(
+          (game: GameVote) => game.pendingReason === "group_member_decider",
+        )
+        .map((game: GameVote) => game.voteGroup)
+        .filter(Boolean),
+    ).size;
+
+    if (votingPhase === "group_decider") {
+      return reservedGroupSlots;
+    }
+
+    return (
+      event.data.data.winnerGamesCount -
+      finalizedGames.length -
+      reservedGroupSlots
+    );
+  }, [currentGameVotes, event, unresolvedVotes, votingPhase]);
 
   const votes = votesData?.data.data.filter(
     (vote: { voting_round: number }) => vote.voting_round === votingRound,
   );
 
-  const gamesToVoteRandomized = useMemo(() => {
-    if (!games || !votes || !gameVotes) return [];
-    let gamesToVote: (GameVote | z.infer<typeof gameSchema>)[];
-    let alreadyVotedGames: (GameVote | z.infer<typeof gameSchema>)[];
-    if (votingRound > 1) {
-      gamesToVote = gameVotes.data.data.filter(
-        (game: {
-          externalApiId: number;
-          voting_round: number;
-          finalized: boolean;
-          is_winner: boolean;
-        }) =>
-          !game.finalized &&
-          game.is_winner &&
-          game.voting_round === votingRound - 1 &&
-          !votes.find(
-            (vote: { externalApiId: number; voting_round: number }) =>
-              vote.externalApiId === game.externalApiId &&
-              vote.voting_round === votingRound,
-          ),
-      );
-      alreadyVotedGames = gameVotes.data.data.filter(
-        (game: {
-          externalApiId: number;
-          voting_round: number;
-          finalized: boolean;
-          is_winner: boolean;
-        }) =>
-          !game.finalized &&
-          game.is_winner &&
-          game.voting_round === votingRound - 1 &&
-          votes.find(
-            (vote: { externalApiId: number; voting_round: number }) =>
-              vote.externalApiId === game.externalApiId &&
-              vote.voting_round === votingRound,
-          ),
-      );
-    } else {
-      gamesToVote = games.data.data.filter(
-        (game: { externalApiId: number }) =>
-          !votes.find(
-            (vote: { externalApiId: number }) =>
-              vote.externalApiId === game.externalApiId,
-          ),
-      );
-      alreadyVotedGames = games.data.data.filter(
-        (game: { externalApiId: number }) =>
-          votes.find(
-            (vote: { externalApiId: number }) =>
-              vote.externalApiId === game.externalApiId,
-          ),
-      );
-    }
-    const filteredGames = gamesToVote.filter((game: { title: string }) =>
-      game.title.toLowerCase().includes(filter.toLowerCase()),
+  const getVoteGroupForExternalApiId = (externalApiId: number) => {
+    const currentRoundGame = unresolvedVotes.find(
+      (game: GameVote) => game.externalApiId === externalApiId,
     );
-    shuffleArray(filteredGames);
+
+    if (currentRoundGame?.voteGroup) {
+      return currentRoundGame.voteGroup.trim();
+    }
+
+    const originalGame = games?.data.data.find(
+      (candidate: { externalApiId: number; voteGroup?: string }) =>
+        candidate.externalApiId === externalApiId,
+    );
+
+    return originalGame?.voteGroup?.trim();
+  };
+
+  const voteCandidates = useMemo<VoteCandidate[]>(() => {
+    if (!games || !gameVotes) return [];
+
+    if (votingPhase === "group_decider") {
+      return unresolvedVotes
+        .filter(
+          (game: GameVote) => game.pendingReason === "group_member_decider",
+        )
+        .map((game: GameVote) => ({
+          ...game,
+          id: `game-${game.externalApiId}`,
+          memberTitles: [game.title],
+          memberExternalApiIds: [game.externalApiId],
+          representativeExternalApiId: game.externalApiId,
+          displayTitle: game.title,
+        }));
+    }
+
+    if (votingRound > 1) {
+      const groupedCandidates = new Map<string, VoteCandidate>();
+      const ungroupedCandidates: VoteCandidate[] = [];
+
+      unresolvedVotes
+        .filter((game: GameVote) => game.pendingReason === "cutoff_tie")
+        .forEach((game: GameVote) => {
+          const voteGroup = game.voteGroup?.trim();
+
+          if (!voteGroup) {
+            ungroupedCandidates.push({
+              ...game,
+              id: `game-${game.externalApiId}`,
+              memberTitles: [game.title],
+              memberExternalApiIds: [game.externalApiId],
+              representativeExternalApiId: game.externalApiId,
+              displayTitle: game.title,
+            });
+            return;
+          }
+
+          const existingCandidate = groupedCandidates.get(voteGroup);
+
+          if (existingCandidate) {
+            existingCandidate.memberTitles.push(game.title);
+            existingCandidate.memberExternalApiIds.push(game.externalApiId);
+            return;
+          }
+
+          groupedCandidates.set(voteGroup, {
+            ...game,
+            id: `group-${voteGroup}`,
+            memberTitles: [game.title],
+            memberExternalApiIds: [game.externalApiId],
+            representativeExternalApiId: game.externalApiId,
+            displayTitle: game.title,
+          });
+        });
+
+      return [
+        ...ungroupedCandidates,
+        ...[...groupedCandidates.values()].map((candidate) => ({
+          ...candidate,
+          description: `Mukana: ${candidate.memberTitles.join(", ")}`,
+          displayTitle: candidate.memberTitles.join(" / "),
+        })),
+      ];
+    }
+
+    const groupedCandidates = new Map<string, VoteCandidate>();
+    const ungroupedCandidates: VoteCandidate[] = [];
+
+    games.data.data.forEach((game: z.infer<typeof gameSchema>) => {
+      const voteGroup = game.voteGroup?.trim();
+
+      if (!voteGroup) {
+        ungroupedCandidates.push({
+          ...game,
+          id: `game-${game.externalApiId}`,
+          image: game.image || "",
+          description: game.description || "",
+          eventId,
+          voting_round: votingRound,
+          votes_amount: 0,
+          is_winner: false,
+          finalized: false,
+          memberTitles: [game.title],
+          memberExternalApiIds: [game.externalApiId],
+          representativeExternalApiId: game.externalApiId,
+          displayTitle: game.title,
+        });
+        return;
+      }
+
+      const existingCandidate = groupedCandidates.get(voteGroup);
+
+      if (existingCandidate) {
+        existingCandidate.memberTitles.push(game.title);
+        return;
+      }
+
+      groupedCandidates.set(voteGroup, {
+        ...game,
+        id: `group-${voteGroup}`,
+        image: game.image || "",
+        eventId,
+        voting_round: votingRound,
+        votes_amount: 0,
+        is_winner: false,
+        finalized: false,
+        title: voteGroup,
+        description: `Ryhmään kuuluvat: ${game.title}`,
+        memberTitles: [game.title],
+        memberExternalApiIds: [game.externalApiId],
+        representativeExternalApiId: game.externalApiId,
+        displayTitle: game.title,
+      });
+    });
+
+    return [
+      ...ungroupedCandidates,
+      ...[...groupedCandidates.values()].map((candidate) => ({
+        ...candidate,
+        description: `Ryhmään kuuluvat: ${candidate.memberTitles.join(", ")}`,
+        displayTitle: candidate.memberTitles.join(" / "),
+      })),
+    ];
+  }, [eventId, games, gameVotes, votingRound, votingPhase, unresolvedVotes]);
+
+  const gamesToVoteRandomized = useMemo(() => {
+    if (!votes) return [];
+
+    const findVoteForCandidate = (game: VoteCandidate) => {
+      if (game.voteGroup && votingPhase === "normal") {
+        return votes.find(
+          (vote: { id: number; externalApiId: number }) =>
+            getVoteGroupForExternalApiId(vote.externalApiId) === game.voteGroup,
+        );
+      }
+
+      return votes.find(
+        (vote: { id: number; externalApiId: number }) =>
+          vote.externalApiId === game.externalApiId,
+      );
+    };
+
+    const alreadyVotedGames = voteCandidates.filter((game) =>
+      Boolean(findVoteForCandidate(game)),
+    );
+
+    const gamesToVote = voteCandidates.filter(
+      (game) => !findVoteForCandidate(game),
+    );
+
+    const filteredGames = gamesToVote.filter((game) =>
+      `${game.title} ${game.memberTitles.join(" ")}`
+        .toLowerCase()
+        .includes(filter.toLowerCase()),
+    );
+    if (votingPhase === "normal") {
+      shuffleArray(filteredGames);
+    }
     return [...alreadyVotedGames, ...filteredGames];
-  }, [games, votes, filter, gameVotes, votingRound]);
+  }, [games, unresolvedVotes, voteCandidates, votes, filter, votingPhase]);
 
   if (
     isPending ||
@@ -209,72 +404,111 @@ function RouteComponent() {
         />
       </Group>
       <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }} mt="xs">
-        {gamesToVoteRandomized.map(
-          (game: GameVote | z.infer<typeof gameSchema>) => {
-            const submitter = users?.data.find(
-              (u: z.infer<typeof userSchema>) => u.id === game.submittedBy,
+        {gamesToVoteRandomized.map((game: VoteCandidate) => {
+          const submitter = users?.data.find(
+            (u: z.infer<typeof userSchema>) => u.id === game.submittedBy,
+          );
+          const hasVoteInSameGroup =
+            votingPhase === "group_decider" &&
+            Boolean(game.voteGroup) &&
+            votes.some(
+              (vote: { id: number; externalApiId: number }) =>
+                getVoteGroupForExternalApiId(vote.externalApiId) ===
+                game.voteGroup,
             );
-            return (
-              <Card
-                key={game.id}
-                shadow="md"
-                radius="md"
-                withBorder
-                p="xs"
-                display="flex"
-              >
-                <Group wrap="nowrap">
-                  <Image src={game.image} h={100} w="auto" alt={game.title} />
-                  <Spoiler
-                    maxHeight={110}
-                    showLabel="Näytä lisää"
-                    hideLabel="Piilota"
-                  >
-                    <Title order={4}>{game.title}</Title>
-                  </Spoiler>
-                </Group>
-                <Group mt="xs">
-                  {getLink(game.link, game.store)}
-                  <Badge
-                    leftSection={
-                      game.price > 0 ? (
-                        <IconCurrencyEuro size={14} />
-                      ) : (
-                        <IconCurrencyEuroOff size={14} />
-                      )
-                    }
-                    color={game.price > 0 ? "yellow" : "gray"}
-                  >
-                    {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
-                  </Badge>
-                  <Badge leftSection={<IconUsers size={14} />} color="grape">
-                    {game.players}
-                  </Badge>
-                  <Badge
-                    leftSection={
-                      game.isLan ? (
-                        <IconHomeLink size={14} />
-                      ) : (
-                        <IconNetwork size={14} />
-                      )
-                    }
-                    color={game.isLan ? "teal" : "orange"}
-                  >
-                    {game.isLan ? "LAN" : "Online"}
-                  </Badge>
-                </Group>
-                <Group justify="space-between" mt="xs">
-                  <Spoiler
-                    maxHeight={isMobile ? 41 : undefined}
-                    showLabel="Näytä lisää"
-                    hideLabel="Piilota"
-                  >
-                    <Text c="dimmed" size="sm">
-                      {game.description}
-                    </Text>
-                  </Spoiler>
+          const votedItem =
+            game.voteGroup && votingPhase === "normal"
+              ? votes.find((vote: { id: number; externalApiId: number }) => {
+                  const unresolvedGame = unresolvedVotes.find(
+                    (candidate: GameVote) =>
+                      candidate.externalApiId === vote.externalApiId,
+                  );
+                  const originalGame = games.data.data.find(
+                    (candidate: {
+                      externalApiId: number;
+                      voteGroup?: string;
+                    }) => candidate.externalApiId === vote.externalApiId,
+                  );
+
+                  return (
+                    unresolvedGame?.voteGroup?.trim() === game.voteGroup ||
+                    originalGame?.voteGroup?.trim() === game.voteGroup
+                  );
+                })
+              : votes.find(
+                  (vote: { id: number; externalApiId: number }) =>
+                    vote.externalApiId === game.externalApiId,
+                );
+          return (
+            <Card
+              key={game.id}
+              shadow="md"
+              radius="md"
+              withBorder
+              p="xs"
+              display="flex"
+            >
+              <Group wrap="nowrap">
+                <Image src={game.image} h={100} w="auto" alt={game.title} />
+                <Spoiler
+                  maxHeight={110}
+                  showLabel="Näytä lisää"
+                  hideLabel="Piilota"
+                >
+                  <Title order={4}>{game.displayTitle}</Title>
+                </Spoiler>
+              </Group>
+              <Group mt="xs">
+                {game.voteGroup && votingPhase === "normal" && (
+                  <Badge color="blue">Yhteisäänestys</Badge>
+                )}
+                {game.voteGroup && votingPhase === "group_decider" && (
+                  <Badge color="indigo">{game.voteGroup}</Badge>
+                )}
+                {getLink(game.link, game.store)}
+                <Badge
+                  leftSection={
+                    game.price > 0 ? (
+                      <IconCurrencyEuro size={14} />
+                    ) : (
+                      <IconCurrencyEuroOff size={14} />
+                    )
+                  }
+                  color={game.price > 0 ? "yellow" : "gray"}
+                >
+                  {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
+                </Badge>
+                <Badge leftSection={<IconUsers size={14} />} color="grape">
+                  {game.players}
+                </Badge>
+                <Badge
+                  leftSection={
+                    game.isLan ? (
+                      <IconHomeLink size={14} />
+                    ) : (
+                      <IconNetwork size={14} />
+                    )
+                  }
+                  color={game.isLan ? "teal" : "orange"}
+                >
+                  {game.isLan ? "LAN" : "Online"}
+                </Badge>
+              </Group>
+              <Group justify="space-between" mt="xs">
+                <Spoiler
+                  maxHeight={isMobile ? 41 : undefined}
+                  showLabel="Näytä lisää"
+                  hideLabel="Piilota"
+                >
+                  <Text c="dimmed" size="sm">
+                    {game.voteGroup && votingPhase === "normal"
+                      ? `Mukana: ${game.memberTitles.join(", ")}`
+                      : game.description}
+                  </Text>
+                </Spoiler>
+                {submitter && (
                   <Tooltip
-                    label={submitter?.nickname || submitter?.username}
+                    label={submitter.nickname || submitter.username}
                     position="top"
                     events={{ hover: true, focus: true, touch: true }}
                     withArrow
@@ -293,61 +527,56 @@ function RouteComponent() {
                       />
                     </Avatar>
                   </Tooltip>
-                </Group>
-                <Group mt="xs" w="100%" h="100%" align="flex-end">
-                  {votes.find(
-                    (vote: { externalApiId: number }) =>
-                      vote.externalApiId === game.externalApiId,
-                  ) ? (
-                    <VoteButton
-                      onClick={() => {
-                        deleteVote.mutate(
-                          votes.find(
-                            (vote: { externalApiId: number }) =>
-                              vote.externalApiId === game.externalApiId,
-                          ).id,
-                          {
-                            onSuccess: () => {
-                              notifications.show({
-                                title: "Ääni poistettu",
-                                message: `Voit antaa vielä ${maxVotes - votes.length + 1} ääntä`,
-                                color: "green",
-                              });
-                            },
+                )}
+              </Group>
+              <Group mt="xs" w="100%" h="100%" align="flex-end">
+                {votedItem ? (
+                  <VoteButton
+                    onClick={() => {
+                      deleteVote.mutate(votedItem.id, {
+                        onSuccess: () => {
+                          notifications.show({
+                            title: "Ääni poistettu",
+                            message: `Voit antaa vielä ${maxVotes - votes.length + 1} ääntä`,
+                            color: "green",
+                          });
+                        },
+                      });
+                    }}
+                    disabled={!participation}
+                    isVoted
+                  />
+                ) : (
+                  <VoteButton
+                    onClick={() => {
+                      addVote.mutate(
+                        {
+                          eventId,
+                          externalApiId: game.representativeExternalApiId,
+                        },
+                        {
+                          onSuccess: () => {
+                            notifications.show({
+                              title: "Ääni lisätty",
+                              message: `Voit antaa vielä ${maxVotes - votes.length - 1} ääntä`,
+                              color: "green",
+                            });
                           },
-                        );
-                      }}
-                      disabled={!participation}
-                      isVoted
-                    />
-                  ) : (
-                    <VoteButton
-                      onClick={() => {
-                        addVote.mutate(
-                          {
-                            eventId,
-                            externalApiId: game.externalApiId,
-                          },
-                          {
-                            onSuccess: () => {
-                              notifications.show({
-                                title: "Ääni lisätty",
-                                message: `Voit antaa vielä ${maxVotes - votes.length - 1} ääntä`,
-                                color: "green",
-                              });
-                            },
-                          },
-                        );
-                      }}
-                      disabled={votes.length >= maxVotes || !participation}
-                      isVoted={false}
-                    />
-                  )}
-                </Group>
-              </Card>
-            );
-          },
-        )}
+                        },
+                      );
+                    }}
+                    disabled={
+                      votes.length >= maxVotes ||
+                      !participation ||
+                      Boolean(hasVoteInSameGroup)
+                    }
+                    isVoted={false}
+                  />
+                )}
+              </Group>
+            </Card>
+          );
+        })}
       </SimpleGrid>
     </>
   );

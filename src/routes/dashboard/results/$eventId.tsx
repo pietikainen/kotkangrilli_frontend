@@ -22,6 +22,7 @@ interface GameVote {
   isLan: boolean;
   submittedBy: number;
   description: string;
+  voteGroup?: string;
   votes_amount: number;
   is_winner: boolean;
   finalized: boolean;

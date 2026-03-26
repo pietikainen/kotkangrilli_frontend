@@ -12,6 +12,7 @@ const gameSchema = z.object({
   isLan: z.boolean(),
   submittedBy: z.number().min(0).optional(),
   description: z.string().min(0).max(180).optional(),
+  voteGroup: z.string().trim().max(255).optional(),
 });
 
 export default gameSchema;

@@ -20,6 +20,10 @@ import useGetStoreUrl from "../../api/useGetStoreUrl.hook";
 import useUpdateGame from "../../api/useUpdateGame.hook";
 import gameSchema from "../../schemas/gameSchema";
 
+const gameFormSchema = gameSchema.extend({
+  voteGroup: z.string().trim().max(255),
+});
+
 function getStoreName(url: string) {
   if (url) {
     if (url.includes("steampowered.com")) return "Steam";
@@ -44,12 +48,13 @@ export default function GameForm({
   close: () => void;
   setTitle?: (title: string) => void;
 }) {
+  const shouldAutofillStore = Boolean(searchedGame && !game);
   const { data: storeUrl, isLoading } = useGetStoreUrl(
-    searchedGame?.id || game?.externalApiId,
+    shouldAutofillStore ? searchedGame?.id : undefined,
   );
   const { Field, handleSubmit, setFieldValue, getFieldValue } = useForm({
     defaultValues: game
-      ? { ...game, price: game.price / 100 }
+      ? { ...game, price: game.price / 100, voteGroup: game.voteGroup ?? "" }
       : {
           externalApiId: searchedGame?.id || -1,
           image: searchedGame?.coverImageUrl,
@@ -60,9 +65,10 @@ export default function GameForm({
           link: "",
           players: undefined,
           isLan: true,
+          voteGroup: "",
         },
     validators: {
-      onChange: gameSchema,
+      onChange: gameFormSchema,
     },
     onSubmit: async ({ value }) => {
       if (value.price === undefined) {
@@ -85,7 +91,8 @@ export default function GameForm({
       const submissionValues = {
         ...value,
         price: Math.round(value.price * 100),
-        store: isNas ? "NAS" : getStoreName(value.link),
+        store: isNas ? "NAS" : value.store,
+        voteGroup: value.voteGroup?.trim() || undefined,
       };
 
       if (game && game.id) {
@@ -144,19 +151,23 @@ export default function GameForm({
     if (isNas) {
       setFieldValue("store", "NAS");
       setFieldValue("price", 0);
-      if (storeUrl?.data.data) {
+      if (shouldAutofillStore && storeUrl?.data.data) {
         setFieldValue("link", storeUrl.data.data);
       }
+      return;
     }
-    if (!isNas) {
-      if (storeUrl?.data.data) {
-        setFieldValue("store", getStoreName(storeUrl.data.data));
-        setFieldValue("link", storeUrl.data.data);
-      } else {
-        setFieldValue("store", getStoreName(getFieldValue("link")));
-      }
+
+    if (!shouldAutofillStore) {
+      return;
     }
-  }, [storeUrl, isNas]);
+
+    if (storeUrl?.data.data) {
+      setFieldValue("store", getStoreName(storeUrl.data.data));
+      setFieldValue("link", storeUrl.data.data);
+    } else {
+      setFieldValue("store", getStoreName(getFieldValue("link")));
+    }
+  }, [getFieldValue, setFieldValue, shouldAutofillStore, storeUrl, isNas]);
 
   if (isLoading) return <Loader />;
 
@@ -200,6 +211,22 @@ export default function GameForm({
           )}
         />
         <Field
+          name="voteGroup"
+          children={({ state, handleChange, handleBlur }) => (
+            <TextInput
+              value={state.value ?? ""}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+                handleChange(e.target.value)
+              }
+              onBlur={handleBlur}
+              label="Äänestysryhmä"
+              description="Anna sama arvo peleille, joiden 1. kierroksen äänet halutaan yhdistää ja ratkaista myöhemmin."
+              placeholder='Esim. "Battlefield"'
+              error={state.meta.errors.join(", ")}
+            />
+          )}
+        />
+        <Field
           name="price"
           children={({ state, handleChange, handleBlur }) => (
             <NumberInput
@@ -227,13 +254,23 @@ export default function GameForm({
         />
         <Field
           name="store"
-          children={({ state }) => (
+          children={({ state, handleChange, handleBlur }) => (
             <TextInput
               value={state.value}
+              onChange={(e: { target: { value: Updater<string> } }) =>
+                handleChange(e.target.value)
+              }
+              onBlur={handleBlur}
               label="Kauppa"
-              disabled
+              description={
+                shouldAutofillStore
+                  ? "Kauppa päätellään automaattisesti linkistä."
+                  : "Ylläpitäjä voi asettaa kaupan käsin."
+              }
+              readOnly={shouldAutofillStore || isNas}
               style={{
-                opacity: 0.6,
+                cursor: shouldAutofillStore || isNas ? "not-allowed" : "auto",
+                opacity: shouldAutofillStore || isNas ? 0.6 : 1,
               }}
               error={state.meta.errors.join(", ")}
             />
@@ -245,7 +282,7 @@ export default function GameForm({
             onChange: ({ value }) => {
               if (isNas) {
                 setFieldValue("store", "NAS");
-              } else {
+              } else if (shouldAutofillStore) {
                 setFieldValue("store", getStoreName(value));
               }
             },
@@ -259,10 +296,14 @@ export default function GameForm({
               onBlur={handleBlur}
               label="Linkki"
               description="Pelin kauppasivu, kotisivut, lataussivu tms."
-              readOnly={storeUrl?.data.data !== ""}
+              readOnly={shouldAutofillStore && storeUrl?.data.data !== ""}
               style={{
-                cursor: storeUrl?.data.data !== "" ? "not-allowed" : "auto",
-                opacity: storeUrl?.data.data !== "" ? 0.6 : 1,
+                cursor:
+                  shouldAutofillStore && storeUrl?.data.data !== ""
+                    ? "not-allowed"
+                    : "auto",
+                opacity:
+                  shouldAutofillStore && storeUrl?.data.data !== "" ? 0.6 : 1,
               }}
               withAsterisk
               error={state.meta.errors.join(", ")}

@@ -36,6 +36,7 @@ interface GameVote {
   isLan: boolean;
   submittedBy: number;
   description: string;
+  voteGroup?: string;
   votes_amount: number;
   is_winner: boolean;
   finalized: boolean;
@@ -65,6 +66,7 @@ export default function GameWidget({
         </Spoiler>
       </Group>
       <Group mt="xs">
+        {game.voteGroup && <Badge color="blue">{game.voteGroup}</Badge>}
         {getLink(game.link, game.store)}
         <Badge
           leftSection={

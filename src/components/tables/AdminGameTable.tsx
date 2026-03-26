@@ -55,6 +55,10 @@ export default function AdminGameTable({
         ),
       },
       {
+        accessorKey: "voteGroup",
+        header: "Äänestysryhmä",
+      },
+      {
         accessorKey: "price",
         header: "Hinta",
         Cell: ({ cell }) => `${cell.getValue<number>() / 100} €`,
