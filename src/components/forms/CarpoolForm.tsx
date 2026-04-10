@@ -16,6 +16,10 @@ import useGetUser from "../../api/useGetUser.hook";
 import useUpdateCarpool from "../../api/useUpdateCarpool.hook";
 import carpoolSchema from "../../schemas/carpoolSchema";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
+import validateWithZod from "../../utils/validateWithZod";
+
+const getDateValue = (value: DateValue) =>
+  value instanceof Date ? value : new Date();
 
 export default function CarpoolForm({
   close,
@@ -42,7 +46,7 @@ export default function CarpoolForm({
           description: "",
         },
     validators: {
-      onChange: carpoolSchema,
+      onChange: validateWithZod(carpoolSchema),
     },
     onSubmit: async ({ value }) => {
       const roundedValues = {
@@ -126,7 +130,7 @@ export default function CarpoolForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Lähtöaika"
               withAsterisk

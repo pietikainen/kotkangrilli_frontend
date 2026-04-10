@@ -18,6 +18,7 @@ export default function useAddPassenger() {
     mutationFn: (carpoolId: number) => postPassenger(carpoolId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["passengers"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

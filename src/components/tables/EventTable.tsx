@@ -1,15 +1,8 @@
-import { ActionIcon, Group } from "@mantine/core";
+import { ActionIcon, Group, Table } from "@mantine/core";
 import { IconEdit, IconTrash } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
-import {
-  MantineReactTable,
-  MRT_Cell,
-  MRT_ColumnDef,
-  MRT_Row,
-  useMantineReactTable,
-} from "mantine-react-table";
-import React, { useMemo } from "react";
+import React from "react";
 import { z } from "zod";
 import eventSchema from "../../schemas/eventSchema";
 import locationSchema from "../../schemas/locationSchema";
@@ -34,117 +27,95 @@ export default function EventTable({
   onEdit: (row: z.infer<typeof eventSchema>) => void;
   onDelete: (row: z.infer<typeof eventSchema>) => void;
 }) {
-  const columns: MRT_ColumnDef<z.infer<typeof eventSchema>>[] = useMemo(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-      },
-      {
-        accessorKey: "title",
-        header: "Nimi",
-      },
-      {
-        accessorKey: "description",
-        header: "Kuvaus",
-      },
-      {
-        accessorKey: "location",
-        header: "Paikka",
-        Cell: ({ cell }) => {
-          const location = locations.find(
-            (l: { id?: number }) =>
-              l.id !== undefined && l.id === cell.getValue(),
-          );
-          return location?.name || "—";
-        },
-      },
-      {
-        accessorKey: "startDate",
-        header: "Alkamispäivä",
-        Cell: ({ cell }) => {
-          const date = cell.getValue<Date>();
-          return date ? dayjs(date).format("L LT") : "—";
-        },
-      },
-      {
-        accessorKey: "endDate",
-        header: "Päättymispäivä",
-        Cell: ({ cell }) => {
-          const date = cell.getValue<Date>();
-          return date ? dayjs(date).format("L LT") : "—";
-        },
-      },
-      {
-        accessorKey: "votingState",
-        header: "Äänestys",
-        Cell: ({ cell }) => getVotingState(cell.getValue<number>()),
-      },
-      {
-        accessorKey: "active",
-        header: "Aktiivinen",
-        Cell: ({ cell }) => (cell.getValue() ? "Kyllä" : "Ei"),
-      },
-      {
-        accessorKey: "winnerGamesCount",
-        header: "Pelejä",
-        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) =>
-          cell.getValue<number | undefined>() || "—",
-      },
-      {
-        accessorKey: "lanMaster",
-        header: "LAN-mestari",
-        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) => {
-          const userId = cell.getValue<number>();
-          if (!userId) return "—";
-          return <User userId={userId} users={users} />;
-        },
-      },
-      {
-        accessorKey: "paintCompoWinner",
-        header: "Paintcompo voittaja",
-        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) => {
-          const userId = cell.getValue<number>();
-          if (!userId) return "—";
-          return <User userId={userId} users={users} />;
-        },
-      },
-      {
-        accessorKey: "organizer",
-        header: '"Järjestäjä"',
-        Cell: ({ cell }: { cell: MRT_Cell<z.infer<typeof eventSchema>> }) => {
-          const userId = cell.getValue<number>();
-          if (!userId) return "—";
-          return <User userId={userId} users={users} />;
-        },
-      },
-      {
-        id: "actions",
-        header: "Toiminnot",
-        Cell: ({ row }: { row: MRT_Row<z.infer<typeof eventSchema>> }) => (
-          <Group>
-            <ActionIcon
-              variant="filled"
-              aria-label="Muokkaa"
-              onClick={() => onEdit(row.original)}
-            >
-              <IconEdit />
-            </ActionIcon>
-            <ActionIcon
-              variant="filled"
-              aria-label="Poista"
-              onClick={() => onDelete(row.original)}
-            >
-              <IconTrash />
-            </ActionIcon>
-          </Group>
-        ),
-      },
-    ],
-    [],
+  return (
+    <Table.ScrollContainer minWidth={1400} type="native">
+      <Table striped highlightOnHover withTableBorder>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>ID</Table.Th>
+            <Table.Th>Nimi</Table.Th>
+            <Table.Th>Kuvaus</Table.Th>
+            <Table.Th>Paikka</Table.Th>
+            <Table.Th>Alkamispäivä</Table.Th>
+            <Table.Th>Päättymispäivä</Table.Th>
+            <Table.Th>Äänestys</Table.Th>
+            <Table.Th>Aktiivinen</Table.Th>
+            <Table.Th>Pelejä</Table.Th>
+            <Table.Th>LAN-mestari</Table.Th>
+            <Table.Th>Paintcompo voittaja</Table.Th>
+            <Table.Th>&quot;Järjestäjä&quot;</Table.Th>
+            <Table.Th>Toiminnot</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {data.map((eventObject) => {
+            const location = locations.find(
+              (candidate) => candidate.id === eventObject.location,
+            );
+
+            return (
+              <Table.Tr key={eventObject.id}>
+                <Table.Td>{eventObject.id}</Table.Td>
+                <Table.Td>{eventObject.title}</Table.Td>
+                <Table.Td>{eventObject.description}</Table.Td>
+                <Table.Td>{location?.name || "—"}</Table.Td>
+                <Table.Td>
+                  {eventObject.startDate
+                    ? dayjs(eventObject.startDate).format("L LT")
+                    : "—"}
+                </Table.Td>
+                <Table.Td>
+                  {eventObject.endDate
+                    ? dayjs(eventObject.endDate).format("L LT")
+                    : "—"}
+                </Table.Td>
+                <Table.Td>{getVotingState(eventObject.votingState)}</Table.Td>
+                <Table.Td>{eventObject.active ? "Kyllä" : "Ei"}</Table.Td>
+                <Table.Td>{eventObject.winnerGamesCount || "—"}</Table.Td>
+                <Table.Td>
+                  {eventObject.lanMaster ? (
+                    <User userId={eventObject.lanMaster} users={users} />
+                  ) : (
+                    "—"
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  {eventObject.paintCompoWinner ? (
+                    <User userId={eventObject.paintCompoWinner} users={users} />
+                  ) : (
+                    "—"
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  {eventObject.organizer ? (
+                    <User userId={eventObject.organizer} users={users} />
+                  ) : (
+                    "—"
+                  )}
+                </Table.Td>
+                <Table.Td>
+                  <Group gap="xs">
+                    <ActionIcon
+                      variant="filled"
+                      aria-label="Muokkaa"
+                      onClick={() => onEdit(eventObject)}
+                    >
+                      <IconEdit />
+                    </ActionIcon>
+                    <ActionIcon
+                      variant="filled"
+                      aria-label="Poista"
+                      onClick={() => onDelete(eventObject)}
+                    >
+                      <IconTrash />
+                    </ActionIcon>
+                  </Group>
+                </Table.Td>
+              </Table.Tr>
+            );
+          })}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
-
-  const table = useMantineReactTable({ columns, data });
-
-  return <MantineReactTable table={table} />;
 }

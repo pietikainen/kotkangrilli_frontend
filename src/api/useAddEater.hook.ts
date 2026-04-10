@@ -24,6 +24,7 @@ export default function useAddEater() {
     }) => postEater(mealId, comment),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eaters"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

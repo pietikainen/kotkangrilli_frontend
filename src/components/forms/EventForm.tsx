@@ -25,6 +25,10 @@ import locationSchema from "../../schemas/locationSchema";
 import userSchema from "../../schemas/userSchema";
 import { votingStates } from "../../utils/getVotingState";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
+import validateWithZod from "../../utils/validateWithZod";
+
+const getDateValue = (value: DateValue) =>
+  value instanceof Date ? value : new Date();
 
 export default function EventForm({
   close,
@@ -56,7 +60,7 @@ export default function EventForm({
           organizer: undefined,
         },
     validators: {
-      onChange: eventSchema,
+      onChange: validateWithZod(eventSchema),
     },
     onSubmit: async ({ value }) => {
       if (value.lanMaster === 0) {
@@ -192,7 +196,7 @@ export default function EventForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
@@ -205,7 +209,7 @@ export default function EventForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk

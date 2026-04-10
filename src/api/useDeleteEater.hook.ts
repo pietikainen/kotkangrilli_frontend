@@ -17,6 +17,7 @@ export default function useDeleteEater() {
     mutationFn: ({ id }: { id: number }) => deleteEater(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["eaters"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

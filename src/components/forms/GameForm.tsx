@@ -19,6 +19,7 @@ import useAddGame from "../../api/useAddGame.hook";
 import useGetStoreUrl from "../../api/useGetStoreUrl.hook";
 import useUpdateGame from "../../api/useUpdateGame.hook";
 import gameSchema from "../../schemas/gameSchema";
+import validateWithZod from "../../utils/validateWithZod";
 
 const gameFormSchema = gameSchema.extend({
   voteGroup: z.string().trim().max(255),
@@ -68,7 +69,7 @@ export default function GameForm({
           voteGroup: "",
         },
     validators: {
-      onChange: gameFormSchema,
+      onChange: validateWithZod(gameFormSchema),
     },
     onSubmit: async ({ value }) => {
       if (value.price === undefined) {

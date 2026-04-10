@@ -18,6 +18,7 @@ export default function useDeleteParticipation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participations"] });
       queryClient.invalidateQueries({ queryKey: ["participants"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

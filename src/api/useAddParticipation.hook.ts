@@ -27,6 +27,7 @@ export default function useAddParticipation() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["participations"] });
       queryClient.invalidateQueries({ queryKey: ["participants"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

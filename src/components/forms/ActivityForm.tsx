@@ -10,6 +10,9 @@ import activitySchema from "../../schemas/activitySchema";
 import eventSchema from "../../schemas/eventSchema";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
 
+const getDateValue = (value: DateValue) =>
+  value instanceof Date ? value : new Date();
+
 export default function ActivityForm({
   close,
   eventObject,
@@ -113,7 +116,7 @@ export default function ActivityForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
@@ -126,7 +129,7 @@ export default function ActivityForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk

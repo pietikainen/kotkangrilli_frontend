@@ -116,6 +116,12 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
           />
         </>
       )}
+      <NavLink
+        component={Link}
+        to="/dashboard/payments"
+        label="Maksut"
+        onClick={toggle}
+      />
       {user?.data.userlevel > 7 && <AdminNav events={events?.data.data} />}
       <Divider hiddenFrom="sm" />
       <Group hiddenFrom="sm" mt="md">

@@ -12,6 +12,7 @@ import { isAxiosError } from "axios";
 import React, { useEffect } from "react";
 import useAddLocation from "../../api/useAddLocation.hook";
 import locationSchema from "../../schemas/locationSchema";
+import validateWithZod from "../../utils/validateWithZod";
 
 export default function LocationForm({ close }: { close: () => void }) {
   const addLocation = useAddLocation();
@@ -26,7 +27,7 @@ export default function LocationForm({ close }: { close: () => void }) {
       price: 0,
     },
     validators: {
-      onChange: locationSchema,
+      onChange: validateWithZod(locationSchema),
     },
     onSubmit: async ({ value }) => {
       addLocation.mutate({

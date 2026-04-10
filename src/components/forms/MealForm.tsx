@@ -18,8 +18,11 @@ import useGetUser from "../../api/useGetUser.hook";
 import useUpdateMeal from "../../api/useUpdateMeal.hook";
 import mealSchema from "../../schemas/mealSchema";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
+import validateWithZod from "../../utils/validateWithZod";
 
 const dayLabels = ["Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
+const getDateValue = (value: DateValue) =>
+  value instanceof Date ? value : new Date();
 
 export default function MealForm({
   close,
@@ -55,7 +58,7 @@ export default function MealForm({
           requiresComment: false,
         },
     validators: {
-      onChange: mealSchema,
+      onChange: validateWithZod(mealSchema),
     },
     onSubmit: async ({ value }) => {
       const submissionValues = {
@@ -127,7 +130,7 @@ export default function MealForm({
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
               defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(value || new Date())}
+              onChange={(value: DateValue) => handleChange(getDateValue(value))}
               onBlur={handleBlur}
               label="Ilmoittautuminen päättyy"
               withAsterisk
@@ -161,7 +164,7 @@ export default function MealForm({
             <Checkbox
               onChange={(e) => handleChange(e.target.checked)}
               onBlur={handleBlur}
-              checked={!!state.value}
+              checked={state.value}
               label="Kommentti pakollinen ilmoittautuessa"
               description="Esim. toiveiden tai annosmäärän ilmoittamiseen"
               error={state.meta.errors.join(", ")}
@@ -194,7 +197,7 @@ export default function MealForm({
                 )
               }
               onBlur={handleBlur}
-              label="Hinta (€)"
+              label="Hinta-arvio (€)"
               min={0}
               step={0.01}
               withAsterisk

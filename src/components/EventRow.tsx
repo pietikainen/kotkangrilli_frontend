@@ -7,11 +7,13 @@ import React from "react";
 import { z } from "zod";
 import useDeleteParticipation from "../api/useDeleteParticipation.hook";
 import useGetParticipationsByEventId from "../api/useGetParticipationsByEventId.hook";
+import useGetPaymentRequestsByEventId from "../api/useGetPaymentRequestsByEventId.hook";
 import useGetUser from "../api/useGetUser.hook";
 import eventSchema from "../schemas/eventSchema";
 import locationSchema from "../schemas/locationSchema";
 import "dayjs/locale/fi";
 import { getVotingState } from "../utils/getVotingState";
+import { type PaymentRequest } from "../utils/paymentRequests";
 import ParticipationForm from "./forms/ParticipationForm";
 
 dayjs.locale("fi");
@@ -26,36 +28,43 @@ export default function EventRow({
 }) {
   const { data: user } = useGetUser();
   const { data: participations } = useGetParticipationsByEventId(lanEvent.id);
+  const { data: paymentRequestsData } = useGetPaymentRequestsByEventId(
+    lanEvent.id,
+  );
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
     useDisclosure(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
+  const isAdmin = (user?.data.userlevel ?? 0) >= 8;
 
   const deleteParticipation = useDeleteParticipation();
+  const selfParticipation = participations?.data.data.find(
+    (p: { id: number; userId: number }) => p.userId === user?.data.id,
+  );
+  const paymentRequests = (paymentRequestsData?.data.data ??
+    []) as PaymentRequest[];
+  const hasEventPaymentRequests = paymentRequests.some(
+    (paymentRequest) => paymentRequest.type === "event",
+  );
 
   function onDeleteParticipation() {
-    deleteParticipation.mutate(
-      participations?.data.data.find(
-        (p: { userId: number }) => p.userId === user?.data.id,
-      )?.id,
-      {
-        onSuccess: () => {
-          notifications.show({
-            title: "Ilmoittautuminen peruttu",
-            message: "Ilmoittautuminen peruttu",
-            color: "green",
-          });
-          closeDelete();
-        },
-        onError: () => {
-          notifications.show({
-            title: "Ilmoittautumisen peruminen epäonnistui",
-            message: "Ilmoittautumisen peruminen epäonnistui",
-            color: "red",
-          });
-        },
+    deleteParticipation.mutate(selfParticipation?.id, {
+      onSuccess: () => {
+        notifications.show({
+          title: "Ilmoittautuminen peruttu",
+          message: "Ilmoittautuminen peruttu",
+          color: "green",
+        });
+        closeDelete();
       },
-    );
+      onError: () => {
+        notifications.show({
+          title: "Ilmoittautumisen peruminen epäonnistui",
+          message: "Ilmoittautumisen peruminen epäonnistui",
+          color: "red",
+        });
+      },
+    });
   }
 
   return (
@@ -88,7 +97,12 @@ export default function EventRow({
           </>
         ) : (
           <Group>
-            <Button onClick={openDelete}>Peru ilmoittautuminen</Button>
+            <Button
+              onClick={openDelete}
+              disabled={hasEventPaymentRequests && !isAdmin}
+            >
+              Peru ilmoittautuminen
+            </Button>
             <Modal
               opened={deleteOpened}
               onClose={closeDelete}
@@ -104,8 +118,18 @@ export default function EventRow({
                 Haluatko varmasti perua ilmoittautumisen? Tämä toiminto poistaa
                 myös annetut peliäänesi.
               </Text>
+              {hasEventPaymentRequests && !isAdmin && (
+                <Text c="red" mt="sm">
+                  Ilmoittautumista ei voi perua itse, koska tapahtumalle on jo
+                  luotu maksuja.
+                </Text>
+              )}
               <Group mt={40}>
-                <Button onClick={onDeleteParticipation} color="red">
+                <Button
+                  onClick={onDeleteParticipation}
+                  color="red"
+                  disabled={hasEventPaymentRequests && !isAdmin}
+                >
                   Peru ilmoittautuminen
                 </Button>
                 <Button onClick={closeDelete} variant="default">

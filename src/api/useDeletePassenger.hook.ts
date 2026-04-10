@@ -17,6 +17,7 @@ export default function useDeletePassenger() {
     mutationFn: (passengerId: number) => deletePassenger(passengerId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["passengers"] });
+      queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
     },
   });
 }

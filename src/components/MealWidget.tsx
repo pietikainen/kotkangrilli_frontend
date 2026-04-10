@@ -32,19 +32,69 @@ import useAddEater from "../api/useAddEater.hook";
 import useDeleteEater from "../api/useDeleteEater.hook";
 import useDeleteMeal from "../api/useDeleteMeal.hook";
 import useGetEaters from "../api/useGetEaters.hook";
+import useGetPaymentRequestsByEventId from "../api/useGetPaymentRequestsByEventId.hook";
 import useGetUser from "../api/useGetUser.hook";
 import useGetUserProfiles from "../api/useGetUserProfiles.hook";
 import useUpdateEaterComment from "../api/useUpdateEaterComment.hook";
-import useUpdateEaterPaid from "../api/useUpdateEaterPaid.hook";
+import useUpdatePaymentRequestAssignmentsPaid from "../api/useUpdatePaymentRequestAssignmentsPaid.hook";
 import MealForm from "../components/forms/MealForm";
+import PaymentRequestModal from "../components/PaymentRequestModal";
 import eaterSchema from "../schemas/eaterSchema";
 import mealSchema from "../schemas/mealSchema";
 import participationSchema from "../schemas/participationSchema";
+import {
+  formatCents,
+  getDisplayBalances,
+  getScopedPaymentAssignments,
+  summarizePaymentAssignments,
+  type PaymentRequest,
+  type PaymentRequestRecipient,
+} from "../utils/paymentRequests";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
 
 const dayLabels = ["Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
+
+function getPaymentState(assignments: PaymentRequestRecipient[]) {
+  const activeAssignments = assignments.filter(
+    (assignment) => !assignment.cancelledAt,
+  );
+
+  if (activeAssignments.length === 0) {
+    return 0;
+  }
+
+  if (activeAssignments.some((assignment) => assignment.paid === 0)) {
+    return 0;
+  }
+
+  if (activeAssignments.some((assignment) => assignment.paid === 1)) {
+    return 1;
+  }
+
+  return 2;
+}
+
+function getPositiveAssignmentIds(
+  assignments: PaymentRequestRecipient[],
+  predicate: (assignment: PaymentRequestRecipient) => boolean,
+) {
+  return assignments
+    .filter(
+      (assignment) =>
+        !assignment.cancelledAt &&
+        (assignment.amount ?? 0) >= 0 &&
+        predicate(assignment),
+    )
+    .map((assignment) => assignment.id);
+}
+
+type EaterRow = z.infer<typeof eaterSchema> & {
+  paid: number;
+  paymentAssignments: PaymentRequestRecipient[];
+  paymentSummary: ReturnType<typeof summarizePaymentAssignments>;
+};
 
 export default function MealWidget({
   meal,
@@ -55,6 +105,8 @@ export default function MealWidget({
 }) {
   const { data: user } = useGetUser();
   const { data: eaters, isLoading: isLoadingEaters } = useGetEaters(meal.id);
+  const { data: paymentRequestsData, isLoading: isLoadingPaymentRequests } =
+    useGetPaymentRequestsByEventId(meal.eventId);
   const { data: users, isLoading: isLoadingUsers } = useGetUserProfiles();
   const [opened, { open, close }] = useDisclosure(false);
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
@@ -65,22 +117,57 @@ export default function MealWidget({
     eatersModalOpened,
     { open: openEatersModal, close: closeEatersModal },
   ] = useDisclosure(false);
+  const [
+    paymentModalOpened,
+    { open: openPaymentModal, close: closePaymentModal },
+  ] = useDisclosure(false);
+  const [
+    refundModalOpened,
+    { open: openRefundModal, close: closeRefundModal },
+  ] = useDisclosure(false);
   const [comment, setComment] = useState<string>("");
   const [isEditingComment, setIsEditingComment] = useState(false);
+  const [refundUserId, setRefundUserId] = useState<number | null>(null);
   const isMobile = useMediaQuery("(max-width: 50em)");
 
   const addEater = useAddEater();
   const deleteEater = useDeleteEater();
   const deleteMeal = useDeleteMeal();
-  const updateEaterPaid = useUpdateEaterPaid();
+  const updateAssignmentsPaid = useUpdatePaymentRequestAssignmentsPaid();
   const updateEaterComment = useUpdateEaterComment();
 
-  if (isLoadingEaters || isLoadingUsers) return <Loader />;
+  if (isLoadingEaters || isLoadingUsers || isLoadingPaymentRequests) {
+    return <Loader />;
+  }
 
   const chef = users?.data.find((u: { id: number }) => u.id === meal.chefId);
   const isChef = meal.chefId === user?.data.id;
-  const eater = eaters?.data.data.find(
-    (e: z.infer<typeof eaterSchema>) => e.eaterId === user?.data.id,
+  const isAdmin = (user?.data.userlevel ?? 0) >= 8;
+  const paymentRequests = (paymentRequestsData?.data.data ??
+    []) as PaymentRequest[];
+  const eaterRows: EaterRow[] = (eaters?.data.data ?? []).map(
+    (row: z.infer<typeof eaterSchema>) => {
+      const assignments = getScopedPaymentAssignments({
+        paymentRequests,
+        type: "meal",
+        sourceId: meal.id,
+        userId: row.eaterId,
+      });
+
+      return {
+        ...row,
+        paid: getPaymentState(assignments),
+        paymentAssignments: assignments,
+        paymentSummary: summarizePaymentAssignments(assignments),
+      };
+    },
+  );
+  const eater = eaterRows.find(
+    (row: EaterRow) => row.eaterId === user?.data.id,
+  );
+  const hasMealPaymentRequests = paymentRequests.some(
+    (paymentRequest) =>
+      paymentRequest.type === "meal" && paymentRequest.sourceId === meal.id,
   );
 
   return (
@@ -128,14 +215,14 @@ export default function MealWidget({
           {meal.mobilepay && <Badge color="indigo">MobilePay</Badge>}
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
-        <Text>Syöjiä: {eaters?.data.data.length}</Text>
+        <Text>Syöjiä: {eaterRows.length}</Text>
         <List
           type="ordered"
           style={{
             columnCount: 2,
           }}
         >
-          {eaters?.data.data.map((e: z.infer<typeof eaterSchema>) => {
+          {eaterRows.map((e: EaterRow) => {
             const eaterUser = users?.data.find(
               (u: { id: number }) => u.id === e.eaterId,
             );
@@ -180,6 +267,38 @@ export default function MealWidget({
                     </ThemeIcon>
                   )}
 
+                  {(() => {
+                    const displayBalances = getDisplayBalances(
+                      e.paymentSummary,
+                    );
+                    const canSeeAmounts =
+                      isChef || isAdmin || e.eaterId === user?.data.id;
+
+                    if (canSeeAmounts && displayBalances.unpaidAmount > 0) {
+                      return (
+                        <Text size="xs" c="red.7">
+                          Maksamatta {formatCents(displayBalances.unpaidAmount)}
+                        </Text>
+                      );
+                    }
+
+                    if (
+                      canSeeAmounts &&
+                      displayBalances.awaitingConfirmationAmount > 0
+                    ) {
+                      return (
+                        <Text size="xs" c="yellow.8">
+                          Odottaa vahvistusta{" "}
+                          {formatCents(
+                            displayBalances.awaitingConfirmationAmount,
+                          )}
+                        </Text>
+                      );
+                    }
+
+                    return null;
+                  })()}
+
                   {e.comment && (
                     <Popover
                       width={200}
@@ -198,7 +317,7 @@ export default function MealWidget({
                     </Popover>
                   )}
 
-                  {isChef && (
+                  {(isChef || isAdmin) && (
                     <>
                       {e.paid === 0 && (
                         <Button
@@ -211,7 +330,9 @@ export default function MealWidget({
                               id: e.id,
                             })
                           }
-                          disabled={!e.id}
+                          disabled={
+                            !e.id || (hasMealPaymentRequests && !isAdmin)
+                          }
                         >
                           Poista syöjä
                         </Button>
@@ -222,10 +343,12 @@ export default function MealWidget({
                           variant="outline"
                           color="green"
                           onClick={() =>
-                            e.id &&
-                            updateEaterPaid.mutate(
+                            updateAssignmentsPaid.mutate(
                               {
-                                id: e.id,
+                                ids: getPositiveAssignmentIds(
+                                  e.paymentAssignments,
+                                  (assignment) => assignment.paid < 2,
+                                ),
                                 paidLevel: 2,
                               },
                               {
@@ -239,9 +362,14 @@ export default function MealWidget({
                               },
                             )
                           }
-                          disabled={!e.id}
+                          disabled={
+                            getPositiveAssignmentIds(
+                              e.paymentAssignments,
+                              (assignment) => assignment.paid < 2,
+                            ).length === 0
+                          }
                         >
-                          Merkkaa maksu
+                          Vahvista maksu
                         </Button>
                       )}
                       {e.paid > 0 && (
@@ -250,10 +378,12 @@ export default function MealWidget({
                           variant="outline"
                           color="red"
                           onClick={() =>
-                            e.id &&
-                            updateEaterPaid.mutate(
+                            updateAssignmentsPaid.mutate(
                               {
-                                id: e.id,
+                                ids: getPositiveAssignmentIds(
+                                  e.paymentAssignments,
+                                  (assignment) => assignment.paid > 0,
+                                ),
                                 paidLevel: 0,
                               },
                               {
@@ -267,11 +397,27 @@ export default function MealWidget({
                               },
                             )
                           }
-                          disabled={!e.id}
+                          disabled={
+                            getPositiveAssignmentIds(
+                              e.paymentAssignments,
+                              (assignment) => assignment.paid > 0,
+                            ).length === 0
+                          }
                         >
                           Poista maksu
                         </Button>
                       )}
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        color="grape"
+                        onClick={() => {
+                          setRefundUserId(e.eaterId);
+                          openRefundModal();
+                        }}
+                      >
+                        Luo hyvitys
+                      </Button>
                     </>
                   )}
                 </Group>
@@ -286,24 +432,35 @@ export default function MealWidget({
             {eater.paid === 0 && (
               <>
                 <Button
-                  onClick={() => deleteEater.mutate({ id: eater.id })}
+                  onClick={() =>
+                    eater.id && deleteEater.mutate({ id: eater.id })
+                  }
                   color="red"
                   disabled={
                     !participation ||
                     !eater.id ||
-                    dayjs(meal.signupEnd) <= dayjs()
+                    (!isAdmin && dayjs(meal.signupEnd) <= dayjs()) ||
+                    (hasMealPaymentRequests && !isAdmin)
                   }
                 >
                   Poista ilmoittautuminen
                 </Button>
                 <Button
                   onClick={() =>
-                    updateEaterPaid.mutate({
-                      id: eater.id,
+                    updateAssignmentsPaid.mutate({
+                      ids: getPositiveAssignmentIds(
+                        eater.paymentAssignments,
+                        (assignment) => assignment.paid === 0,
+                      ),
                       paidLevel: 1,
                     })
                   }
-                  disabled={!eater.id}
+                  disabled={
+                    getPositiveAssignmentIds(
+                      eater.paymentAssignments,
+                      (assignment) => assignment.paid === 0,
+                    ).length === 0
+                  }
                 >
                   Merkitse maksetuksi
                 </Button>
@@ -323,13 +480,21 @@ export default function MealWidget({
             {eater.paid === 1 && (
               <Button
                 onClick={() =>
-                  updateEaterPaid.mutate({
-                    id: eater.id,
+                  updateAssignmentsPaid.mutate({
+                    ids: getPositiveAssignmentIds(
+                      eater.paymentAssignments,
+                      (assignment) => assignment.paid === 1,
+                    ),
                     paidLevel: 0,
                   })
                 }
                 color="orange"
-                disabled={!eater.id}
+                disabled={
+                  getPositiveAssignmentIds(
+                    eater.paymentAssignments,
+                    (assignment) => assignment.paid === 1,
+                  ).length === 0
+                }
               >
                 Merkitse maksamattomaksi
               </Button>
@@ -351,8 +516,11 @@ export default function MealWidget({
             Ilmoittaudu syöjäksi
           </Button>
         )}
-        {isChef && (
+        {(isChef || isAdmin) && (
           <>
+            <Button onClick={openPaymentModal} disabled={!participation}>
+              Luo maksu
+            </Button>
             <Button
               onClick={openEatersModal}
               disabled={!participation}
@@ -385,8 +553,8 @@ export default function MealWidget({
       >
         <Text>Haluatko varmasti poistaa aterian?</Text>
         <Title order={3}>{meal.name}</Title>
-        <Text>Syöjiä: {eaters?.data.data.length}</Text>
-        {eaters?.data.data.length && (
+        <Text>Syöjiä: {eaterRows.length}</Text>
+        {eaterRows.length && (
           <Text>
             Poistaminen ei ainakaan vielä toimi jos syöjiä on jo ilmoittautunut.
             Ota yhteyttä ylläpitoon kiitos!
@@ -397,7 +565,7 @@ export default function MealWidget({
           <Button
             color="red"
             onClick={() => meal.id && deleteMeal.mutate(meal.id)}
-            disabled={eaters?.data.data.length > 0 || !meal.id}
+            disabled={eaterRows.length > 0 || !meal.id}
           >
             Poista
           </Button>
@@ -424,7 +592,7 @@ export default function MealWidget({
             </Table.Tr>
           </Table.Thead>
           <Table.Tbody>
-            {eaters?.data.data.map((e: z.infer<typeof eaterSchema>) => {
+            {eaterRows.map((e: EaterRow) => {
               const eaterUser = users?.data.find(
                 (u: { id: number }) => u.id === e.eaterId,
               );
@@ -504,6 +672,28 @@ export default function MealWidget({
           </Table.Tbody>
         </Table>
       </Modal>
+      <PaymentRequestModal
+        opened={paymentModalOpened}
+        onClose={closePaymentModal}
+        title="Luo ateriamaksu"
+        description="Pyydetään kaikilta nykyisiltä ja tulevilta syöjiltä."
+        type="meal"
+        eventId={meal.eventId}
+        sourceId={meal.id}
+        defaultAmountCents={meal.price}
+      />
+      <PaymentRequestModal
+        opened={refundModalOpened}
+        onClose={closeRefundModal}
+        title="Luo hyvitys"
+        description="Hyvitys kohdistetaan valitulle syöjälle ja merkitään heti vahvistetuksi."
+        type="meal"
+        eventId={meal.eventId}
+        sourceId={meal.id}
+        userIds={refundUserId ? [refundUserId] : []}
+        forceNegative
+        submitLabel="Luo hyvitys"
+      />
       <Modal
         opened={commentOpened}
         onClose={closeComment}

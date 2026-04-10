@@ -1,9 +1,5 @@
-import {
-  MantineReactTable,
-  MRT_ColumnDef,
-  useMantineReactTable,
-} from "mantine-react-table";
-import React, { useMemo } from "react";
+import { Table } from "@mantine/core";
+import React from "react";
 import { z } from "zod";
 import locationSchema from "../../schemas/locationSchema";
 
@@ -12,42 +8,34 @@ export default function LocationTable({
 }: {
   data: z.infer<typeof locationSchema>[];
 }) {
-  const columns: MRT_ColumnDef<z.infer<typeof locationSchema>>[] = useMemo(
-    () => [
-      {
-        accessorKey: "id",
-        header: "ID",
-      },
-      {
-        accessorKey: "name",
-        header: "Nimi",
-      },
-      {
-        accessorKey: "address",
-        header: "Osoite",
-      },
-      {
-        accessorKey: "city",
-        header: "Kaupunki",
-      },
-      {
-        accessorKey: "capacity",
-        header: "Kapasiteetti",
-      },
-      {
-        accessorKey: "description",
-        header: "Kuvaus",
-      },
-      {
-        accessorKey: "price",
-        header: "Hinta",
-        Cell: ({ cell }) => `${cell.getValue<number>() / 100} €`,
-      },
-    ],
-    [],
+  return (
+    <Table.ScrollContainer minWidth={800} type="native">
+      <Table striped highlightOnHover withTableBorder>
+        <Table.Thead>
+          <Table.Tr>
+            <Table.Th>ID</Table.Th>
+            <Table.Th>Nimi</Table.Th>
+            <Table.Th>Osoite</Table.Th>
+            <Table.Th>Kaupunki</Table.Th>
+            <Table.Th>Kapasiteetti</Table.Th>
+            <Table.Th>Kuvaus</Table.Th>
+            <Table.Th>Hinta</Table.Th>
+          </Table.Tr>
+        </Table.Thead>
+        <Table.Tbody>
+          {data.map((location) => (
+            <Table.Tr key={location.id}>
+              <Table.Td>{location.id}</Table.Td>
+              <Table.Td>{location.name}</Table.Td>
+              <Table.Td>{location.address}</Table.Td>
+              <Table.Td>{location.city}</Table.Td>
+              <Table.Td>{location.capacity}</Table.Td>
+              <Table.Td>{location.description}</Table.Td>
+              <Table.Td>{location.price / 100} €</Table.Td>
+            </Table.Tr>
+          ))}
+        </Table.Tbody>
+      </Table>
+    </Table.ScrollContainer>
   );
-
-  const table = useMantineReactTable({ columns, data });
-
-  return <MantineReactTable table={table} />;
 }

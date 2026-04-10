@@ -7,7 +7,6 @@ import ReactDOM from "react-dom/client";
 import { routeTree } from "./routeTree.gen";
 import "@mantine/core/styles.css";
 import "@mantine/dates/styles.css";
-import "mantine-react-table/styles.css";
 import "@mantine/notifications/styles.css";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
