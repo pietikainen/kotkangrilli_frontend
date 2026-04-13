@@ -12,6 +12,7 @@ import { isAxiosError } from "axios";
 import React, { useEffect } from "react";
 import useAddLocation from "../../api/useAddLocation.hook";
 import locationSchema from "../../schemas/locationSchema";
+import formatFieldError from "../../utils/formatFieldError";
 import validateWithZod from "../../utils/validateWithZod";
 
 export default function LocationForm({ close }: { close: () => void }) {
@@ -65,7 +66,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Nimi"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -79,7 +80,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Osoite"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -93,7 +94,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Kaupunki"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -107,7 +108,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               label="Kapasiteetti"
               min={2}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -121,7 +122,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               }
               onBlur={handleBlur}
               label="Kuvaus"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -140,7 +141,7 @@ export default function LocationForm({ close }: { close: () => void }) {
               min={0}
               step={0.01}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />

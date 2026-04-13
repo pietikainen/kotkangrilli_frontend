@@ -1,5 +1,5 @@
 import { Button, ColorPicker, Stack, Text, TextInput } from "@mantine/core";
-import { DateTimePicker, DateValue } from "@mantine/dates";
+import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
 import React from "react";
@@ -8,10 +8,17 @@ import useAddActivity from "../../api/useAddActivity.hook";
 import useUpdateActivity from "../../api/useUpdateActivity.hook";
 import activitySchema from "../../schemas/activitySchema";
 import eventSchema from "../../schemas/eventSchema";
+import formatFieldError from "../../utils/formatFieldError";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
 
-const getDateValue = (value: DateValue) =>
-  value instanceof Date ? value : new Date();
+function getDateValue(value: string | null, fallback: Date) {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
 
 export default function ActivityForm({
   close,
@@ -107,7 +114,7 @@ export default function ActivityForm({
               onBlur={handleBlur}
               label="Otsikko"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -115,12 +122,14 @@ export default function ActivityForm({
           name="startDate"
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
-              defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(getDateValue(value))}
+              value={state.value}
+              onChange={(value) =>
+                handleChange(getDateValue(value, state.value))
+              }
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -128,12 +137,14 @@ export default function ActivityForm({
           name="endDate"
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
-              defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(getDateValue(value))}
+              value={state.value}
+              onChange={(value) =>
+                handleChange(getDateValue(value, state.value))
+              }
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />

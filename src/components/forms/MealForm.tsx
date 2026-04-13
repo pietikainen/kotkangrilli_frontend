@@ -8,7 +8,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { DateTimePicker, DateValue } from "@mantine/dates";
+import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
 import React from "react";
@@ -17,12 +17,20 @@ import useAddMeal from "../../api/useAddMeal.hook";
 import useGetUser from "../../api/useGetUser.hook";
 import useUpdateMeal from "../../api/useUpdateMeal.hook";
 import mealSchema from "../../schemas/mealSchema";
+import formatFieldError from "../../utils/formatFieldError";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
 import validateWithZod from "../../utils/validateWithZod";
 
 const dayLabels = ["Torstai", "Perjantai", "Lauantai", "Sunnuntai"];
-const getDateValue = (value: DateValue) =>
-  value instanceof Date ? value : new Date();
+
+function getDateValue(value: string | null, fallback: Date) {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
 
 export default function MealForm({
   close,
@@ -121,7 +129,7 @@ export default function MealForm({
               onBlur={handleBlur}
               label="Nimi"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -129,12 +137,14 @@ export default function MealForm({
           name="signupEnd"
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
-              defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(getDateValue(value))}
+              value={state.value}
+              onChange={(value) =>
+                handleChange(getDateValue(value, state.value))
+              }
               onBlur={handleBlur}
               label="Ilmoittautuminen päättyy"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
               highlightToday
             />
           )}
@@ -167,7 +177,7 @@ export default function MealForm({
               checked={state.value}
               label="Kommentti pakollinen ilmoittautuessa"
               description="Esim. toiveiden tai annosmäärän ilmoittamiseen"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -182,7 +192,7 @@ export default function MealForm({
               }) => handleChange(e.target.value)}
               onBlur={handleBlur}
               label="Kuvaus"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -201,7 +211,7 @@ export default function MealForm({
               min={0}
               step={0.01}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -214,7 +224,7 @@ export default function MealForm({
               checked={state.value}
               label="MobilePay"
               description="Vahva suositus"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -227,7 +237,7 @@ export default function MealForm({
               checked={state.value}
               label="Pankkitili"
               description="Valitse sitten edes tämä jos ei MobilePay kelpaa..."
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />

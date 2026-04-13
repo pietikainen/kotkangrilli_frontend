@@ -147,6 +147,7 @@ export default function Schedule({
             fullScreen={isMobile}
           >
             <ActivityForm
+              key={`new-${lastDate.toISOString()}`}
               close={close}
               eventObject={event?.data.data}
               lastDate={lastDate}
@@ -159,6 +160,7 @@ export default function Schedule({
             fullScreen={isMobile}
           >
             <ActivityForm
+              key={editedActivity?.id ?? "edit"}
               close={closeEdit}
               eventObject={event?.data.data}
               activity={editedActivity}

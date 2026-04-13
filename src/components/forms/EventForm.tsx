@@ -9,7 +9,7 @@ import {
   Textarea,
   TextInput,
 } from "@mantine/core";
-import { DateTimePicker, DateValue } from "@mantine/dates";
+import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Updater, useForm } from "@tanstack/react-form";
@@ -23,12 +23,19 @@ import useUpdateEvent from "../../api/useUpdateEvent.hook";
 import eventSchema from "../../schemas/eventSchema";
 import locationSchema from "../../schemas/locationSchema";
 import userSchema from "../../schemas/userSchema";
+import formatFieldError from "../../utils/formatFieldError";
 import { votingStates } from "../../utils/getVotingState";
 import roundToNearestMinute from "../../utils/roundToNearestMinute";
 import validateWithZod from "../../utils/validateWithZod";
 
-const getDateValue = (value: DateValue) =>
-  value instanceof Date ? value : new Date();
+function getDateValue(value: string | null, fallback: Date) {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? fallback : date;
+}
 
 export default function EventForm({
   close,
@@ -149,7 +156,7 @@ export default function EventForm({
               onBlur={handleBlur}
               label="Otsikko"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -163,7 +170,7 @@ export default function EventForm({
               }) => handleChange(e.target.value)}
               onBlur={handleBlur}
               label="Kuvaus"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -187,7 +194,7 @@ export default function EventForm({
               onChange={(selected) => handleChange(Number(selected))}
               onBlur={handleBlur}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -195,12 +202,14 @@ export default function EventForm({
           name="startDate"
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
-              defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(getDateValue(value))}
+              value={state.value}
+              onChange={(value) =>
+                handleChange(getDateValue(value, state.value))
+              }
               onBlur={handleBlur}
               label="Alkuaika"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -208,12 +217,14 @@ export default function EventForm({
           name="endDate"
           children={({ state, handleChange, handleBlur }) => (
             <DateTimePicker
-              defaultValue={state.value}
-              onChange={(value: DateValue) => handleChange(getDateValue(value))}
+              value={state.value}
+              onChange={(value) =>
+                handleChange(getDateValue(value, state.value))
+              }
               onBlur={handleBlur}
               label="Loppuaika"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -225,7 +236,7 @@ export default function EventForm({
               label="Pelien määrä"
               onChange={(value) => handleChange(Number(value))}
               onBlur={handleBlur}
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             >
               <Radio value="3" label="3" />
               <Radio value="4" label="4" />
@@ -246,7 +257,7 @@ export default function EventForm({
               data={votingStates}
               onChange={(selected) => handleChange(Number(selected))}
               onBlur={handleBlur}
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -258,7 +269,7 @@ export default function EventForm({
               onBlur={handleBlur}
               checked={state.value}
               label="Aktiivinen"
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -277,7 +288,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -296,7 +307,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -315,7 +326,7 @@ export default function EventForm({
               onBlur={handleBlur}
               clearable
               allowDeselect
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />

@@ -1,4 +1,9 @@
-import { ColorSchemeScript, MantineProvider } from "@mantine/core";
+import {
+  ColorSchemeScript,
+  createTheme,
+  MantineProvider,
+  v8CssVariablesResolver,
+} from "@mantine/core";
 import { DatesProvider } from "@mantine/dates";
 import { Notifications } from "@mantine/notifications";
 import { createRouter, RouterProvider } from "@tanstack/react-router";
@@ -26,19 +31,26 @@ declare module "@tanstack/react-router" {
 const rootElement = document.getElementById("app")!;
 
 const queryClient = new QueryClient();
+const theme = createTheme({
+  defaultRadius: "sm",
+});
 
 if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <>
       <ColorSchemeScript defaultColorScheme="auto" />
-      <MantineProvider defaultColorScheme="auto">
+      <MantineProvider
+        cssVariablesResolver={v8CssVariablesResolver}
+        defaultColorScheme="auto"
+        theme={theme}
+      >
         <DatesProvider settings={{ locale: "fi" }}>
           <QueryClientProvider client={queryClient}>
             <RouterProvider router={router} />
           </QueryClientProvider>
         </DatesProvider>
-        <Notifications />
+        <Notifications pauseResetOnHover="notification" />
       </MantineProvider>
     </>,
   );

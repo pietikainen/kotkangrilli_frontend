@@ -19,6 +19,7 @@ import useAddGame from "../../api/useAddGame.hook";
 import useGetStoreUrl from "../../api/useGetStoreUrl.hook";
 import useUpdateGame from "../../api/useUpdateGame.hook";
 import gameSchema from "../../schemas/gameSchema";
+import formatFieldError from "../../utils/formatFieldError";
 import validateWithZod from "../../utils/validateWithZod";
 
 const gameFormSchema = gameSchema.extend({
@@ -193,7 +194,7 @@ export default function GameForm({
               }
               onBlur={handleBlur}
               style={{ display: "none" }}
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -207,7 +208,7 @@ export default function GameForm({
               }
               onBlur={handleBlur}
               style={{ display: "none" }}
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -223,7 +224,7 @@ export default function GameForm({
               label="Äänestysryhmä"
               description="Anna sama arvo peleille, joiden 1. kierroksen äänet halutaan yhdistää ja ratkaista myöhemmin."
               placeholder='Esim. "Battlefield"'
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -249,7 +250,7 @@ export default function GameForm({
               }}
               step={0.01}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -273,7 +274,7 @@ export default function GameForm({
                 cursor: shouldAutofillStore || isNas ? "not-allowed" : "auto",
                 opacity: shouldAutofillStore || isNas ? 0.6 : 1,
               }}
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -307,7 +308,7 @@ export default function GameForm({
                   shouldAutofillStore && storeUrl?.data.data !== "" ? 0.6 : 1,
               }}
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -322,7 +323,7 @@ export default function GameForm({
               onBlur={handleBlur}
               label="Lisätiedot/Kuvaus"
               description="Voi esimerkiksi sisältää lisätietoja mahdollisista LAN-ongelmista."
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -339,7 +340,7 @@ export default function GameForm({
               onBlur={handleBlur}
               label="Pelaajat"
               withAsterisk
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
@@ -352,7 +353,7 @@ export default function GameForm({
               checked={state.value}
               label="LAN?"
               description="Älä aina luota täysin viralliseen sanaan. Kts. Wreckfest ja Natural Selection 2."
-              error={state.meta.errors.join(", ")}
+              error={formatFieldError(state.meta.errors)}
             />
           )}
         />
