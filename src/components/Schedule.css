@@ -1,0 +1,8 @@
+.mantine-WeekView-weekViewHeader {
+  display: none !important;
+}
+
+.mantine-WeekView-header > div:first-child,
+.mantine-WeekView-header > div:nth-child(2) {
+  display: none !important;
+}

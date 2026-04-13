@@ -1,9 +1,6 @@
 import {
-  ActionIcon,
-  Alert,
   Button,
   Grid,
-  Indicator,
   Loader,
   Modal,
   Paper,
@@ -11,41 +8,70 @@ import {
   Title,
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
-import { IconEdit, IconTrash } from "@tabler/icons-react";
+import {
+  Schedule as MantineSchedule,
+  type ScheduleEventData,
+  type ScheduleLabelsOverride,
+  type ScheduleViewLevel,
+} from "@mantine/schedule";
 import dayjs from "dayjs";
-import isBetween from "dayjs/plugin/isBetween";
+import "dayjs/locale/fi";
 import React, { useEffect, useState } from "react";
+import { z } from "zod";
 import useDeleteActivity from "../api/useDeleteActivity.hook";
 import useGetActivitiesByEventId from "../api/useGetActivitiesByEventId.hook";
 import useGetEvent from "../api/useGetEvent.hook";
+import useUpdateActivity from "../api/useUpdateActivity.hook";
 import ActivityForm from "../components/forms/ActivityForm";
-import "dayjs/locale/fi";
-import { z } from "zod";
+import "./Schedule.css";
 import activitySchema from "../schemas/activitySchema";
+import roundToNearestMinute from "../utils/roundToNearestMinute";
 
 dayjs.locale("fi");
-dayjs.extend(isBetween);
 
-function getIndicatorPosition(
-  startDate: Date,
-  endDate: Date,
-): "top-end" | "middle-end" | "bottom-end" {
-  const start = dayjs(startDate);
-  const end = dayjs(endDate);
-  const now = dayjs();
+type Activity = z.infer<typeof activitySchema>;
+const availableViews: ScheduleViewLevel[] = ["day", "week"];
+const scheduleLabels: ScheduleLabelsOverride = {
+  today: "Tänään",
+  next: "Seuraava",
+  previous: "Edellinen",
+  day: "Päivä",
+  week: "Viikko",
+  timeSlot: "Aikaväli",
+  switchToDayView: "Vaihda päivänäkymään",
+  switchToWeekView: "Vaihda viikkonäkymään",
+  viewSelectLabel: "Kalenterin näkymä",
+  noEvents: "Ei tapahtumia",
+};
 
-  const totalDuration = end.diff(start, "minutes");
-  const elapsedDuration = now.diff(start, "minutes");
+function toScheduleDateTime(value: Date) {
+  return dayjs(value).format("YYYY-MM-DD HH:mm:ss");
+}
 
-  const elapsedPercentage = (elapsedDuration / totalDuration) * 100;
+function fromScheduleDateTime(value: string) {
+  return dayjs(value.replace(" ", "T")).toDate();
+}
 
-  if (elapsedPercentage < 33) {
-    return "top-end";
-  }
-  if (elapsedPercentage < 66) {
-    return "middle-end";
-  }
-  return "bottom-end";
+function getActivityDurationHours(activity: Activity) {
+  return dayjs(activity.endDate).diff(dayjs(activity.startDate), "hours", true);
+}
+
+function getDefaultNewActivity(
+  eventId: number,
+  fallbackDate: string,
+): Activity {
+  const startDate = roundToNearestMinute(new Date(fallbackDate));
+  const endDate = roundToNearestMinute(
+    dayjs(startDate).add(1, "hour").toDate(),
+  );
+
+  return {
+    eventId,
+    title: "",
+    startDate,
+    endDate,
+    color: "#228be6",
+  };
 }
 
 export default function Schedule({
@@ -58,88 +84,183 @@ export default function Schedule({
   const { data: event, isLoading: isLoadingEvent } = useGetEvent(eventId);
   const { data: activities, isLoading: isLoadingActivities } =
     useGetActivitiesByEventId(eventId);
+  const deleteActivity = useDeleteActivity();
+  const updateActivity = useUpdateActivity();
+
   const [opened, { open, close }] = useDisclosure(false);
   const [editOpened, { open: openEdit, close: closeEdit }] =
     useDisclosure(false);
   const isMobile = useMediaQuery("(max-width: 50em)");
-  const [days, setDays] = useState<z.infer<typeof activitySchema>[][]>([]);
-  const [editedActivity, setEditedActivity] =
-    useState<z.infer<typeof activitySchema>>();
-  const [lastDate, setLastDate] = useState<Date>(new Date());
+  const [draftActivity, setDraftActivity] = useState<Activity>();
+  const [editedActivity, setEditedActivity] = useState<Activity>();
+  const [hasInitializedDate, setHasInitializedDate] = useState(false);
+  const [scheduleView, setScheduleView] = useState<ScheduleViewLevel>(
+    isMobile ? "day" : "week",
+  );
+  const [scheduleDate, setScheduleDate] = useState(
+    dayjs().format("YYYY-MM-DD"),
+  );
+
+  const activityList = activities?.data.data ?? [];
+  const sortedActivities = [...activityList].sort(
+    (a: Activity, b: Activity) =>
+      new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+  );
 
   useEffect(() => {
-    if (!activities?.data.data || activities.data.data.length === 0) return;
+    if (hasInitializedDate) {
+      return;
+    }
 
-    const sortedActivities = [...activities.data.data].sort(
-      (a: z.infer<typeof activitySchema>, b: z.infer<typeof activitySchema>) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
+    const firstActivity = sortedActivities[0];
+    if (firstActivity?.startDate) {
+      setScheduleDate(dayjs(firstActivity.startDate).format("YYYY-MM-DD"));
+      setHasInitializedDate(true);
+      return;
+    }
 
-    const lastActivity = sortedActivities[sortedActivities.length - 1];
-    setLastDate(new Date(lastActivity.endDate));
+    const eventStartDate = event?.data.data.startDate;
+    if (eventStartDate) {
+      setScheduleDate(dayjs(eventStartDate).format("YYYY-MM-DD"));
+      setHasInitializedDate(true);
+    }
+  }, [event?.data.data.startDate, hasInitializedDate, sortedActivities]);
 
-    const DAY_START_HOUR = 10;
-    const newDays: z.infer<typeof activitySchema>[][] = [];
-    let currentKey: string | null = null;
-
-    sortedActivities.forEach((activity: z.infer<typeof activitySchema>) => {
-      const key = dayjs(activity.startDate)
-        .subtract(DAY_START_HOUR, "hour")
-        .format("YYYY-MM-DD");
-
-      if (currentKey === null || currentKey !== key) {
-        newDays.push([]);
-        currentKey = key;
+  useEffect(() => {
+    setScheduleView((currentView) => {
+      if (isMobile && currentView === "week") {
+        return "day";
       }
 
-      newDays[newDays.length - 1].push(activity);
+      if (!isMobile && currentView === "day") {
+        return "week";
+      }
+
+      return currentView;
     });
+  }, [isMobile]);
 
-    setDays(newDays);
-  }, [activities]);
-
-  const deleteActivity = useDeleteActivity();
-
-  function handleEdit(activity: z.infer<typeof activitySchema>) {
-    setEditedActivity(activity);
-    openEdit();
+  if (isLoadingEvent || isLoadingActivities) {
+    return <Loader />;
   }
 
-  if (isLoadingEvent || isLoadingActivities) return <Loader />;
+  const scheduleEvents: ScheduleEventData[] = sortedActivities.map(
+    (activity: Activity) => ({
+      id: activity.id ?? 0,
+      title: activity.title,
+      start: toScheduleDateTime(new Date(activity.startDate)),
+      end: toScheduleDateTime(new Date(activity.endDate)),
+      color: activity.color,
+    }),
+  );
 
-  const hoursPerActivity = activities?.data.data.reduce(
-    (acc: { [key: string]: number }, curr: z.infer<typeof activitySchema>) => {
-      const hours = dayjs(curr.endDate).diff(dayjs(curr.startDate), "hours");
-
-      if (curr.title === "Ei vielä" || curr.title === "Kotiin") return acc;
+  const hoursPerActivity = sortedActivities.reduce(
+    (acc: Record<string, number>, curr: Activity) => {
+      if (
+        curr.title === "Ei viela" ||
+        curr.title === "Ei vielä" ||
+        curr.title === "Kotiin"
+      ) {
+        return acc;
+      }
 
       if (!acc[curr.title]) {
         acc[curr.title] = 0;
       }
 
-      acc[curr.title] += hours;
+      acc[curr.title] += getActivityDurationHours(curr);
       return acc;
     },
     {},
   );
 
-  const sortedActivities = Object.entries(
-    hoursPerActivity as Record<string, number>,
-  ).sort((a, b) => b[1] - a[1]);
+  const rows = (Object.entries(hoursPerActivity) as [string, number][])
+    .sort((a, b) => b[1] - a[1])
+    .map(([title, hours]) => (
+      <Table.Tr key={title}>
+        <Table.Td>{title}</Table.Td>
+        <Table.Td>{hours.toFixed(1)} h</Table.Td>
+      </Table.Tr>
+    ));
 
-  const rows = sortedActivities.map(([title, hours]) => (
-    <Table.Tr key={title}>
-      <Table.Td>{title}</Table.Td>
-      <Table.Td>{hours} h</Table.Td>
-    </Table.Tr>
-  ));
+  function openCreateModal(start: string, end?: string) {
+    setDraftActivity({
+      ...getDefaultNewActivity(eventId, start),
+      startDate: roundToNearestMinute(fromScheduleDateTime(start)),
+      endDate: roundToNearestMinute(
+        end
+          ? fromScheduleDateTime(end)
+          : dayjs(fromScheduleDateTime(start)).add(1, "hour").toDate(),
+      ),
+    });
+    open();
+  }
+
+  function handleEdit(activity: Activity) {
+    setEditedActivity(activity);
+    openEdit();
+  }
+
+  function handleEventClick(selectedEvent: ScheduleEventData) {
+    if (!admin) {
+      return;
+    }
+
+    const matchingActivity = sortedActivities.find(
+      (activity: Activity) => activity.id === Number(selectedEvent.id),
+    );
+
+    if (matchingActivity) {
+      handleEdit(matchingActivity);
+    }
+  }
+
+  function handleEventTimeChange({
+    eventId: changedEventId,
+    newStart,
+    newEnd,
+  }: {
+    eventId: string | number;
+    newStart: string;
+    newEnd: string;
+  }) {
+    const activity = sortedActivities.find(
+      (entry: Activity) => entry.id === Number(changedEventId),
+    );
+
+    if (!activity?.id) {
+      return;
+    }
+
+    updateActivity.mutate({
+      activityId: activity.id,
+      activity: {
+        ...activity,
+        startDate: roundToNearestMinute(fromScheduleDateTime(newStart)),
+        endDate: roundToNearestMinute(fromScheduleDateTime(newEnd)),
+      },
+    });
+  }
 
   return (
     <>
       <Title order={2}>Aikataulu - {event?.data.data.title}</Title>
       {admin && (
         <>
-          <Button onClick={() => open()}>Lisää aktiviteetti</Button>
+          <Button
+            onClick={() =>
+              openCreateModal(
+                dayjs(scheduleDate)
+                  .hour(12)
+                  .minute(0)
+                  .second(0)
+                  .format("YYYY-MM-DD HH:mm:ss"),
+              )
+            }
+            mb="md"
+          >
+            Lisää aktiviteetti
+          </Button>
           <Modal
             opened={opened}
             onClose={close}
@@ -147,10 +268,10 @@ export default function Schedule({
             fullScreen={isMobile}
           >
             <ActivityForm
-              key={`new-${lastDate.toISOString()}`}
+              key={`new-${draftActivity?.startDate.toISOString() ?? scheduleDate}`}
               close={close}
               eventObject={event?.data.data}
-              lastDate={lastDate}
+              activity={draftActivity}
             />
           </Modal>
           <Modal
@@ -165,99 +286,83 @@ export default function Schedule({
               eventObject={event?.data.data}
               activity={editedActivity}
             />
+            {editedActivity?.id && (
+              <Button
+                color="red"
+                mt="md"
+                onClick={() => {
+                  deleteActivity.mutate(editedActivity.id as number, {
+                    onSuccess: () => {
+                      closeEdit();
+                    },
+                  });
+                }}
+                loading={deleteActivity.isPending}
+              >
+                Poista aktiviteetti
+              </Button>
+            )}
           </Modal>
         </>
       )}
-      <Grid grow>
-        {days.map((day: z.infer<typeof activitySchema>[], index: number) => (
-          <Grid.Col key={index} span={{ base: 12, md: 6, lg: 3 }}>
-            <Paper shadow="xs" p="sm" withBorder>
-              <Title order={3}>{dayjs(day[0].startDate).format("dddd")}</Title>
-              {day.map((activity: z.infer<typeof activitySchema>) => {
-                const hours =
-                  dayjs(activity.endDate).diff(
-                    dayjs(activity.startDate),
-                    "hours",
-                  ) - 1;
-                const dynamicHeight = Math.max(38, 38 + hours * 38);
-                const active = dayjs().isBetween(
-                  activity.startDate,
-                  activity.endDate,
-                );
-                let indicatorPosition: "top-end" | "middle-end" | "bottom-end" =
-                  "top-end";
-                if (active) {
-                  indicatorPosition = getIndicatorPosition(
-                    activity.startDate,
-                    activity.endDate,
-                  );
-                }
-                const alert = (
-                  <Alert
-                    key={activity.id}
-                    color={activity.color}
-                    radius={0}
-                    styles={{
-                      root: {
-                        height: dynamicHeight,
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "space-between",
-                        paddingTop: 0,
-                        paddingBottom: 0,
-                        borderBottom: `1px solid ${activity.color}`,
-                      },
-                    }}
-                    title={
-                      <>
-                        {active && ">"}
-                        {dayjs(activity.startDate).format("H:mm")}{" "}
-                        {activity.title}
-                        {admin && (
-                          <>
-                            <ActionIcon
-                              variant="subtle"
-                              color="red"
-                              size="compact-xs"
-                              onClick={() =>
-                                activity.id &&
-                                deleteActivity.mutate(activity.id)
-                              }
-                              disabled={!activity.id}
-                            >
-                              <IconTrash />
-                            </ActionIcon>
-                            <ActionIcon
-                              variant="subtle"
-                              color="blue"
-                              size="compact-xs"
-                              onClick={() => handleEdit(activity)}
-                            >
-                              <IconEdit />
-                            </ActionIcon>
-                          </>
-                        )}
-                      </>
-                    }
-                  />
-                );
-                return active ? (
-                  <Indicator
-                    key={activity.id}
-                    color="red"
-                    processing
-                    position={indicatorPosition}
-                  >
-                    {alert}
-                  </Indicator>
-                ) : (
-                  alert
-                );
-              })}
-            </Paper>
-          </Grid.Col>
-        ))}
-        <Grid.Col span={12}>
+      <Grid>
+        <Grid.Col span={{ base: 12, xl: 9 }}>
+          <Paper shadow="xs" p="sm" withBorder>
+            <MantineSchedule
+              events={scheduleEvents}
+              labels={scheduleLabels}
+              date={scheduleDate}
+              onDateChange={setScheduleDate}
+              view={scheduleView}
+              onViewChange={setScheduleView}
+              onEventClick={admin ? handleEventClick : undefined}
+              onTimeSlotClick={
+                admin
+                  ? ({
+                      slotStart,
+                      slotEnd,
+                    }: {
+                      slotStart: string;
+                      slotEnd: string;
+                    }) => openCreateModal(slotStart, slotEnd)
+                  : undefined
+              }
+              onSlotDragEnd={admin ? openCreateModal : undefined}
+              withDragSlotSelect={admin}
+              withEventsDragAndDrop={admin}
+              onEventDrop={admin ? handleEventTimeChange : undefined}
+              withEventResize={admin}
+              onEventResize={admin ? handleEventTimeChange : undefined}
+              dayViewProps={{
+                startTime: "00:00:00",
+                endTime: "23:59:00",
+                intervalMinutes: 60,
+                withAllDaySlot: false,
+                slotHeight: 36,
+                viewSelectProps: {
+                  views: availableViews,
+                },
+              }}
+              weekViewProps={{
+                firstDayOfWeek: 4,
+                startTime: "00:00:00",
+                endTime: "23:59:00",
+                intervalMinutes: 60,
+                withAllDaySlots: false,
+                slotHeight: 36,
+                todayControlProps: {
+                  style: { display: "none" },
+                },
+                weekendDays: [1, 2, 3],
+                withWeekendDays: false,
+                viewSelectProps: {
+                  views: availableViews,
+                },
+              }}
+            />
+          </Paper>
+        </Grid.Col>
+        <Grid.Col span={{ base: 12, xl: 3 }}>
           <Paper shadow="xs" p="sm" withBorder>
             <Table>
               <Table.Tbody>{rows}</Table.Tbody>
