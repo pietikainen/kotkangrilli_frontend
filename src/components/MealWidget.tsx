@@ -9,6 +9,7 @@ import {
   Loader,
   Modal,
   Popover,
+  Select,
   Stack,
   Table,
   Text,
@@ -96,12 +97,22 @@ type EaterRow = z.infer<typeof eaterSchema> & {
   paymentSummary: ReturnType<typeof summarizePaymentAssignments>;
 };
 
+type UserProfile = {
+  id?: number;
+  snowflake?: string | bigint;
+  username: string;
+  nickname?: string | null;
+  avatar?: string | null;
+};
+
 export default function MealWidget({
   meal,
   participation,
+  participations = [],
 }: {
   meal: z.infer<typeof mealSchema>;
   participation?: z.infer<typeof participationSchema>;
+  participations?: z.infer<typeof participationSchema>[];
 }) {
   const { data: user } = useGetUser();
   const { data: eaters, isLoading: isLoadingEaters } = useGetEaters(meal.id);
@@ -118,6 +129,10 @@ export default function MealWidget({
     { open: openEatersModal, close: closeEatersModal },
   ] = useDisclosure(false);
   const [
+    addEaterModalOpened,
+    { open: openAddEaterModal, close: closeAddEaterModal },
+  ] = useDisclosure(false);
+  const [
     paymentModalOpened,
     { open: openPaymentModal, close: closePaymentModal },
   ] = useDisclosure(false);
@@ -126,6 +141,8 @@ export default function MealWidget({
     { open: openRefundModal, close: closeRefundModal },
   ] = useDisclosure(false);
   const [comment, setComment] = useState<string>("");
+  const [addEaterComment, setAddEaterComment] = useState<string>("");
+  const [selectedEaterId, setSelectedEaterId] = useState<string | null>(null);
   const [isEditingComment, setIsEditingComment] = useState(false);
   const [refundUserId, setRefundUserId] = useState<number | null>(null);
   const isMobile = useMediaQuery("(max-width: 50em)");
@@ -140,7 +157,8 @@ export default function MealWidget({
     return <Loader />;
   }
 
-  const chef = users?.data.find((u: { id: number }) => u.id === meal.chefId);
+  const userProfiles = (users?.data ?? []) as UserProfile[];
+  const chef = userProfiles.find((u) => u.id === meal.chefId);
   const isChef = meal.chefId === user?.data.id;
   const isAdmin = (user?.data.userlevel ?? 0) >= 8;
   const paymentRequests = (paymentRequestsData?.data.data ??
@@ -162,6 +180,21 @@ export default function MealWidget({
       };
     },
   );
+  const existingEaterIds = new Set(eaterRows.map((row) => row.eaterId));
+  const addableEaterOptions = participations
+    .filter((participant) => !existingEaterIds.has(participant.userId))
+    .map((participant) => {
+      const profile = userProfiles.find(
+        (user) => user.id === participant.userId,
+      );
+
+      return {
+        value: String(participant.userId),
+        label:
+          profile?.nickname || profile?.username || String(participant.userId),
+      };
+    })
+    .sort((a, b) => a.label.localeCompare(b.label, "fi"));
   const eater = eaterRows.find(
     (row: EaterRow) => row.eaterId === user?.data.id,
   );
@@ -528,6 +561,17 @@ export default function MealWidget({
             >
               Syöjälista
             </Button>
+            <Button
+              onClick={() => {
+                setSelectedEaterId(null);
+                setAddEaterComment("");
+                openAddEaterModal();
+              }}
+              disabled={!meal.id || addableEaterOptions.length === 0}
+              variant="light"
+            >
+              Lisää syöjä
+            </Button>
             <Button onClick={open} disabled={!participation}>
               Muokkaa
             </Button>
@@ -671,6 +715,80 @@ export default function MealWidget({
             })}
           </Table.Tbody>
         </Table>
+      </Modal>
+      <Modal
+        opened={addEaterModalOpened}
+        onClose={closeAddEaterModal}
+        title="Lisää syöjä"
+        fullScreen={isMobile}
+      >
+        <Stack>
+          <Select
+            label="Syöjä"
+            placeholder="Valitse käyttäjä"
+            data={addableEaterOptions}
+            value={selectedEaterId}
+            onChange={setSelectedEaterId}
+            searchable
+            nothingFoundMessage="Ei lisättäviä käyttäjiä"
+            withAsterisk
+          />
+          <Textarea
+            label={`Kommentti${meal.requiresComment ? " *" : ""}`}
+            description={
+              meal.requiresComment
+                ? "Kommentti vaaditaan tälle aterialle."
+                : "Valinnainen"
+            }
+            value={addEaterComment}
+            onChange={(e) => setAddEaterComment(e.currentTarget.value)}
+          />
+          <Group>
+            <Button onClick={closeAddEaterModal} variant="default">
+              Peruuta
+            </Button>
+            <Button
+              onClick={() => {
+                if (!meal.id || !selectedEaterId) return;
+
+                if (meal.requiresComment && !addEaterComment.trim()) {
+                  notifications.show({
+                    title: "Kommentti puuttuu",
+                    message: "Kommentti on pakollinen tälle aterialle",
+                    color: "red",
+                  });
+                  return;
+                }
+
+                addEater.mutate(
+                  {
+                    mealId: meal.id,
+                    eaterId: Number(selectedEaterId),
+                    comment: addEaterComment.trim() || null,
+                  },
+                  {
+                    onSuccess: () => {
+                      notifications.show({
+                        title: "Syöjä lisätty",
+                        message: "Syöjä lisättiin aterialle",
+                        color: "green",
+                      });
+                      closeAddEaterModal();
+                    },
+                  },
+                );
+              }}
+              disabled={
+                !selectedEaterId ||
+                addEater.isPending ||
+                (meal.requiresComment && !addEaterComment.trim())
+              }
+              loading={addEater.isPending}
+            >
+              Lisää
+            </Button>
+          </Group>
+        </Stack>
       </Modal>
       <PaymentRequestModal
         opened={paymentModalOpened}

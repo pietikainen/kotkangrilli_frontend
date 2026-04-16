@@ -67,7 +67,11 @@ function RouteComponent() {
         {meals?.data.data.map((meal: z.infer<typeof mealSchema>) => (
           <Grid.Col span={{ base: 12, md: 6, lg: 4 }} key={meal.id}>
             <Paper shadow="sm" p={{ base: "xs", sm: "md", lg: "xl" }}>
-              <MealWidget meal={meal} participation={participation} />
+              <MealWidget
+                meal={meal}
+                participation={participation}
+                participations={participations?.data.data ?? []}
+              />
             </Paper>
           </Grid.Col>
         ))}
