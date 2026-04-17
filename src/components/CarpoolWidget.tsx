@@ -32,9 +32,10 @@ import carpoolSchema from "../schemas/carpoolSchema";
 import participationSchema from "../schemas/participationSchema";
 import {
   formatCents,
-  getDisplayBalances,
   getScopedPaymentAssignments,
-  summarizePaymentAssignments,
+  getVisiblePaymentAssignmentAmounts,
+  getVisiblePaymentAssignmentState,
+  getVisiblePositivePaymentAssignmentIds,
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
@@ -81,7 +82,6 @@ type PassengerRow = {
   passengerId: number;
   paid: number;
   paymentAssignments: PaymentRequestRecipient[];
-  paymentSummary: ReturnType<typeof summarizePaymentAssignments>;
 };
 
 export default function CarpoolWidget({
@@ -138,13 +138,15 @@ export default function CarpoolWidget({
         ...row,
         paid: getPaymentState(assignments),
         paymentAssignments: assignments,
-        paymentSummary: summarizePaymentAssignments(assignments),
       };
     },
   );
   const selfPassenger = passengerRows.find(
     (p: PassengerRow) => p.passengerId === user?.data.id,
   );
+  const selfPassengerVisiblePaymentAmounts = selfPassenger
+    ? getVisiblePaymentAssignmentAmounts(selfPassenger.paymentAssignments)
+    : null;
   const isDriver = carpool.driverId === user?.data.id;
   const isAdmin = (user?.data.userlevel ?? 0) >= 8;
   const hasRidePaymentRequests = paymentRequests.some(
@@ -191,6 +193,17 @@ export default function CarpoolWidget({
             const passengerUser = users?.data.find(
               (u: { id: number }) => u.id === passenger.passengerId,
             );
+            const visiblePaymentAmounts = getVisiblePaymentAssignmentAmounts(
+              passenger.paymentAssignments,
+            );
+            const visiblePaymentState =
+              getVisiblePaymentAssignmentState(passenger.paymentAssignments) ??
+              0;
+            const confirmIds = getVisiblePositivePaymentAssignmentIds(
+              passenger.paymentAssignments,
+              (assignment) => assignment.paid < 2,
+            );
+
             return (
               <List.Item key={passenger.id}>
                 <Group>
@@ -214,18 +227,18 @@ export default function CarpoolWidget({
                   )}
                   {passengerUser?.nickname || passengerUser?.username}
 
-                  {passenger.paid === 0 &&
+                  {visiblePaymentState === 0 &&
                     passenger.paymentAssignments.length > 0 && (
                       <ThemeIcon size="sm" color="red">
                         <IconCurrencyEuroOff />
                       </ThemeIcon>
                     )}
-                  {passenger.paid === 1 && (
+                  {visiblePaymentState === 1 && (
                     <ThemeIcon size="sm" color="yellow">
                       <IconCurrencyEuro />
                     </ThemeIcon>
                   )}
-                  {passenger.paid === 2 &&
+                  {visiblePaymentState === 2 &&
                     passenger.paymentAssignments.length > 0 && (
                       <ThemeIcon size="sm" color="green">
                         <IconCurrencyEuro />
@@ -233,32 +246,26 @@ export default function CarpoolWidget({
                     )}
 
                   {(() => {
-                    const displayBalances = getDisplayBalances(
-                      passenger.paymentSummary,
-                    );
+                    const { unpaidAmount, awaitingConfirmationAmount } =
+                      visiblePaymentAmounts;
                     const canSeeAmounts =
                       isDriver ||
                       isAdmin ||
                       passenger.passengerId === user?.data.id;
 
-                    if (canSeeAmounts && displayBalances.unpaidAmount > 0) {
+                    if (canSeeAmounts && unpaidAmount > 0) {
                       return (
                         <Text size="xs" c="red.7">
-                          Maksamatta {formatCents(displayBalances.unpaidAmount)}
+                          Maksamatta {formatCents(unpaidAmount)}
                         </Text>
                       );
                     }
 
-                    if (
-                      canSeeAmounts &&
-                      displayBalances.awaitingConfirmationAmount > 0
-                    ) {
+                    if (canSeeAmounts && awaitingConfirmationAmount > 0) {
                       return (
                         <Text size="xs" c="yellow.8">
                           Odottaa vahvistusta{" "}
-                          {formatCents(
-                            displayBalances.awaitingConfirmationAmount,
-                          )}
+                          {formatCents(awaitingConfirmationAmount)}
                         </Text>
                       );
                     }
@@ -277,10 +284,7 @@ export default function CarpoolWidget({
                       >
                         Poista
                       </Button>
-                      {getPositiveAssignmentIds(
-                        passenger.paymentAssignments,
-                        (assignment) => assignment.paid < 2,
-                      ).length > 0 && (
+                      {confirmIds.length > 0 && (
                         <Button
                           size="xs"
                           variant="outline"
@@ -288,10 +292,7 @@ export default function CarpoolWidget({
                           onClick={() =>
                             updateAssignmentsPaid.mutate(
                               {
-                                ids: getPositiveAssignmentIds(
-                                  passenger.paymentAssignments,
-                                  (assignment) => assignment.paid < 2,
-                                ),
+                                ids: confirmIds,
                                 paidLevel: 2,
                               },
                               {
@@ -351,6 +352,7 @@ export default function CarpoolWidget({
             </Button>
           )}
           {selfPassenger &&
+            (selfPassengerVisiblePaymentAmounts?.unpaidAmount ?? 0) > 0 &&
             getPositiveAssignmentIds(
               selfPassenger.paymentAssignments,
               (assignment) => assignment.paid === 0,

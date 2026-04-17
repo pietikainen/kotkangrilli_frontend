@@ -28,6 +28,8 @@ export default function useCreatePaymentRequest() {
       postPaymentRequest(payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["paymentRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["myPaymentRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["ownedPaymentRequests"] });
       queryClient.invalidateQueries({ queryKey: ["participants"] });
       queryClient.invalidateQueries({ queryKey: ["eaters"] });
       queryClient.invalidateQueries({ queryKey: ["passengers"] });

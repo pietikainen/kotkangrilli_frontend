@@ -45,9 +45,10 @@ import mealSchema from "../schemas/mealSchema";
 import participationSchema from "../schemas/participationSchema";
 import {
   formatCents,
-  getDisplayBalances,
   getScopedPaymentAssignments,
-  summarizePaymentAssignments,
+  getVisiblePaymentAssignmentAmounts,
+  getVisiblePaymentAssignmentState,
+  getVisiblePositivePaymentAssignmentIds,
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
@@ -94,7 +95,6 @@ function getPositiveAssignmentIds(
 type EaterRow = z.infer<typeof eaterSchema> & {
   paid: number;
   paymentAssignments: PaymentRequestRecipient[];
-  paymentSummary: ReturnType<typeof summarizePaymentAssignments>;
 };
 
 type UserProfile = {
@@ -176,7 +176,6 @@ export default function MealWidget({
         ...row,
         paid: getPaymentState(assignments),
         paymentAssignments: assignments,
-        paymentSummary: summarizePaymentAssignments(assignments),
       };
     },
   );
@@ -198,6 +197,12 @@ export default function MealWidget({
   const eater = eaterRows.find(
     (row: EaterRow) => row.eaterId === user?.data.id,
   );
+  const eaterVisiblePaymentAmounts = eater
+    ? getVisiblePaymentAssignmentAmounts(eater.paymentAssignments)
+    : null;
+  const eaterVisiblePaymentState = eater
+    ? getVisiblePaymentAssignmentState(eater.paymentAssignments)
+    : null;
   const hasMealPaymentRequests = paymentRequests.some(
     (paymentRequest) =>
       paymentRequest.type === "meal" && paymentRequest.sourceId === meal.id,
@@ -259,6 +264,16 @@ export default function MealWidget({
             const eaterUser = users?.data.find(
               (u: { id: number }) => u.id === e.eaterId,
             );
+            const visiblePaymentAmounts = getVisiblePaymentAssignmentAmounts(
+              e.paymentAssignments,
+            );
+            const visiblePaymentState =
+              getVisiblePaymentAssignmentState(e.paymentAssignments) ?? 0;
+            const confirmIds = getVisiblePositivePaymentAssignmentIds(
+              e.paymentAssignments,
+              (assignment) => assignment.paid < 2,
+            );
+
             return (
               <List.Item key={e.id}>
                 <Group>
@@ -282,49 +297,43 @@ export default function MealWidget({
                   )}
                   {eaterUser?.nickname || eaterUser?.username}
 
-                  {e.paid === 0 && (
+                  {visiblePaymentState === 0 && (
                     <ThemeIcon size="sm" color="red">
                       <IconCurrencyEuroOff />
                     </ThemeIcon>
                   )}
 
-                  {e.paid === 1 && (
+                  {visiblePaymentState === 1 && (
                     <ThemeIcon size="sm" color="yellow">
                       <IconCurrencyEuro />
                     </ThemeIcon>
                   )}
 
-                  {e.paid === 2 && (
+                  {visiblePaymentState === 2 && (
                     <ThemeIcon size="sm" color="green">
                       <IconCurrencyEuro />
                     </ThemeIcon>
                   )}
 
                   {(() => {
-                    const displayBalances = getDisplayBalances(
-                      e.paymentSummary,
-                    );
+                    const { unpaidAmount, awaitingConfirmationAmount } =
+                      visiblePaymentAmounts;
                     const canSeeAmounts =
                       isChef || isAdmin || e.eaterId === user?.data.id;
 
-                    if (canSeeAmounts && displayBalances.unpaidAmount > 0) {
+                    if (canSeeAmounts && unpaidAmount > 0) {
                       return (
                         <Text size="xs" c="red.7">
-                          Maksamatta {formatCents(displayBalances.unpaidAmount)}
+                          Maksamatta {formatCents(unpaidAmount)}
                         </Text>
                       );
                     }
 
-                    if (
-                      canSeeAmounts &&
-                      displayBalances.awaitingConfirmationAmount > 0
-                    ) {
+                    if (canSeeAmounts && awaitingConfirmationAmount > 0) {
                       return (
                         <Text size="xs" c="yellow.8">
                           Odottaa vahvistusta{" "}
-                          {formatCents(
-                            displayBalances.awaitingConfirmationAmount,
-                          )}
+                          {formatCents(awaitingConfirmationAmount)}
                         </Text>
                       );
                     }
@@ -370,7 +379,7 @@ export default function MealWidget({
                           Poista syöjä
                         </Button>
                       )}
-                      {e.paid < 2 && (
+                      {confirmIds.length > 0 && (
                         <Button
                           size="xs"
                           variant="outline"
@@ -378,10 +387,7 @@ export default function MealWidget({
                           onClick={() =>
                             updateAssignmentsPaid.mutate(
                               {
-                                ids: getPositiveAssignmentIds(
-                                  e.paymentAssignments,
-                                  (assignment) => assignment.paid < 2,
-                                ),
+                                ids: confirmIds,
                                 paidLevel: 2,
                               },
                               {
@@ -394,12 +400,6 @@ export default function MealWidget({
                                 },
                               },
                             )
-                          }
-                          disabled={
-                            getPositiveAssignmentIds(
-                              e.paymentAssignments,
-                              (assignment) => assignment.paid < 2,
-                            ).length === 0
                           }
                         >
                           Vahvista maksu
@@ -462,7 +462,7 @@ export default function MealWidget({
       <Group mt={40}>
         {eater ? (
           <>
-            {eater.paid === 0 && (
+            {eaterVisiblePaymentState === 0 && (
               <>
                 <Button
                   onClick={() =>
@@ -489,6 +489,7 @@ export default function MealWidget({
                     })
                   }
                   disabled={
+                    !eaterVisiblePaymentAmounts?.unpaidAmount ||
                     getPositiveAssignmentIds(
                       eater.paymentAssignments,
                       (assignment) => assignment.paid === 0,
@@ -510,7 +511,7 @@ export default function MealWidget({
                 </Button>
               </>
             )}
-            {eater.paid === 1 && (
+            {eaterVisiblePaymentState === 1 && (
               <Button
                 onClick={() =>
                   updateAssignmentsPaid.mutate({
@@ -523,6 +524,7 @@ export default function MealWidget({
                 }
                 color="orange"
                 disabled={
+                  !eaterVisiblePaymentAmounts?.awaitingConfirmationAmount ||
                   getPositiveAssignmentIds(
                     eater.paymentAssignments,
                     (assignment) => assignment.paid === 1,
@@ -640,6 +642,9 @@ export default function MealWidget({
               const eaterUser = users?.data.find(
                 (u: { id: number }) => u.id === e.eaterId,
               );
+              const visiblePaymentState =
+                getVisiblePaymentAssignmentState(e.paymentAssignments) ?? 0;
+
               return (
                 <Table.Tr key={e.id}>
                   <Table.Td>
@@ -669,7 +674,7 @@ export default function MealWidget({
                   </Table.Td>
                   <Table.Td>
                     <Group gap="xs">
-                      {e.paid === 0 && (
+                      {visiblePaymentState === 0 && (
                         <>
                           <ThemeIcon size="sm" color="red" variant="light">
                             <IconCurrencyEuroOff />
@@ -679,7 +684,7 @@ export default function MealWidget({
                           </Text>
                         </>
                       )}
-                      {e.paid === 1 && (
+                      {visiblePaymentState === 1 && (
                         <>
                           <ThemeIcon size="sm" color="yellow" variant="light">
                             <IconCurrencyEuro />
@@ -689,7 +694,7 @@ export default function MealWidget({
                           </Text>
                         </>
                       )}
-                      {e.paid === 2 && (
+                      {visiblePaymentState === 2 && (
                         <>
                           <ThemeIcon size="sm" color="green" variant="light">
                             <IconCurrencyEuro />

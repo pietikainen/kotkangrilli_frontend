@@ -19,12 +19,12 @@ import useGetOwnedPaymentRequests from "../../api/useGetOwnedPaymentRequests.hoo
 import useUpdatePaymentRequestAssignmentsPaid from "../../api/useUpdatePaymentRequestAssignmentsPaid.hook";
 import {
   formatCents,
-  getDisplayBalances,
-  summarizePaymentAssignments,
+  getVisiblePaymentAssignmentAmounts,
 } from "../../utils/paymentRequests";
 
 type AssignmentRow = {
   id: number;
+  paymentRequestId: number;
   userId: number;
   eventId: number;
   type: "event" | "meal" | "ride";
@@ -33,6 +33,8 @@ type AssignmentRow = {
   comment?: string | null;
   paid: number;
   cancelledAt?: string | null;
+  created_at?: string;
+  paymentRequestCreatedAt?: string;
   mealName?: string | null;
   carpoolDepartureCity?: string | null;
   username?: string | null;
@@ -62,9 +64,17 @@ export const Route = createFileRoute("/dashboard/payments")({
   component: RouteComponent,
 });
 
-function statusLabel(assignment: AssignmentRow) {
+function statusLabel(assignment: AssignmentRow, remainingAmount?: number) {
   if (assignment.cancelledAt) {
     return { label: "Peruttu", color: "gray" };
+  }
+
+  if ((assignment.amount ?? 0) < 0) {
+    return { label: "Hyvitys", color: "grape" };
+  }
+
+  if ((assignment.amount ?? 0) > 0 && remainingAmount === 0) {
+    return { label: "Katettu hyvityksellä", color: "teal" };
   }
 
   if (assignment.paid === 0) {
@@ -198,15 +208,37 @@ function groupAssignmentsByRecipient(assignments: AssignmentRow[]) {
   );
 }
 
-function getPositiveAssignmentIds(
+function getVisibleAmountsBySource(assignments: AssignmentRow[]) {
+  return Object.values(groupAssignmentsBySource(assignments)).reduce(
+    (acc, sourceAssignments) => {
+      const visibleAmounts =
+        getVisiblePaymentAssignmentAmounts(sourceAssignments);
+
+      acc.unpaidAmount += visibleAmounts.unpaidAmount;
+      acc.awaitingConfirmationAmount +=
+        visibleAmounts.awaitingConfirmationAmount;
+
+      return acc;
+    },
+    {
+      unpaidAmount: 0,
+      awaitingConfirmationAmount: 0,
+    },
+  );
+}
+
+function getVisiblePositiveAssignmentIds(
   assignments: AssignmentRow[],
   predicate: (assignment: AssignmentRow) => boolean,
 ) {
+  const visibleAmounts = getVisiblePaymentAssignmentAmounts(assignments);
+
   return assignments
     .filter(
       (assignment) =>
         !assignment.cancelledAt &&
-        (assignment.amount ?? 0) >= 0 &&
+        (assignment.amount ?? 0) > 0 &&
+        (visibleAmounts.remainingByAssignmentId[assignment.id] ?? 0) > 0 &&
         predicate(assignment),
     )
     .map((assignment) => assignment.id);
@@ -233,29 +265,24 @@ function eventTitle(events: EventRow[] | undefined, eventId: number) {
 }
 
 function MySourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
-  const summary = summarizePaymentAssignments(assignments as never);
-  const displayBalances = getDisplayBalances(summary);
-  const hasUnpaidAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 0,
-  );
-  const hasAwaitingAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 1,
-  );
+  const { unpaidAmount, awaitingConfirmationAmount } =
+    getVisiblePaymentAssignmentAmounts(assignments);
+  const hasUnpaidAssignments = unpaidAmount > 0;
+  const hasAwaitingAssignments = awaitingConfirmationAmount > 0;
 
   return (
     <Group>
       {hasUnpaidAssignments && (
         <Text size="sm" fw={700} c="red.7">
           Maksamatta
-          {displayBalances.unpaidAmount > 0 &&
-            ` ${formatCents(displayBalances.unpaidAmount)}`}
+          {unpaidAmount > 0 && ` ${formatCents(unpaidAmount)}`}
         </Text>
       )}
       {hasAwaitingAssignments && (
         <Text size="sm" fw={700} c="yellow.8">
           Odottaa vahvistusta
-          {displayBalances.awaitingConfirmationAmount > 0 &&
-            ` ${formatCents(displayBalances.awaitingConfirmationAmount)}`}
+          {awaitingConfirmationAmount > 0 &&
+            ` ${formatCents(awaitingConfirmationAmount)}`}
         </Text>
       )}
       {!hasUnpaidAssignments && !hasAwaitingAssignments && (
@@ -268,12 +295,10 @@ function MySourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
 }
 
 function MyEventSummary({ assignments }: { assignments: AssignmentRow[] }) {
-  const hasUnpaidAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 0,
-  );
-  const hasAwaitingAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 1,
-  );
+  const { unpaidAmount, awaitingConfirmationAmount } =
+    getVisibleAmountsBySource(assignments);
+  const hasUnpaidAssignments = unpaidAmount > 0;
+  const hasAwaitingAssignments = awaitingConfirmationAmount > 0;
 
   return (
     <Group gap="xs">
@@ -297,12 +322,10 @@ function MyEventSummary({ assignments }: { assignments: AssignmentRow[] }) {
 }
 
 function OwnedSourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
-  const hasUnpaidAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 0,
-  );
-  const hasAwaitingAssignments = assignments.some(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 1,
-  );
+  const { unpaidAmount, awaitingConfirmationAmount } =
+    getVisiblePaymentAssignmentAmounts(assignments);
+  const hasUnpaidAssignments = unpaidAmount > 0;
+  const hasAwaitingAssignments = awaitingConfirmationAmount > 0;
   const hasConfirmedAssignments = assignments.some(
     (assignment) => !assignment.cancelledAt && assignment.paid === 2,
   );
@@ -336,12 +359,25 @@ function OwnedSourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
 }
 
 function OwnedEventSummary({ assignments }: { assignments: AssignmentRow[] }) {
-  const unpaidCount = assignments.filter(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 0,
-  ).length;
-  const awaitingCount = assignments.filter(
-    (assignment) => !assignment.cancelledAt && assignment.paid === 1,
-  ).length;
+  const sourceGroups = Object.values(groupAssignmentsBySource(assignments));
+  const unpaidCount = sourceGroups.reduce(
+    (sum, sourceAssignments) =>
+      sum +
+      getVisiblePositiveAssignmentIds(
+        sourceAssignments,
+        (assignment) => assignment.paid === 0,
+      ).length,
+    0,
+  );
+  const awaitingCount = sourceGroups.reduce(
+    (sum, sourceAssignments) =>
+      sum +
+      getVisiblePositiveAssignmentIds(
+        sourceAssignments,
+        (assignment) => assignment.paid === 1,
+      ).length,
+    0,
+  );
   const confirmedCount = assignments.filter(
     (assignment) => !assignment.cancelledAt && assignment.paid === 2,
   ).length;
@@ -411,85 +447,99 @@ function MyPaymentsPanel({
             <Accordion.Panel>
               <Accordion multiple>
                 {Object.entries(groupAssignmentsBySource(eventAssignments)).map(
-                  ([groupKey, sourceAssignments]) => (
-                    <Accordion.Item key={groupKey} value={`source-${groupKey}`}>
-                      <Accordion.Control>
-                        <Group justify="space-between" wrap="wrap" mr="md">
-                          <Group>
-                            <Badge>
-                              {typeLabel(sourceAssignments[0].type)}
-                            </Badge>
-                            <Text fw={600}>
-                              {assignmentLabel(sourceAssignments[0], title)}
-                            </Text>
-                            <Image
-                              src={ownerAvatarUrl(sourceAssignments[0])}
-                              fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                              alt={`${ownerLabel(sourceAssignments[0])} avatar`}
-                              mah={24}
-                              w="auto"
-                              fit="contain"
-                            />
-                            <Text size="sm">
-                              {ownerLabel(sourceAssignments[0])}
-                            </Text>
-                          </Group>
-                          <MySourceSummary assignments={sourceAssignments} />
-                        </Group>
-                      </Accordion.Control>
-                      <Accordion.Panel>
-                        <Paper withBorder p="sm">
-                          <Stack gap="xs">
-                            {getPositiveAssignmentIds(
-                              sourceAssignments,
-                              (assignment) => assignment.paid === 0,
-                            ).length > 0 && (
-                              <Group justify="flex-end">
-                                <Button
-                                  size="xs"
-                                  onClick={() =>
-                                    onMarkPaid(
-                                      getPositiveAssignmentIds(
-                                        sourceAssignments,
-                                        (assignment) => assignment.paid === 0,
-                                      ),
-                                    )
-                                  }
-                                  loading={isUpdating}
-                                >
-                                  Merkitse maksetuksi
-                                </Button>
-                              </Group>
-                            )}
-                            {sourceAssignments.map((assignment) => {
-                              const status = statusLabel(assignment);
+                  ([groupKey, sourceAssignments]) => {
+                    const visibleAmounts =
+                      getVisiblePaymentAssignmentAmounts(sourceAssignments);
+                    const markPaidIds = getVisiblePositiveAssignmentIds(
+                      sourceAssignments,
+                      (assignment) => assignment.paid === 0,
+                    );
 
-                              return (
-                                <Group
-                                  key={assignment.id}
-                                  justify="space-between"
-                                >
-                                  <Stack gap={0}>
-                                    <Text size="sm" c="dimmed">
-                                      {assignment.comment || "Ei selitettä"}
-                                    </Text>
-                                  </Stack>
-                                  <Group>
-                                    <Text fw={700}>
-                                      {formatCents(assignment.amount)}
-                                    </Text>
-                                    <Badge color={status.color}>
-                                      {status.label}
-                                    </Badge>
-                                  </Group>
+                    return (
+                      <Accordion.Item
+                        key={groupKey}
+                        value={`source-${groupKey}`}
+                      >
+                        <Accordion.Control>
+                          <Group justify="space-between" wrap="wrap" mr="md">
+                            <Group>
+                              <Badge>
+                                {typeLabel(sourceAssignments[0].type)}
+                              </Badge>
+                              <Text fw={600}>
+                                {assignmentLabel(sourceAssignments[0], title)}
+                              </Text>
+                              <Image
+                                src={ownerAvatarUrl(sourceAssignments[0])}
+                                fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
+                                alt={`${ownerLabel(sourceAssignments[0])} avatar`}
+                                mah={24}
+                                w="auto"
+                                fit="contain"
+                              />
+                              <Text size="sm">
+                                {ownerLabel(sourceAssignments[0])}
+                              </Text>
+                            </Group>
+                            <MySourceSummary assignments={sourceAssignments} />
+                          </Group>
+                        </Accordion.Control>
+                        <Accordion.Panel>
+                          <Paper withBorder p="sm">
+                            <Stack gap="xs">
+                              {markPaidIds.length > 0 && (
+                                <Group justify="flex-end">
+                                  <Button
+                                    size="xs"
+                                    onClick={() => onMarkPaid(markPaidIds)}
+                                    loading={isUpdating}
+                                  >
+                                    Merkitse maksetuksi
+                                  </Button>
                                 </Group>
-                              );
-                            })}
-                          </Stack>
-                        </Paper>
-                      </Accordion.Panel>
-                    </Accordion.Item>
-                  ),
+                              )}
+                              {sourceAssignments.map((assignment) => {
+                                const remainingAmount =
+                                  visibleAmounts.remainingByAssignmentId[
+                                    assignment.id
+                                  ];
+                                const status = statusLabel(
+                                  assignment,
+                                  remainingAmount,
+                                );
+                                const displayAmount =
+                                  remainingAmount != null &&
+                                  remainingAmount !== assignment.amount
+                                    ? remainingAmount
+                                    : assignment.amount;
+
+                                return (
+                                  <Group
+                                    key={assignment.id}
+                                    justify="space-between"
+                                  >
+                                    <Stack gap={0}>
+                                      <Text size="sm" c="dimmed">
+                                        {assignment.comment || "Ei selitettä"}
+                                      </Text>
+                                    </Stack>
+                                    <Group>
+                                      <Text fw={700}>
+                                        {formatCents(displayAmount)}
+                                      </Text>
+                                      <Badge color={status.color}>
+                                        {status.label}
+                                      </Badge>
+                                    </Group>
+                                  </Group>
+                                );
+                              })}
+                            </Stack>
+                          </Paper>
+                        </Accordion.Panel>
+                      </Accordion.Item>
+                    );
+                  },
                 )}
               </Accordion>
             </Accordion.Panel>
@@ -567,10 +617,15 @@ function OwnedPaymentsPanel({
                             {Object.entries(
                               groupAssignmentsByRecipient(sourceAssignments),
                             ).map(([recipientId, recipientAssignments]) => {
-                              const confirmIds = getPositiveAssignmentIds(
-                                recipientAssignments,
-                                (assignment) => assignment.paid < 2,
-                              );
+                              const visibleAmounts =
+                                getVisiblePaymentAssignmentAmounts(
+                                  recipientAssignments,
+                                );
+                              const confirmIds =
+                                getVisiblePositiveAssignmentIds(
+                                  recipientAssignments,
+                                  (assignment) => assignment.paid < 2,
+                                );
 
                               return (
                                 <Paper key={recipientId} withBorder p="sm">
@@ -619,12 +674,25 @@ function OwnedPaymentsPanel({
                                       </Group>
                                     </Group>
                                     {recipientAssignments.map((assignment) => {
-                                      const status = statusLabel(assignment);
+                                      const remainingAmount =
+                                        visibleAmounts.remainingByAssignmentId[
+                                          assignment.id
+                                        ];
+                                      const status = statusLabel(
+                                        assignment,
+                                        remainingAmount,
+                                      );
                                       const canConfirmRow =
                                         recipientAssignments.length > 1 &&
                                         !assignment.cancelledAt &&
                                         (assignment.amount ?? 0) >= 0 &&
+                                        (remainingAmount ?? 0) > 0 &&
                                         assignment.paid < 2;
+                                      const displayAmount =
+                                        remainingAmount != null &&
+                                        remainingAmount !== assignment.amount
+                                          ? remainingAmount
+                                          : assignment.amount;
 
                                       return (
                                         <Group
@@ -637,7 +705,7 @@ function OwnedPaymentsPanel({
                                           </Text>
                                           <Group>
                                             <Text fw={700}>
-                                              {formatCents(assignment.amount)}
+                                              {formatCents(displayAmount)}
                                             </Text>
                                             <Badge color={status.color}>
                                               {status.label}

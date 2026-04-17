@@ -20,6 +20,7 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import React from "react";
 import { z } from "zod";
+import useGetMyPaymentRequests from "../api/useGetMyPaymentRequests.hook";
 import useGetParticipationsByEventId from "../api/useGetParticipationsByEventId.hook";
 import useGetPaymentRequestsByEventId from "../api/useGetPaymentRequestsByEventId.hook";
 import useGetUser from "../api/useGetUser.hook";
@@ -30,35 +31,16 @@ import eventSchema from "../schemas/eventSchema";
 import participationSchema from "../schemas/participationSchema";
 import {
   formatCents,
-  getDisplayBalances,
   getScopedPaymentAssignments,
-  summarizePaymentAssignments,
+  getVisiblePaymentAssignmentAmounts,
+  getVisiblePaymentAssignmentState,
+  getVisiblePositivePaymentAssignmentIds,
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
-
-function getPaymentState(assignments: PaymentRequestRecipient[]) {
-  const activeAssignments = assignments.filter(
-    (assignment) => !assignment.cancelledAt,
-  );
-
-  if (activeAssignments.length === 0) {
-    return null;
-  }
-
-  if (activeAssignments.some((assignment) => assignment.paid === 0)) {
-    return 0;
-  }
-
-  if (activeAssignments.some((assignment) => assignment.paid === 1)) {
-    return 1;
-  }
-
-  return 2;
-}
 
 function getPositiveAssignmentIds(
   assignments: PaymentRequestRecipient[],
@@ -84,6 +66,8 @@ export default function PastEventWidget({
     useGetUserProfiles();
   const { data: participants, isLoading: isLoadingParticipants } =
     useGetParticipationsByEventId(event.id);
+  const { data: myPaymentRequestsData, isLoading: isLoadingMyPaymentRequests } =
+    useGetMyPaymentRequests();
   const { data: paymentRequestsData, isLoading: isLoadingPaymentRequests } =
     useGetPaymentRequestsByEventId(event.id);
   const [
@@ -95,29 +79,30 @@ export default function PastEventWidget({
     { open: openRefundModal, close: closeRefundModal },
   ] = useDisclosure(false);
   const [refundUserId, setRefundUserId] = React.useState<number | null>(null);
-  const isOrganizer = user?.data.id === event.organizer;
+  const currentUserId = user?.data.id;
+  const isOrganizer = currentUserId === event.organizer;
   const isAdmin = (user?.data.userlevel ?? 0) >= 8;
   const paymentRequests = (paymentRequestsData?.data.data ??
     []) as PaymentRequest[];
+  const myEventAssignments = (
+    (myPaymentRequestsData?.data.data.assignments ?? []) as Array<
+      PaymentRequestRecipient & { eventId: number }
+    >
+  ).filter(
+    (assignment) =>
+      assignment.type === "event" && assignment.eventId === event.id,
+  );
   const updateAssignmentsPaid = useUpdatePaymentRequestAssignmentsPaid();
 
-  const participant = participants?.data.data.find(
-    (p: z.infer<typeof participationSchema>) => p.userId === user?.data.id,
-  );
-  const participantAssignments = participant
-    ? getScopedPaymentAssignments({
-        paymentRequests,
-        type: "event",
-        userId: participant.userId,
-      })
-    : [];
-  const participantSummary = summarizePaymentAssignments(
+  const participantAssignments = myEventAssignments;
+  const participantVisibleAmounts = getVisiblePaymentAssignmentAmounts(
     participantAssignments,
   );
 
   if (
     isLoadingUserProfiles ||
     isLoadingParticipants ||
+    isLoadingMyPaymentRequests ||
     isLoadingPaymentRequests
   ) {
     return <Loader />;
@@ -163,12 +148,13 @@ export default function PastEventWidget({
                       type: "event",
                       userId: p.userId,
                     });
-                    const summary = summarizePaymentAssignments(assignments);
-                    const displayBalances = getDisplayBalances(summary);
-                    const paymentState = getPaymentState(assignments);
                     const canSeeAmounts =
-                      isOrganizer || isAdmin || p.userId === user?.data.id;
-                    const confirmIds = getPositiveAssignmentIds(
+                      isOrganizer || isAdmin || p.userId === currentUserId;
+                    const { unpaidAmount, awaitingConfirmationAmount } =
+                      getVisiblePaymentAssignmentAmounts(assignments);
+                    const paymentState =
+                      getVisiblePaymentAssignmentState(assignments);
+                    const confirmIds = getVisiblePositivePaymentAssignmentIds(
                       assignments,
                       (assignment) => assignment.paid < 2,
                     );
@@ -216,22 +202,16 @@ export default function PastEventWidget({
                             </ThemeIcon>
                           )}
 
-                          {canSeeAmounts &&
-                            displayBalances.unpaidAmount > 0 && (
-                              <Text size="xs" c="red.7">
-                                Maksamatta{" "}
-                                {formatCents(displayBalances.unpaidAmount)}
-                              </Text>
-                            )}
-                          {canSeeAmounts &&
-                            displayBalances.awaitingConfirmationAmount > 0 && (
-                              <Text size="xs" c="yellow.8">
-                                Odottaa vahvistusta{" "}
-                                {formatCents(
-                                  displayBalances.awaitingConfirmationAmount,
-                                )}
-                              </Text>
-                            )}
+                          {canSeeAmounts && unpaidAmount > 0 && (
+                            <Text size="xs" c="red.7">
+                              {formatCents(unpaidAmount)}
+                            </Text>
+                          )}
+                          {canSeeAmounts && awaitingConfirmationAmount > 0 && (
+                            <Text size="xs" c="yellow.8">
+                              {formatCents(awaitingConfirmationAmount)}
+                            </Text>
+                          )}
                           {(isOrganizer || isAdmin) &&
                             confirmIds.length > 0 && (
                               <Button
@@ -307,66 +287,67 @@ export default function PastEventWidget({
                   },
                 )}
               </SimpleGrid>
-              {participant && participantAssignments.length > 0 && (
+              {participantAssignments.length > 0 && (
                 <>
                   {getPositiveAssignmentIds(
                     participantAssignments,
                     (assignment) => assignment.paid === 0,
-                  ).length > 0 && (
-                    <Button
-                      mt="xs"
-                      onClick={() =>
-                        updateAssignmentsPaid.mutate({
-                          ids: getPositiveAssignmentIds(
-                            participantAssignments,
-                            (assignment) => assignment.paid === 0,
-                          ),
-                          paidLevel: 1,
-                        })
-                      }
-                    >
-                      Merkitse maksetuksi
-                    </Button>
-                  )}
+                  ).length > 0 &&
+                    participantVisibleAmounts.unpaidAmount > 0 && (
+                      <Button
+                        mt="xs"
+                        onClick={() =>
+                          updateAssignmentsPaid.mutate({
+                            ids: getPositiveAssignmentIds(
+                              participantAssignments,
+                              (assignment) => assignment.paid === 0,
+                            ),
+                            paidLevel: 1,
+                          })
+                        }
+                      >
+                        Merkitse maksetuksi
+                      </Button>
+                    )}
                   {getPositiveAssignmentIds(
                     participantAssignments,
                     (assignment) => assignment.paid === 1,
-                  ).length > 0 && (
-                    <Button
-                      mt="xs"
-                      onClick={() =>
-                        updateAssignmentsPaid.mutate({
-                          ids: getPositiveAssignmentIds(
-                            participantAssignments,
-                            (assignment) => assignment.paid === 1,
-                          ),
-                          paidLevel: 0,
-                        })
-                      }
-                      color="orange"
-                    >
-                      Merkitse maksamattomaksi
-                    </Button>
-                  )}
+                  ).length > 0 &&
+                    participantVisibleAmounts.awaitingConfirmationAmount >
+                      0 && (
+                      <Button
+                        mt="xs"
+                        onClick={() =>
+                          updateAssignmentsPaid.mutate({
+                            ids: getPositiveAssignmentIds(
+                              participantAssignments,
+                              (assignment) => assignment.paid === 1,
+                            ),
+                            paidLevel: 0,
+                          })
+                        }
+                        color="orange"
+                      >
+                        Merkitse maksamattomaksi
+                      </Button>
+                    )}
                   {(() => {
-                    const displayBalances =
-                      getDisplayBalances(participantSummary);
+                    const { unpaidAmount, awaitingConfirmationAmount } =
+                      participantVisibleAmounts;
 
-                    if (displayBalances.unpaidAmount > 0) {
+                    if (unpaidAmount > 0) {
                       return (
                         <Text mt="xs" size="sm" c="red.7">
-                          Maksamatta {formatCents(displayBalances.unpaidAmount)}
+                          Maksamatta {formatCents(unpaidAmount)}
                         </Text>
                       );
                     }
 
-                    if (displayBalances.awaitingConfirmationAmount > 0) {
+                    if (awaitingConfirmationAmount > 0) {
                       return (
                         <Text mt="xs" size="sm" c="yellow.8">
                           Odottaa vahvistusta{" "}
-                          {formatCents(
-                            displayBalances.awaitingConfirmationAmount,
-                          )}
+                          {formatCents(awaitingConfirmationAmount)}
                         </Text>
                       );
                     }

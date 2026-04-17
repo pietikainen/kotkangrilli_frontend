@@ -9,6 +9,8 @@ export type PaymentRequestRecipient = {
   comment?: string | null;
   type?: "event" | "meal" | "ride";
   sourceId?: number | null;
+  created_at?: string;
+  paymentRequestCreatedAt?: string;
 };
 
 export type PaymentRequest = {
@@ -18,17 +20,8 @@ export type PaymentRequest = {
   sourceId?: number | null;
   amount: number;
   comment?: string | null;
+  created_at?: string;
   recipients: PaymentRequestRecipient[];
-};
-
-export type PaymentAssignmentSummary = {
-  assignments: PaymentRequestRecipient[];
-  totalAmount: number;
-  unpaidAmount: number;
-  awaitingConfirmationAmount: number;
-  confirmedAmount: number;
-  outstandingAmount: number;
-  confirmedCreditAmount: number;
 };
 
 export function getScopedPaymentAssignments({
@@ -63,72 +56,135 @@ export function getScopedPaymentAssignments({
           comment: paymentRequest.comment,
           type: paymentRequest.type,
           sourceId: paymentRequest.sourceId ?? null,
+          paymentRequestCreatedAt: paymentRequest.created_at,
         })),
     );
-}
-
-export function summarizePaymentAssignments(
-  assignments: PaymentRequestRecipient[],
-): PaymentAssignmentSummary {
-  return assignments.reduce(
-    (acc, assignment) => {
-      if (assignment.cancelledAt) {
-        return acc;
-      }
-
-      const amount = assignment.amount ?? 0;
-      acc.totalAmount += amount;
-
-      if (assignment.paid === 0) {
-        acc.unpaidAmount += amount;
-        acc.outstandingAmount += amount;
-      } else if (assignment.paid === 1) {
-        acc.awaitingConfirmationAmount += amount;
-        acc.outstandingAmount += amount;
-      } else if (assignment.paid === 2) {
-        acc.confirmedAmount += amount;
-        if (amount < 0) {
-          acc.confirmedCreditAmount += Math.abs(amount);
-          acc.outstandingAmount += amount;
-        }
-      }
-
-      return acc;
-    },
-    {
-      assignments,
-      totalAmount: 0,
-      unpaidAmount: 0,
-      awaitingConfirmationAmount: 0,
-      confirmedAmount: 0,
-      outstandingAmount: 0,
-      confirmedCreditAmount: 0,
-    },
-  );
 }
 
 export function formatCents(amount: number) {
   return `${(amount / 100).toFixed(2)} €`;
 }
 
-export function getDisplayBalances(summary: PaymentAssignmentSummary) {
-  let remainingCredit = summary.confirmedCreditAmount;
+type VisibleCharge = {
+  assignmentId: number;
+  paid: number;
+  remainingAmount: number;
+};
 
-  const unpaidAmount = Math.max(0, summary.unpaidAmount - remainingCredit);
-  remainingCredit = Math.max(0, remainingCredit - summary.unpaidAmount);
+function paymentAssignmentTime(assignment: PaymentRequestRecipient) {
+  return new Date(
+    assignment.paymentRequestCreatedAt ?? assignment.created_at ?? "",
+  ).getTime();
+}
 
-  const awaitingConfirmationAmount = Math.max(
-    0,
-    summary.awaitingConfirmationAmount - remainingCredit,
-  );
-  remainingCredit = Math.max(
-    0,
-    remainingCredit - summary.awaitingConfirmationAmount,
+export function getVisiblePaymentAssignmentAmounts(
+  assignments: PaymentRequestRecipient[],
+) {
+  const visibleCharges: VisibleCharge[] = [];
+
+  const activeAssignments = [...assignments]
+    .filter((assignment) => !assignment.cancelledAt)
+    .sort((a, b) => {
+      const aTime = paymentAssignmentTime(a);
+      const bTime = paymentAssignmentTime(b);
+
+      if (Number.isFinite(aTime) && Number.isFinite(bTime) && aTime !== bTime) {
+        return aTime - bTime;
+      }
+
+      return a.id - b.id;
+    });
+
+  activeAssignments.forEach((assignment) => {
+    const amount = assignment.amount ?? 0;
+
+    if (amount > 0 && (assignment.paid === 0 || assignment.paid === 1)) {
+      visibleCharges.push({
+        assignmentId: assignment.id,
+        paid: assignment.paid,
+        remainingAmount: amount,
+      });
+      return;
+    }
+
+    if (amount >= 0 || assignment.paid !== 2) {
+      return;
+    }
+
+    let remainingCredit = Math.abs(amount);
+
+    for (let i = visibleCharges.length - 1; i >= 0; i -= 1) {
+      if (remainingCredit <= 0) {
+        break;
+      }
+
+      const appliedCredit = Math.min(
+        visibleCharges[i].remainingAmount,
+        remainingCredit,
+      );
+      visibleCharges[i].remainingAmount -= appliedCredit;
+      remainingCredit -= appliedCredit;
+    }
+  });
+
+  const visibleAmounts = visibleCharges.reduce(
+    (acc, charge) => {
+      acc.remainingByAssignmentId[charge.assignmentId] = charge.remainingAmount;
+
+      if (charge.paid === 0) {
+        acc.unpaidAmount += charge.remainingAmount;
+      } else if (charge.paid === 1) {
+        acc.awaitingConfirmationAmount += charge.remainingAmount;
+      }
+
+      return acc;
+    },
+    {
+      unpaidAmount: 0,
+      awaitingConfirmationAmount: 0,
+      remainingByAssignmentId: {} as Record<number, number>,
+    },
   );
 
   return {
-    unpaidAmount,
-    awaitingConfirmationAmount,
-    remainingCreditAmount: remainingCredit,
+    ...visibleAmounts,
+    hasActiveAssignments: activeAssignments.length > 0,
   };
+}
+
+export function getVisiblePaymentAssignmentState(
+  assignments: PaymentRequestRecipient[],
+) {
+  const visibleAmounts = getVisiblePaymentAssignmentAmounts(assignments);
+
+  if (visibleAmounts.unpaidAmount > 0) {
+    return 0;
+  }
+
+  if (visibleAmounts.awaitingConfirmationAmount > 0) {
+    return 1;
+  }
+
+  if (visibleAmounts.hasActiveAssignments) {
+    return 2;
+  }
+
+  return null;
+}
+
+export function getVisiblePositivePaymentAssignmentIds(
+  assignments: PaymentRequestRecipient[],
+  predicate: (assignment: PaymentRequestRecipient) => boolean,
+) {
+  const visibleAmounts = getVisiblePaymentAssignmentAmounts(assignments);
+
+  return assignments
+    .filter(
+      (assignment) =>
+        !assignment.cancelledAt &&
+        (assignment.amount ?? 0) > 0 &&
+        (visibleAmounts.remainingByAssignmentId[assignment.id] ?? 0) > 0 &&
+        predicate(assignment),
+    )
+    .map((assignment) => assignment.id);
 }
