@@ -43,7 +43,7 @@ export default function EventTable({
             <Table.Th>Pelejä</Table.Th>
             <Table.Th>LAN-mestari</Table.Th>
             <Table.Th>Paintcompo voittaja</Table.Th>
-            <Table.Th>&quot;Järjestäjä&quot;</Table.Th>
+            <Table.Th>Tilavastaava</Table.Th>
             <Table.Th>Toiminnot</Table.Th>
           </Table.Tr>
         </Table.Thead>

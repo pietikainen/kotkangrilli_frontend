@@ -321,7 +321,7 @@ export default function EventForm({
                   ? state.value.toString()
                   : undefined
               }
-              label="Organisaattori"
+              label="Tilavastaava"
               data={selectUsers}
               onChange={(selected) => handleChange(Number(selected))}
               onBlur={handleBlur}

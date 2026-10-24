@@ -112,7 +112,7 @@ export default function PastEventWidget({
     <Grid.Col span={6}>
       <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
         <Accordion
-          defaultValue={[event.title, "Osallistujat", "Toiminnot"]}
+          defaultValue={[event.title, "Osallistujat", "Linkit"]}
           multiple
         >
           <Accordion.Item value={event.title}>
@@ -184,7 +184,26 @@ export default function PastEventWidget({
                               fit="contain"
                             />
                           )}
-                          {profile?.nickname || profile?.username}
+                          <div>
+                            {profile?.nickname || profile?.username}
+                            <Text
+                              component="span"
+                              size="xs"
+                              c="dimmed"
+                              ml="xs"
+                              title={
+                                p.arrivalDate && dayjs(p.arrivalDate).isValid()
+                                  ? `Saapuminen: ${dayjs(p.arrivalDate).locale("fi").format("D.M.YYYY")}`
+                                  : "Saapumispäivä ei tiedossa"
+                              }
+                            >
+                              {p.arrivalDate && dayjs(p.arrivalDate).isValid()
+                                ? dayjs(p.arrivalDate)
+                                    .locale("fi")
+                                    .format("dddd")
+                                : "Ei tiedossa"}
+                            </Text>
+                          </div>
 
                           {paymentState === 0 && (
                             <ThemeIcon size="sm" color="red">
@@ -358,8 +377,8 @@ export default function PastEventWidget({
               )}
             </Accordion.Panel>
           </Accordion.Item>
-          <Accordion.Item value="Toiminnot">
-            <Accordion.Control>Toiminnot</Accordion.Control>
+          <Accordion.Item value="Linkit">
+            <Accordion.Control>Linkit</Accordion.Control>
             <Accordion.Panel>
               <Group>
                 {event.votingState >= 2 && (

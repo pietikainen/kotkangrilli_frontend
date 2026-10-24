@@ -9,7 +9,13 @@ import UserMenu from "../components/UserMenu";
 import eventSchema from "../schemas/eventSchema";
 import ColorSchemeToggle from "./ColorSchemeToggle";
 
-function AdminNav({ events }: { events: z.infer<typeof eventSchema>[] }) {
+function AdminNav({
+  events,
+  onNavigate,
+}: {
+  events: z.infer<typeof eventSchema>[];
+  onNavigate: () => void;
+}) {
   const eventId = events?.findLast(
     (event) => event.active && dayjs().isBefore(event.endDate),
   )?.id;
@@ -17,34 +23,57 @@ function AdminNav({ events }: { events: z.infer<typeof eventSchema>[] }) {
   return (
     <>
       <Divider />
-      <NavLink component={Link} to="/admin" label="ADMIN" />
+      <NavLink
+        component={Link}
+        to="/admin"
+        label="ADMIN"
+        onClick={onNavigate}
+      />
       {eventId && (
         <>
           <NavLink
             component={Link}
             to={`/admin/schedule/${eventId}`}
             label="Aikataulu"
+            onClick={onNavigate}
           />
           <NavLink
             component={Link}
             to={`/admin/results/${eventId}`}
             label="Tulokset"
+            onClick={onNavigate}
           />
         </>
       )}
-      <NavLink component={Link} to="/admin/events" label="Tapahtumat" />
-      <NavLink component={Link} to="/admin/users" label="Käyttäjät" />
-      <NavLink component={Link} to="/admin/locations" label="Paikat" />
+      <NavLink
+        component={Link}
+        to="/admin/events"
+        label="Tapahtumat"
+        onClick={onNavigate}
+      />
+      <NavLink
+        component={Link}
+        to="/admin/users"
+        label="Käyttäjät"
+        onClick={onNavigate}
+      />
+      <NavLink
+        component={Link}
+        to="/admin/locations"
+        label="Paikat"
+        onClick={onNavigate}
+      />
       <NavLink
         component={Link}
         to="/admin/game-suggestions"
         label="Peliehdotukset"
+        onClick={onNavigate}
       />
     </>
   );
 }
 
-export default function Navbar({ toggle }: { toggle: () => void }) {
+export default function Navbar({ onNavigate }: { onNavigate: () => void }) {
   const { data: user } = useGetUser();
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
   const activeEvent = events?.data.data.find(
@@ -60,14 +89,14 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
         component={Link}
         to="/dashboard"
         label="Etusivu"
-        onClick={toggle}
+        onClick={onNavigate}
       />
       {(!activeEvent || activeEvent.votingState === 0) && (
         <NavLink
           component={Link}
           to="/dashboard/game-suggestions"
           label="Peliehdotukset"
-          onClick={toggle}
+          onClick={onNavigate}
         />
       )}
       {activeEvent && (
@@ -77,7 +106,7 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
               component={Link}
               to={`/dashboard/vote/${activeEvent.id}`}
               label="Peliäänestys"
-              onClick={toggle}
+              onClick={onNavigate}
             />
           )}
           {activeEvent.votingState >= 3 && (
@@ -85,7 +114,7 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
               component={Link}
               to={`/dashboard/results/${activeEvent.id}`}
               label="Peliäänestyksen tulokset"
-              onClick={toggle}
+              onClick={onNavigate}
             />
           )}
           {activeEvent.votingState >= 3 && (
@@ -93,26 +122,26 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
               component={Link}
               to={`/dashboard/schedule/${activeEvent.id}`}
               label="Aikataulu"
-              onClick={toggle}
+              onClick={onNavigate}
             />
           )}
           <NavLink
             component={Link}
             to={`/dashboard/meals/${activeEvent.id}`}
             label="Ateriat"
-            onClick={toggle}
+            onClick={onNavigate}
           />
           <NavLink
             component={Link}
             to={`/dashboard/carpools/${activeEvent.id}`}
             label="Kimppakyydit"
-            onClick={toggle}
+            onClick={onNavigate}
           />
           <NavLink
             component={Link}
             to="/dashboard/memo"
             label="Muistilista"
-            onClick={toggle}
+            onClick={onNavigate}
           />
         </>
       )}
@@ -120,9 +149,11 @@ export default function Navbar({ toggle }: { toggle: () => void }) {
         component={Link}
         to="/dashboard/payments"
         label="Maksut"
-        onClick={toggle}
+        onClick={onNavigate}
       />
-      {user?.data.userlevel > 7 && <AdminNav events={events?.data.data} />}
+      {user?.data.userlevel > 7 && (
+        <AdminNav events={events?.data.data} onNavigate={onNavigate} />
+      )}
       <Divider hiddenFrom="sm" />
       <Group hiddenFrom="sm" mt="md">
         <ColorSchemeToggle />

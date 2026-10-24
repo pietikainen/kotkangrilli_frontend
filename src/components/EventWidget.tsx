@@ -20,6 +20,7 @@ import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import React from "react";
 import { z } from "zod";
+import useGetLocations from "../api/useGetLocations.hook";
 import useGetMyPaymentRequests from "../api/useGetMyPaymentRequests.hook";
 import useGetParticipationsByEventId from "../api/useGetParticipationsByEventId.hook";
 import useGetPaymentRequestsByEventId from "../api/useGetPaymentRequestsByEventId.hook";
@@ -28,6 +29,7 @@ import useGetUserProfiles from "../api/useGetUserProfiles.hook";
 import useUpdatePaymentRequestAssignmentsPaid from "../api/useUpdatePaymentRequestAssignmentsPaid.hook";
 import PaymentRequestModal from "../components/PaymentRequestModal";
 import eventSchema from "../schemas/eventSchema";
+import locationSchema from "../schemas/locationSchema";
 import participationSchema from "../schemas/participationSchema";
 import {
   formatCents,
@@ -38,6 +40,7 @@ import {
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
+import User from "./User";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
@@ -62,6 +65,10 @@ export default function EventWidget({
   event: z.infer<typeof eventSchema>;
 }) {
   const { data: user } = useGetUser();
+  const { data: locations, isLoading: isLoadingLocations } = useGetLocations();
+  const location = locations?.data.data.find(
+    (item: z.infer<typeof locationSchema>) => item.id === event.location,
+  );
   const { data: users, isLoading: isLoadingUserProfiles } =
     useGetUserProfiles();
   const { data: participants, isLoading: isLoadingParticipants } =
@@ -100,6 +107,7 @@ export default function EventWidget({
   );
 
   if (
+    isLoadingLocations ||
     isLoadingUserProfiles ||
     isLoadingParticipants ||
     isLoadingMyPaymentRequests ||
@@ -112,7 +120,7 @@ export default function EventWidget({
     <Grid.Col span={6}>
       <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
         <Accordion
-          defaultValue={[event.title, "Osallistujat", "Toiminnot"]}
+          defaultValue={[event.title, "Osallistujat", "Linkit"]}
           multiple
         >
           <Accordion.Item value={event.title}>
@@ -120,11 +128,24 @@ export default function EventWidget({
               <Title order={3}>{event.title}</Title>
             </Accordion.Control>
             <Accordion.Panel>
+              {location && <Text c="dimmed">@ {location.name}</Text>}
               <Text>
                 {dayjs(event.startDate).format("L LT")} -{" "}
                 {dayjs(event.endDate).format("L LT")}
               </Text>
               <Text>{event.description}</Text>
+              {event.organizer && (
+                <Group gap={6} mt="xs" fz="sm">
+                  <Text size="sm" c="dimmed">
+                    Tilavastaava:
+                  </Text>
+                  <User
+                    userId={event.organizer}
+                    users={users?.data ?? []}
+                    avatarSize={20}
+                  />
+                </Group>
+              )}
             </Accordion.Panel>
           </Accordion.Item>
           <Accordion.Item value="Osallistujat">
@@ -180,7 +201,26 @@ export default function EventWidget({
                               fit="contain"
                             />
                           )}
-                          {profile?.nickname || profile?.username}
+                          <div>
+                            {profile?.nickname || profile?.username}
+                            <Text
+                              component="span"
+                              size="xs"
+                              c="dimmed"
+                              ml="xs"
+                              title={
+                                p.arrivalDate && dayjs(p.arrivalDate).isValid()
+                                  ? `Saapuminen: ${dayjs(p.arrivalDate).locale("fi").format("D.M.YYYY")}`
+                                  : "Saapumispäivä ei tiedossa"
+                              }
+                            >
+                              {p.arrivalDate && dayjs(p.arrivalDate).isValid()
+                                ? dayjs(p.arrivalDate)
+                                    .locale("fi")
+                                    .format("dddd")
+                                : "Ei tiedossa"}
+                            </Text>
+                          </div>
 
                           {paymentState === 0 && (
                             <ThemeIcon size="sm" color="red">
@@ -304,8 +344,8 @@ export default function EventWidget({
               )}
             </Accordion.Panel>
           </Accordion.Item>
-          <Accordion.Item value="Toiminnot">
-            <Accordion.Control>Toiminnot</Accordion.Control>
+          <Accordion.Item value="Linkit">
+            <Accordion.Control>Linkit</Accordion.Control>
             <Accordion.Panel>
               <Group>
                 {(event.votingState === 2 || event.votingState === 3) && (

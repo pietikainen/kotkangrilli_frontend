@@ -15,8 +15,8 @@ import { z } from "zod";
 import useGetActivitiesByEventId from "../../api/useGetActivitiesByEventId.hook";
 import CountdownTimer from "../../components/CountdownTimer";
 import EventWidget from "../../components/EventWidget";
-import PastEventTable from "../../components/tables/PastEventTable";
-import UpcomingEventTable from "../../components/tables/UpcomingEventTable";
+import PastEventList from "../../components/PastEventList";
+import UpcomingEventList from "../../components/UpcomingEventList";
 import activitySchema from "../../schemas/activitySchema";
 import eventSchema from "../../schemas/eventSchema";
 import "./index.css";
@@ -153,7 +153,7 @@ function RouteComponent() {
         <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
           <Title order={2}>Tulevat tapahtumat</Title>
           {upcomingEvents.length > 0 ? (
-            <UpcomingEventTable
+            <UpcomingEventList
               data={upcomingEvents}
               locations={locations?.data.data}
             />
@@ -166,10 +166,7 @@ function RouteComponent() {
         <Paper shadow="xs" p={{ base: "xs", sm: "md", lg: "xl" }}>
           <Title order={2}>Menneet tapahtumat</Title>
           {pastEvents.length > 0 ? (
-            <PastEventTable
-              data={pastEvents}
-              locations={locations?.data.data}
-            />
+            <PastEventList data={pastEvents} locations={locations?.data.data} />
           ) : (
             <Text>Ei menneitä tapahtumia</Text>
           )}

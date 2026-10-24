@@ -1,0 +1,64 @@
+.list {
+  container-type: inline-size;
+  min-width: 0;
+}
+
+.card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-md);
+  overflow-wrap: anywhere;
+  align-items: center;
+}
+
+.summary,
+.dates,
+.card > * {
+  min-width: 0;
+}
+
+.action.action {
+  width: 100%;
+  height: auto;
+  min-height: 2.625rem;
+  padding-block: var(--mantine-spacing-xs);
+}
+
+.actionLabel.actionLabel {
+  white-space: normal;
+}
+
+.footer {
+  margin-top: var(--mantine-spacing-md);
+  overflow-wrap: anywhere;
+  min-width: 0;
+}
+
+.participantsSummary {
+  cursor: pointer;
+  color: var(--mantine-color-dimmed);
+  font-size: var(--mantine-font-size-sm);
+  width: fit-content;
+  max-width: 100%;
+}
+
+@container (min-width: 32rem) {
+  .card {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    gap: var(--mantine-spacing-xl);
+  }
+
+  .action.action {
+    width: fit-content;
+    max-width: 100%;
+    justify-self: end;
+  }
+}
+
+@container (min-width: 52rem) {
+  .card {
+    grid-template-columns:
+      minmax(0, 2fr) minmax(0, 1.5fr)
+      minmax(0, 1fr) minmax(0, 1.25fr);
+  }
+}

@@ -1,5 +1,5 @@
 export const votingStates = [
-  { value: "0", label: "Ei" },
+  { value: "0", label: "Ei vielä" },
   { value: "1", label: "Ääntenlaskenta" },
   { value: "2", label: "Ensimmäinen kierros" },
   { value: "3", label: "Jatkokierros" },

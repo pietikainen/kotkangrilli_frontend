@@ -53,10 +53,26 @@ const CountdownTimer = ({ startDate }: CountdownProps) => {
         WebkitBackgroundClip: "text",
         WebkitTextFillColor: "transparent",
         animation: "rainbowText 20s infinite linear",
+        fontVariantNumeric: "tabular-nums",
       }}
     >
-      {timeLeft.days}d {timeLeft.hours}h {timeLeft.minutes}m {timeLeft.seconds}s{" "}
-      {timeLeft.milliseconds}ms
+      {Object.entries(timeLeft).map(([unit, value], index) => (
+        <React.Fragment key={unit}>
+          {index > 0 && " "}
+          <span style={{ whiteSpace: "nowrap" }}>
+            {String(value).padStart(unit === "milliseconds" ? 3 : 2, "0")}
+            {
+              {
+                days: "d",
+                hours: "h",
+                minutes: "m",
+                seconds: "s",
+                milliseconds: "ms",
+              }[unit]
+            }
+          </span>
+        </React.Fragment>
+      ))}
     </Title>
   );
 };

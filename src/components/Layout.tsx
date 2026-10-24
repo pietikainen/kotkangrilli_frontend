@@ -21,7 +21,7 @@ type CommonLayoutProps = {
 };
 
 export const Layout = ({ children }: CommonLayoutProps) => {
-  const [opened, { toggle }] = useDisclosure();
+  const [opened, { toggle, close }] = useDisclosure();
   const navigate = useNavigate();
   const { data: user, isError, isPending, isSuccess } = useGetUser();
 
@@ -73,7 +73,7 @@ export const Layout = ({ children }: CommonLayoutProps) => {
           </Group>
         </Group>
       </AppShell.Header>
-      <Navbar toggle={toggle} />
+      <Navbar onNavigate={close} />
       <AppShell.Main>{children}</AppShell.Main>
     </AppShell>
   );
