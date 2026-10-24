@@ -9,30 +9,30 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as DashboardRouteImport } from './routes/dashboard'
-import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as AdminRouteImport } from './routes/admin'
+import { Route as DashboardRouteImport } from './routes/dashboard'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as DashboardPaymentsRouteImport } from './routes/dashboard/payments'
-import { Route as DashboardMemoRouteImport } from './routes/dashboard/memo'
-import { Route as DashboardGameSuggestionsRouteImport } from './routes/dashboard/game-suggestions'
-import { Route as AdminUsersRouteImport } from './routes/admin/users'
-import { Route as AdminLocationsRouteImport } from './routes/admin/locations'
-import { Route as AdminGameSuggestionsRouteImport } from './routes/admin/game-suggestions'
 import { Route as AdminEventsRouteImport } from './routes/admin/events'
-import { Route as DashboardVoteEventIdRouteImport } from './routes/dashboard/vote/$eventId'
-import { Route as DashboardScheduleEventIdRouteImport } from './routes/dashboard/schedule/$eventId'
-import { Route as DashboardResultsEventIdRouteImport } from './routes/dashboard/results/$eventId'
-import { Route as DashboardMealsEventIdRouteImport } from './routes/dashboard/meals/$eventId'
-import { Route as DashboardEventsEventIdRouteImport } from './routes/dashboard/events/$eventId'
-import { Route as DashboardCarpoolsEventIdRouteImport } from './routes/dashboard/carpools/$eventId'
-import { Route as AdminScheduleEventIdRouteImport } from './routes/admin/schedule/$eventId'
+import { Route as AdminGameSuggestionsRouteImport } from './routes/admin/game-suggestions'
+import { Route as AdminLocationsRouteImport } from './routes/admin/locations'
+import { Route as AdminUsersRouteImport } from './routes/admin/users'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
+import { Route as DashboardGameSuggestionsRouteImport } from './routes/dashboard/game-suggestions'
+import { Route as DashboardMemoRouteImport } from './routes/dashboard/memo'
+import { Route as DashboardPaymentsRouteImport } from './routes/dashboard/payments'
 import { Route as AdminResultsEventIdRouteImport } from './routes/admin/results/$eventId'
+import { Route as AdminScheduleEventIdRouteImport } from './routes/admin/schedule/$eventId'
+import { Route as DashboardCarpoolsEventIdRouteImport } from './routes/dashboard/carpools/$eventId'
+import { Route as DashboardEventsEventIdRouteImport } from './routes/dashboard/events/$eventId'
+import { Route as DashboardMealsEventIdRouteImport } from './routes/dashboard/meals/$eventId'
+import { Route as DashboardResultsEventIdRouteImport } from './routes/dashboard/results/$eventId'
+import { Route as DashboardScheduleEventIdRouteImport } from './routes/dashboard/schedule/$eventId'
+import { Route as DashboardVoteEventIdRouteImport } from './routes/dashboard/vote/$eventId'
 
-const DashboardRoute = DashboardRouteImport.update({
-  id: '/dashboard',
-  path: '/dashboard',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminRoute = AdminRouteImport.update({
@@ -40,29 +40,39 @@ const AdminRoute = AdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
   getParentRoute: () => rootRouteImport,
-} as any)
-const DashboardIndexRoute = DashboardIndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => DashboardRoute,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => AdminRoute,
 } as any)
-const DashboardPaymentsRoute = DashboardPaymentsRouteImport.update({
-  id: '/payments',
-  path: '/payments',
-  getParentRoute: () => DashboardRoute,
+const AdminEventsRoute = AdminEventsRouteImport.update({
+  id: '/events',
+  path: '/events',
+  getParentRoute: () => AdminRoute,
 } as any)
-const DashboardMemoRoute = DashboardMemoRouteImport.update({
-  id: '/memo',
-  path: '/memo',
+const AdminGameSuggestionsRoute = AdminGameSuggestionsRouteImport.update({
+  id: '/game-suggestions',
+  path: '/game-suggestions',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminLocationsRoute = AdminLocationsRouteImport.update({
+  id: '/locations',
+  path: '/locations',
+  getParentRoute: () => AdminRoute,
+} as any)
+const AdminUsersRoute = AdminUsersRouteImport.update({
+  id: '/users',
+  path: '/users',
+  getParentRoute: () => AdminRoute,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardGameSuggestionsRoute =
@@ -71,29 +81,45 @@ const DashboardGameSuggestionsRoute =
     path: '/game-suggestions',
     getParentRoute: () => DashboardRoute,
   } as any)
-const AdminUsersRoute = AdminUsersRouteImport.update({
-  id: '/users',
-  path: '/users',
+const DashboardMemoRoute = DashboardMemoRouteImport.update({
+  id: '/memo',
+  path: '/memo',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardPaymentsRoute = DashboardPaymentsRouteImport.update({
+  id: '/payments',
+  path: '/payments',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const AdminResultsEventIdRoute = AdminResultsEventIdRouteImport.update({
+  id: '/results/$eventId',
+  path: '/results/$eventId',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminLocationsRoute = AdminLocationsRouteImport.update({
-  id: '/locations',
-  path: '/locations',
+const AdminScheduleEventIdRoute = AdminScheduleEventIdRouteImport.update({
+  id: '/schedule/$eventId',
+  path: '/schedule/$eventId',
   getParentRoute: () => AdminRoute,
 } as any)
-const AdminGameSuggestionsRoute = AdminGameSuggestionsRouteImport.update({
-  id: '/game-suggestions',
-  path: '/game-suggestions',
-  getParentRoute: () => AdminRoute,
+const DashboardCarpoolsEventIdRoute =
+  DashboardCarpoolsEventIdRouteImport.update({
+    id: '/carpools/$eventId',
+    path: '/carpools/$eventId',
+    getParentRoute: () => DashboardRoute,
+  } as any)
+const DashboardEventsEventIdRoute = DashboardEventsEventIdRouteImport.update({
+  id: '/events/$eventId',
+  path: '/events/$eventId',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const AdminEventsRoute = AdminEventsRouteImport.update({
-  id: '/events',
-  path: '/events',
-  getParentRoute: () => AdminRoute,
+const DashboardMealsEventIdRoute = DashboardMealsEventIdRouteImport.update({
+  id: '/meals/$eventId',
+  path: '/meals/$eventId',
+  getParentRoute: () => DashboardRoute,
 } as any)
-const DashboardVoteEventIdRoute = DashboardVoteEventIdRouteImport.update({
-  id: '/vote/$eventId',
-  path: '/vote/$eventId',
+const DashboardResultsEventIdRoute = DashboardResultsEventIdRouteImport.update({
+  id: '/results/$eventId',
+  path: '/results/$eventId',
   getParentRoute: () => DashboardRoute,
 } as any)
 const DashboardScheduleEventIdRoute =
@@ -102,36 +128,10 @@ const DashboardScheduleEventIdRoute =
     path: '/schedule/$eventId',
     getParentRoute: () => DashboardRoute,
   } as any)
-const DashboardResultsEventIdRoute = DashboardResultsEventIdRouteImport.update({
-  id: '/results/$eventId',
-  path: '/results/$eventId',
+const DashboardVoteEventIdRoute = DashboardVoteEventIdRouteImport.update({
+  id: '/vote/$eventId',
+  path: '/vote/$eventId',
   getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardMealsEventIdRoute = DashboardMealsEventIdRouteImport.update({
-  id: '/meals/$eventId',
-  path: '/meals/$eventId',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardEventsEventIdRoute = DashboardEventsEventIdRouteImport.update({
-  id: '/events/$eventId',
-  path: '/events/$eventId',
-  getParentRoute: () => DashboardRoute,
-} as any)
-const DashboardCarpoolsEventIdRoute =
-  DashboardCarpoolsEventIdRouteImport.update({
-    id: '/carpools/$eventId',
-    path: '/carpools/$eventId',
-    getParentRoute: () => DashboardRoute,
-  } as any)
-const AdminScheduleEventIdRoute = AdminScheduleEventIdRouteImport.update({
-  id: '/schedule/$eventId',
-  path: '/schedule/$eventId',
-  getParentRoute: () => AdminRoute,
-} as any)
-const AdminResultsEventIdRoute = AdminResultsEventIdRouteImport.update({
-  id: '/results/$eventId',
-  path: '/results/$eventId',
-  getParentRoute: () => AdminRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -274,11 +274,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/dashboard': {
-      id: '/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof DashboardRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/admin': {
@@ -288,67 +288,18 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
       parentRoute: typeof rootRouteImport
-    }
-    '/dashboard/': {
-      id: '/dashboard/'
-      path: '/'
-      fullPath: '/dashboard/'
-      preLoaderRoute: typeof DashboardIndexRouteImport
-      parentRoute: typeof DashboardRoute
     }
     '/admin/': {
       id: '/admin/'
       path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/dashboard/payments': {
-      id: '/dashboard/payments'
-      path: '/payments'
-      fullPath: '/dashboard/payments'
-      preLoaderRoute: typeof DashboardPaymentsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/memo': {
-      id: '/dashboard/memo'
-      path: '/memo'
-      fullPath: '/dashboard/memo'
-      preLoaderRoute: typeof DashboardMemoRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/dashboard/game-suggestions': {
-      id: '/dashboard/game-suggestions'
-      path: '/game-suggestions'
-      fullPath: '/dashboard/game-suggestions'
-      preLoaderRoute: typeof DashboardGameSuggestionsRouteImport
-      parentRoute: typeof DashboardRoute
-    }
-    '/admin/users': {
-      id: '/admin/users'
-      path: '/users'
-      fullPath: '/admin/users'
-      preLoaderRoute: typeof AdminUsersRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/locations': {
-      id: '/admin/locations'
-      path: '/locations'
-      fullPath: '/admin/locations'
-      preLoaderRoute: typeof AdminLocationsRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/game-suggestions': {
-      id: '/admin/game-suggestions'
-      path: '/game-suggestions'
-      fullPath: '/admin/game-suggestions'
-      preLoaderRoute: typeof AdminGameSuggestionsRouteImport
       parentRoute: typeof AdminRoute
     }
     '/admin/events': {
@@ -358,32 +309,74 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminEventsRouteImport
       parentRoute: typeof AdminRoute
     }
-    '/dashboard/vote/$eventId': {
-      id: '/dashboard/vote/$eventId'
-      path: '/vote/$eventId'
-      fullPath: '/dashboard/vote/$eventId'
-      preLoaderRoute: typeof DashboardVoteEventIdRouteImport
+    '/admin/game-suggestions': {
+      id: '/admin/game-suggestions'
+      path: '/game-suggestions'
+      fullPath: '/admin/game-suggestions'
+      preLoaderRoute: typeof AdminGameSuggestionsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/locations': {
+      id: '/admin/locations'
+      path: '/locations'
+      fullPath: '/admin/locations'
+      preLoaderRoute: typeof AdminLocationsRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/admin/users': {
+      id: '/admin/users'
+      path: '/users'
+      fullPath: '/admin/users'
+      preLoaderRoute: typeof AdminUsersRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/'
+      fullPath: '/dashboard/'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/schedule/$eventId': {
-      id: '/dashboard/schedule/$eventId'
-      path: '/schedule/$eventId'
-      fullPath: '/dashboard/schedule/$eventId'
-      preLoaderRoute: typeof DashboardScheduleEventIdRouteImport
+    '/dashboard/game-suggestions': {
+      id: '/dashboard/game-suggestions'
+      path: '/game-suggestions'
+      fullPath: '/dashboard/game-suggestions'
+      preLoaderRoute: typeof DashboardGameSuggestionsRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/results/$eventId': {
-      id: '/dashboard/results/$eventId'
+    '/dashboard/memo': {
+      id: '/dashboard/memo'
+      path: '/memo'
+      fullPath: '/dashboard/memo'
+      preLoaderRoute: typeof DashboardMemoRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/payments': {
+      id: '/dashboard/payments'
+      path: '/payments'
+      fullPath: '/dashboard/payments'
+      preLoaderRoute: typeof DashboardPaymentsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/admin/results/$eventId': {
+      id: '/admin/results/$eventId'
       path: '/results/$eventId'
-      fullPath: '/dashboard/results/$eventId'
-      preLoaderRoute: typeof DashboardResultsEventIdRouteImport
-      parentRoute: typeof DashboardRoute
+      fullPath: '/admin/results/$eventId'
+      preLoaderRoute: typeof AdminResultsEventIdRouteImport
+      parentRoute: typeof AdminRoute
     }
-    '/dashboard/meals/$eventId': {
-      id: '/dashboard/meals/$eventId'
-      path: '/meals/$eventId'
-      fullPath: '/dashboard/meals/$eventId'
-      preLoaderRoute: typeof DashboardMealsEventIdRouteImport
+    '/admin/schedule/$eventId': {
+      id: '/admin/schedule/$eventId'
+      path: '/schedule/$eventId'
+      fullPath: '/admin/schedule/$eventId'
+      preLoaderRoute: typeof AdminScheduleEventIdRouteImport
+      parentRoute: typeof AdminRoute
+    }
+    '/dashboard/carpools/$eventId': {
+      id: '/dashboard/carpools/$eventId'
+      path: '/carpools/$eventId'
+      fullPath: '/dashboard/carpools/$eventId'
+      preLoaderRoute: typeof DashboardCarpoolsEventIdRouteImport
       parentRoute: typeof DashboardRoute
     }
     '/dashboard/events/$eventId': {
@@ -393,26 +386,33 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DashboardEventsEventIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/dashboard/carpools/$eventId': {
-      id: '/dashboard/carpools/$eventId'
-      path: '/carpools/$eventId'
-      fullPath: '/dashboard/carpools/$eventId'
-      preLoaderRoute: typeof DashboardCarpoolsEventIdRouteImport
+    '/dashboard/meals/$eventId': {
+      id: '/dashboard/meals/$eventId'
+      path: '/meals/$eventId'
+      fullPath: '/dashboard/meals/$eventId'
+      preLoaderRoute: typeof DashboardMealsEventIdRouteImport
       parentRoute: typeof DashboardRoute
     }
-    '/admin/schedule/$eventId': {
-      id: '/admin/schedule/$eventId'
-      path: '/schedule/$eventId'
-      fullPath: '/admin/schedule/$eventId'
-      preLoaderRoute: typeof AdminScheduleEventIdRouteImport
-      parentRoute: typeof AdminRoute
-    }
-    '/admin/results/$eventId': {
-      id: '/admin/results/$eventId'
+    '/dashboard/results/$eventId': {
+      id: '/dashboard/results/$eventId'
       path: '/results/$eventId'
-      fullPath: '/admin/results/$eventId'
-      preLoaderRoute: typeof AdminResultsEventIdRouteImport
-      parentRoute: typeof AdminRoute
+      fullPath: '/dashboard/results/$eventId'
+      preLoaderRoute: typeof DashboardResultsEventIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/schedule/$eventId': {
+      id: '/dashboard/schedule/$eventId'
+      path: '/schedule/$eventId'
+      fullPath: '/dashboard/schedule/$eventId'
+      preLoaderRoute: typeof DashboardScheduleEventIdRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/vote/$eventId': {
+      id: '/dashboard/vote/$eventId'
+      path: '/vote/$eventId'
+      fullPath: '/dashboard/vote/$eventId'
+      preLoaderRoute: typeof DashboardVoteEventIdRouteImport
+      parentRoute: typeof DashboardRoute
     }
   }
 }
