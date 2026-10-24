@@ -1,5 +1,4 @@
 import {
-  ColorSchemeScript,
   createTheme,
   MantineProvider,
   v8CssVariablesResolver,
@@ -40,7 +39,6 @@ if (!rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement);
   root.render(
     <>
-      <ColorSchemeScript defaultColorScheme="auto" />
       <MantineProvider
         cssVariablesResolver={v8CssVariablesResolver}
         defaultColorScheme="auto"
