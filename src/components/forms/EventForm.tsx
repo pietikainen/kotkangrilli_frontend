@@ -14,7 +14,7 @@ import { notifications } from "@mantine/notifications";
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Updater, useForm } from "@tanstack/react-form";
 import { isAxiosError } from "axios";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useAddEvent from "../../api/useAddEvent.hook";
 import useGetLocations from "../../api/useGetLocations.hook";
@@ -46,6 +46,7 @@ export default function EventForm({
 }) {
   const { data: users, isLoading } = useGetUsers();
   const { data: locations, isLoading: isLocationsLoading } = useGetLocations();
+  const [defaultDate] = useState(() => new Date());
   const { Field, handleSubmit } = useForm({
     defaultValues: eventObject
       ? {
@@ -57,8 +58,8 @@ export default function EventForm({
           title: "",
           description: "",
           location: undefined,
-          startDate: new Date(),
-          endDate: new Date(),
+          startDate: defaultDate,
+          endDate: defaultDate,
           winnerGamesCount: 4,
           votingState: 0,
           active: false,

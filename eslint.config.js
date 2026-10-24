@@ -32,5 +32,13 @@ export default [
       "@eslint-react/jsx-no-children-prop": "off",
     },
   },
+  {
+    files: [
+      "src/components/forms/{Activity,Carpool,Event,Game,Location,Meal}Form.tsx",
+    ],
+    rules: {
+      "@eslint-react/static-components": "off",
+    },
+  },
   eslintConfigPrettier,
 ];

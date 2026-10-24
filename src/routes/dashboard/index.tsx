@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import relativeTime from "dayjs/plugin/relativeTime";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import useGetEvents from "../../api/useGetEvents.hook";
 import useGetLocations from "../../api/useGetLocations.hook";
 import useGetParticipationsByUserId from "../../api/useGetParticipationsByUserId.hook";
@@ -36,24 +36,14 @@ function RouteComponent() {
   const { data: locations, isLoading: isLoadingLocations } = useGetLocations();
   const { data: participations, isLoading: isLoadingParticipations } =
     useGetParticipationsByUserId(user?.data.id);
-  const [currentEvent, setCurrentEvent] =
-    useState<z.infer<typeof eventSchema>>();
+  const now = dayjs();
+  const currentEvent = data?.data.data.findLast(
+    (event: z.infer<typeof eventSchema>) =>
+      event.active &&
+      now.isBetween(dayjs(event.startDate), dayjs(event.endDate)),
+  );
   const { data: activities, isLoading: isLoadingActivities } =
     useGetActivitiesByEventId(currentEvent?.id);
-
-  const now = dayjs();
-
-  useEffect(() => {
-    if (!data?.data.data) return;
-    data?.data.data.forEach((event: z.infer<typeof eventSchema>) => {
-      if (
-        event.active &&
-        dayjs(now).isBetween(dayjs(event.startDate), dayjs(event.endDate))
-      ) {
-        setCurrentEvent(event);
-      }
-    });
-  }, [data]);
 
   if (
     isLoading ||

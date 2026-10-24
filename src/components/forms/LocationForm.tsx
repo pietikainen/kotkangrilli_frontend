@@ -9,7 +9,7 @@ import {
 import { IconInfoCircle } from "@tabler/icons-react";
 import { Updater, useForm } from "@tanstack/react-form";
 import { isAxiosError } from "axios";
-import React, { useEffect } from "react";
+import React from "react";
 import useAddLocation from "../../api/useAddLocation.hook";
 import locationSchema from "../../schemas/locationSchema";
 import formatFieldError from "../../utils/formatFieldError";
@@ -31,22 +31,19 @@ export default function LocationForm({ close }: { close: () => void }) {
       onChange: validateWithZod(locationSchema),
     },
     onSubmit: async ({ value }) => {
-      addLocation.mutate({
-        name: value.name,
-        address: value.address,
-        city: value.city,
-        capacity: value.capacity,
-        description: value.description,
-        price: value.price * 100,
-      });
+      addLocation.mutate(
+        {
+          name: value.name,
+          address: value.address,
+          city: value.city,
+          capacity: value.capacity,
+          description: value.description,
+          price: value.price * 100,
+        },
+        { onSuccess: close },
+      );
     },
   });
-
-  useEffect(() => {
-    if (addLocation.isSuccess) {
-      close();
-    }
-  }, [addLocation.isSuccess]);
 
   return (
     <form

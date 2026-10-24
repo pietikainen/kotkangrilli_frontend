@@ -10,7 +10,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useDeleteEvent from "../../api/useDeleteEvent.hook";
 import useGetEvents from "../../api/useGetEvents.hook";
@@ -28,17 +28,15 @@ function RouteComponent() {
   const { data: events, isLoading } = useGetEvents();
   const { data: locations, isLoading: isLocationsLoading } = useGetLocations();
   const { data: users, isLoading: isUsersLoading } = useGetUsers();
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, { open, close }] = useDisclosure(false, {
+    onClose: () => setEventObject(undefined),
+  });
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
-    useDisclosure(false);
+    useDisclosure(false, {
+      onClose: () => setEventObject(undefined),
+    });
   const [eventObject, setEventObject] = useState<z.infer<typeof eventSchema>>();
   const deleteEvent = useDeleteEvent();
-
-  useEffect(() => {
-    if (!opened && !deleteOpened) {
-      setEventObject(undefined);
-    }
-  }, [opened, deleteOpened]);
 
   function onEdit(row: z.infer<typeof eventSchema>) {
     setEventObject(row);
@@ -82,7 +80,14 @@ function RouteComponent() {
     <Stack>
       <Group justify="space-between">
         <Title order={2}>Tapahtumat</Title>
-        <Button onClick={open}>Lisää tapahtuma</Button>
+        <Button
+          onClick={() => {
+            setEventObject(undefined);
+            open();
+          }}
+        >
+          Lisää tapahtuma
+        </Button>
       </Group>
       {isLoading || isLocationsLoading || isUsersLoading ? (
         <Loader />

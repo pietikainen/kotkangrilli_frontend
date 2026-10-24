@@ -21,7 +21,7 @@ export default function PastEventTable({
           locations={locations}
         />
       )),
-    [],
+    [data, locations],
   );
 
   return (

@@ -22,7 +22,7 @@ import {
   IconUsers,
 } from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
 import useAddVote from "../../../api/useAddVote.hook";
 import useDeleteVote from "../../../api/useDeleteVote.hook";
@@ -183,22 +183,25 @@ function RouteComponent() {
     (vote: { voting_round: number }) => vote.voting_round === votingRound,
   );
 
-  const getVoteGroupForExternalApiId = (externalApiId: number) => {
-    const currentRoundGame = unresolvedVotes.find(
-      (game: GameVote) => game.externalApiId === externalApiId,
-    );
+  const getVoteGroupForExternalApiId = useCallback(
+    (externalApiId: number) => {
+      const currentRoundGame = unresolvedVotes.find(
+        (game: GameVote) => game.externalApiId === externalApiId,
+      );
 
-    if (currentRoundGame?.voteGroup) {
-      return currentRoundGame.voteGroup.trim();
-    }
+      if (currentRoundGame?.voteGroup) {
+        return currentRoundGame.voteGroup.trim();
+      }
 
-    const originalGame = games?.data.data.find(
-      (candidate: { externalApiId: number; voteGroup?: string }) =>
-        candidate.externalApiId === externalApiId,
-    );
+      const originalGame = games?.data.data.find(
+        (candidate: { externalApiId: number; voteGroup?: string }) =>
+          candidate.externalApiId === externalApiId,
+      );
 
-    return originalGame?.voteGroup?.trim();
-  };
+      return originalGame?.voteGroup?.trim();
+    },
+    [games, unresolvedVotes],
+  );
 
   const voteCandidates = useMemo<VoteCandidate[]>(() => {
     if (!games || !gameVotes) return [];
@@ -361,7 +364,13 @@ function RouteComponent() {
       shuffleArray(filteredGames);
     }
     return [...alreadyVotedGames, ...filteredGames];
-  }, [games, unresolvedVotes, voteCandidates, votes, filter, votingPhase]);
+  }, [
+    getVoteGroupForExternalApiId,
+    voteCandidates,
+    votes,
+    filter,
+    votingPhase,
+  ]);
 
   if (
     isPending ||

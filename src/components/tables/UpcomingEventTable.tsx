@@ -17,7 +17,7 @@ export default function UpcomingEventTable({
       data.map((lanEvent) => (
         <EventRow key={lanEvent.id} lanEvent={lanEvent} locations={locations} />
       )),
-    [],
+    [data, locations],
   );
 
   return (

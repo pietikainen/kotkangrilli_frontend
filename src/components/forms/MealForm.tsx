@@ -11,7 +11,7 @@ import {
 import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useAddMeal from "../../api/useAddMeal.hook";
 import useGetUser from "../../api/useGetUser.hook";
@@ -45,6 +45,7 @@ export default function MealForm({
 
   const addMeal = useAddMeal();
   const updateMeal = useUpdateMeal();
+  const [defaultSignupEnd] = useState(() => new Date());
 
   const { Field, handleSubmit } = useForm({
     defaultValues: meal
@@ -61,7 +62,7 @@ export default function MealForm({
           price: 0,
           mobilepay: true,
           banktransfer: false,
-          signupEnd: new Date(),
+          signupEnd: defaultSignupEnd,
           days: [],
           requiresComment: false,
         },
@@ -161,7 +162,7 @@ export default function MealForm({
             >
               <Group mt="xs">
                 {dayLabels.map((label, index) => (
-                  <Checkbox key={index} value={String(index)} label={label} />
+                  <Checkbox key={label} value={String(index)} label={label} />
                 ))}
               </Group>
             </Checkbox.Group>

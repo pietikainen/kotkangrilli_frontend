@@ -13,7 +13,7 @@ export default function UserMenu() {
     if (logout.isSuccess) {
       navigate({ to: "/" });
     }
-  }, [logout.isSuccess]);
+  }, [logout.isSuccess, navigate]);
 
   if (isLoading) {
     return <Loader />;

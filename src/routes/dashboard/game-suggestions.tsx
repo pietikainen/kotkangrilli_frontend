@@ -52,6 +52,9 @@ function RouteComponent() {
   const { data: events, isLoading: isLoadingEvents } = useGetEvents();
 
   useEffect(() => {
+    if (!debounced || title !== debounced) return;
+
+    const controller = new AbortController();
     async function fetchCoverImages() {
       if (isSuccessGamesSearch && gamesSearchData.data.data) {
         setIsLoadingCovers(true);
@@ -67,6 +70,7 @@ function RouteComponent() {
                   `${import.meta.env.VITE_PUBLIC_API_BASE_URL}/api/games/cover/${foundGame.id}`,
                   {
                     withCredentials: true,
+                    signal: controller.signal,
                   },
                 );
                 return {
@@ -74,12 +78,13 @@ function RouteComponent() {
                   coverImageUrl:
                     response.status === 200 ? response.data.data : null,
                 };
-              } catch (error) {
+              } catch {
                 return { ...foundGame, coverImageUrl: null };
               }
             },
           ),
         );
+        if (controller.signal.aborted) return;
         setFoundGames(gamesWithCovers);
         setIsLoadingCovers(false);
         setOpenedMenu(true);
@@ -87,14 +92,17 @@ function RouteComponent() {
     }
 
     fetchCoverImages();
-  }, [isSuccessGamesSearch, gamesSearchData]);
+    return () => controller.abort();
+  }, [isSuccessGamesSearch, gamesSearchData, title, debounced]);
 
-  useEffect(() => {
-    if (title === "") {
+  function changeTitle(value: string) {
+    setTitle(value);
+    setIsLoadingCovers(false);
+    if (value === "") {
       setOpenedMenu(false);
       setFoundGames([]);
     }
-  }, [title]);
+  }
 
   const games = data?.data.data || [];
   const userProfiles = upData?.data || [];
@@ -124,7 +132,7 @@ function RouteComponent() {
         <Group>
           {(isFetchingGamesSearch || isLoadingCovers) && <Loader />}
           <Menu
-            opened={openedMenu}
+            opened={openedMenu && title !== ""}
             onChange={setOpenedMenu}
             trigger="click-hover"
           >
@@ -132,7 +140,7 @@ function RouteComponent() {
               <TextInput
                 placeholder="Ehdota peliä..."
                 value={title}
-                onChange={(e) => setTitle(e.currentTarget.value)}
+                onChange={(e) => changeTitle(e.currentTarget.value)}
               />
             </Menu.Target>
             <Menu.Dropdown>
@@ -204,7 +212,7 @@ function RouteComponent() {
       )}
       {game && (
         <Modal opened={opened} onClose={close} title={game.name}>
-          <GameForm searchedGame={game} close={close} setTitle={setTitle} />
+          <GameForm searchedGame={game} close={close} setTitle={changeTitle} />
         </Modal>
       )}
     </Stack>

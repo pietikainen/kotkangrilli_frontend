@@ -27,7 +27,7 @@ function LoginComponent() {
     if (!isPending && user?.data && isSuccess && !isError) {
       navigate({ to: "/dashboard" });
     }
-  }, [isPending, isError, user, isSuccess]);
+  }, [isPending, isError, user, isSuccess, navigate]);
 
   if (isPending) {
     return (

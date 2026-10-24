@@ -1,7 +1,7 @@
 import { Title } from "@mantine/core";
 import dayjs from "dayjs";
 import duration from "dayjs/plugin/duration";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 
 dayjs.extend(duration);
 
@@ -10,7 +10,7 @@ interface CountdownProps {
 }
 
 const CountdownTimer = ({ startDate }: CountdownProps) => {
-  const calculateTimeLeft = () => {
+  const calculateTimeLeft = useCallback(() => {
     const eventTime = dayjs(startDate);
     const now = dayjs();
     const diff = eventTime.diff(now);
@@ -27,18 +27,20 @@ const CountdownTimer = ({ startDate }: CountdownProps) => {
       seconds: dur.seconds(),
       milliseconds: dur.milliseconds(),
     };
-  };
+  }, [startDate]);
 
-  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+  const [timeLeft, setTimeLeft] = useState(calculateTimeLeft);
 
   useEffect(() => {
+    let frameId: number;
     const updateTimer = () => {
       setTimeLeft(calculateTimeLeft());
-      requestAnimationFrame(updateTimer);
+      frameId = requestAnimationFrame(updateTimer);
     };
 
-    requestAnimationFrame(updateTimer);
-  }, [startDate]);
+    frameId = requestAnimationFrame(updateTimer);
+    return () => cancelAnimationFrame(frameId);
+  }, [calculateTimeLeft]);
 
   return (
     <Title

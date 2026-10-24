@@ -20,7 +20,7 @@ function RouteComponent() {
         navigate({ to: "/dashboard" });
       }
     }
-  }, [isPending, isError, user]);
+  }, [isPending, isError, user, navigate]);
 
   if (isPending || !user || user.data.userlevel < 8) {
     return (

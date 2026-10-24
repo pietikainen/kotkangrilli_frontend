@@ -9,7 +9,7 @@ import {
 import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useAddCarpool from "../../api/useAddCarpool.hook";
 import useGetUser from "../../api/useGetUser.hook";
@@ -40,6 +40,7 @@ export default function CarpoolForm({
   const { data: user } = useGetUser();
   const addCarpool = useAddCarpool();
   const updateCarpool = useUpdateCarpool();
+  const [defaultDepartureTime] = useState(() => new Date());
 
   const { Field, handleSubmit } = useForm({
     defaultValues: carpool
@@ -49,7 +50,7 @@ export default function CarpoolForm({
           driverId: user?.data.id,
           seats: 1,
           departureCity: "",
-          departureTime: new Date(),
+          departureTime: defaultDepartureTime,
           description: "",
         },
     validators: {

@@ -16,7 +16,7 @@ import {
 } from "@mantine/schedule";
 import dayjs from "dayjs";
 import "dayjs/locale/fi";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useDeleteActivity from "../api/useDeleteActivity.hook";
 import useGetActivitiesByEventId from "../api/useGetActivitiesByEventId.hook";
@@ -25,6 +25,7 @@ import useUpdateActivity from "../api/useUpdateActivity.hook";
 import ActivityForm from "../components/forms/ActivityForm";
 import "./Schedule.css";
 import activitySchema from "../schemas/activitySchema";
+import eventSchema from "../schemas/eventSchema";
 import roundToNearestMinute from "../utils/roundToNearestMinute";
 
 dayjs.locale("fi");
@@ -84,6 +85,33 @@ export default function Schedule({
   const { data: event, isLoading: isLoadingEvent } = useGetEvent(eventId);
   const { data: activities, isLoading: isLoadingActivities } =
     useGetActivitiesByEventId(eventId);
+
+  if (isLoadingEvent || isLoadingActivities || !event?.data.data) {
+    return <Loader />;
+  }
+
+  return (
+    <ScheduleContent
+      key={eventId}
+      eventId={eventId}
+      admin={admin}
+      event={event.data.data}
+      activities={activities?.data.data ?? []}
+    />
+  );
+}
+
+function ScheduleContent({
+  eventId,
+  admin,
+  event,
+  activities,
+}: {
+  eventId: number;
+  admin?: boolean;
+  event: z.infer<typeof eventSchema>;
+  activities: Activity[];
+}) {
   const deleteActivity = useDeleteActivity();
   const updateActivity = useUpdateActivity();
 
@@ -93,55 +121,25 @@ export default function Schedule({
   const isMobile = useMediaQuery("(max-width: 50em)");
   const [draftActivity, setDraftActivity] = useState<Activity>();
   const [editedActivity, setEditedActivity] = useState<Activity>();
-  const [hasInitializedDate, setHasInitializedDate] = useState(false);
+  const [previousIsMobile, setPreviousIsMobile] = useState(isMobile);
   const [scheduleView, setScheduleView] = useState<ScheduleViewLevel>(
     isMobile ? "day" : "week",
   );
-  const [scheduleDate, setScheduleDate] = useState(
-    dayjs().format("YYYY-MM-DD"),
-  );
-
-  const activityList = activities?.data.data ?? [];
-  const sortedActivities = [...activityList].sort(
+  const sortedActivities = [...activities].sort(
     (a: Activity, b: Activity) =>
       new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
   );
 
-  useEffect(() => {
-    if (hasInitializedDate) {
-      return;
-    }
+  const [scheduleDate, setScheduleDate] = useState(() =>
+    dayjs(sortedActivities[0]?.startDate ?? event?.startDate).format(
+      "YYYY-MM-DD",
+    ),
+  );
 
-    const firstActivity = sortedActivities[0];
-    if (firstActivity?.startDate) {
-      setScheduleDate(dayjs(firstActivity.startDate).format("YYYY-MM-DD"));
-      setHasInitializedDate(true);
-      return;
-    }
-
-    const eventStartDate = event?.data.data.startDate;
-    if (eventStartDate) {
-      setScheduleDate(dayjs(eventStartDate).format("YYYY-MM-DD"));
-      setHasInitializedDate(true);
-    }
-  }, [event?.data.data.startDate, hasInitializedDate, sortedActivities]);
-
-  useEffect(() => {
-    setScheduleView((currentView) => {
-      if (isMobile && currentView === "week") {
-        return "day";
-      }
-
-      if (!isMobile && currentView === "day") {
-        return "week";
-      }
-
-      return currentView;
-    });
-  }, [isMobile]);
-
-  if (isLoadingEvent || isLoadingActivities) {
-    return <Loader />;
+  // Reset the view before rendering children when the breakpoint changes.
+  if (previousIsMobile !== isMobile) {
+    setPreviousIsMobile(isMobile);
+    setScheduleView(isMobile ? "day" : "week");
   }
 
   const scheduleEvents: ScheduleEventData[] = sortedActivities.map(
@@ -244,7 +242,7 @@ export default function Schedule({
 
   return (
     <>
-      <Title order={2}>Aikataulu - {event?.data.data.title}</Title>
+      <Title order={2}>Aikataulu - {event?.title}</Title>
       {admin && (
         <>
           <Button
@@ -270,7 +268,7 @@ export default function Schedule({
             <ActivityForm
               key={`new-${draftActivity?.startDate.toISOString() ?? scheduleDate}`}
               close={close}
-              eventObject={event?.data.data}
+              eventObject={event}
               activity={draftActivity}
             />
           </Modal>
@@ -283,7 +281,7 @@ export default function Schedule({
             <ActivityForm
               key={editedActivity?.id ?? "edit"}
               close={closeEdit}
-              eventObject={event?.data.data}
+              eventObject={event}
               activity={editedActivity}
             />
             {editedActivity?.id && (

@@ -10,7 +10,7 @@ import {
 import { useDisclosure } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import { createFileRoute } from "@tanstack/react-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useDeleteGame from "../../api/useDeleteGame.hook";
 import useGetGames from "../../api/useGetGames.hook";
@@ -27,17 +27,15 @@ function RouteComponent() {
   const { data: games, isLoading } = useGetGames();
   const { data: users, isLoading: isUsersLoading } = useGetUsers();
   const [game, setGame] = useState<z.infer<typeof gameSchema>>();
-  const [opened, { open, close }] = useDisclosure(false);
+  const [opened, { open, close }] = useDisclosure(false, {
+    onClose: () => setGame(undefined),
+  });
   const [deleteOpened, { open: openDelete, close: closeDelete }] =
-    useDisclosure(false);
+    useDisclosure(false, {
+      onClose: () => setGame(undefined),
+    });
 
   const deleteGame = useDeleteGame();
-
-  useEffect(() => {
-    if (!opened && !deleteOpened) {
-      setGame(undefined);
-    }
-  }, [opened, deleteOpened]);
 
   function onEdit(row: z.infer<typeof gameSchema>) {
     setGame(row);

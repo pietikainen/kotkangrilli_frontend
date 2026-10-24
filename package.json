@@ -12,7 +12,7 @@
     "prepare": "husky",
     "lint": "eslint",
     "lint:fix": "eslint --fix",
-    "prettier": "prettier . --write"
+    "prettier": "prettier . --write -l"
   },
   "devDependencies": {
     "@eslint-react/eslint-plugin": "^5.28.8",

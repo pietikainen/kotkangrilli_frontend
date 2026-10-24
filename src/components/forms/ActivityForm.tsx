@@ -2,7 +2,7 @@ import { Button, ColorPicker, Stack, Text, TextInput } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";
 import { Updater, useForm } from "@tanstack/react-form";
-import React from "react";
+import React, { useState } from "react";
 import { z } from "zod";
 import useAddActivity from "../../api/useAddActivity.hook";
 import useUpdateActivity from "../../api/useUpdateActivity.hook";
@@ -33,6 +33,7 @@ export default function ActivityForm({
 }) {
   const addActivity = useAddActivity();
   const updateActivity = useUpdateActivity();
+  const [defaultDate] = useState(() => new Date());
 
   const { Field, handleSubmit } = useForm({
     defaultValues: activity
@@ -43,8 +44,8 @@ export default function ActivityForm({
         }
       : {
           title: "",
-          startDate: lastDate || new Date(),
-          endDate: lastDate || new Date(),
+          startDate: lastDate || defaultDate,
+          endDate: lastDate || defaultDate,
           color: "#228be6",
         },
     validators: {

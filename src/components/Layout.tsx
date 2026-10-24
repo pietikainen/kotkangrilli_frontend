@@ -29,7 +29,7 @@ export const Layout = ({ children }: CommonLayoutProps) => {
     if ((!isPending && !user?.data && isSuccess) || isError) {
       navigate({ to: "/" });
     }
-  }, [isPending, isError, user, isSuccess]);
+  }, [isPending, isError, user, isSuccess, navigate]);
 
   if (isPending || !user) {
     return (
