@@ -1,3 +1,4 @@
+import "@mantine/dates/styles.css";
 import { Button, ColorPicker, Stack, Text, TextInput } from "@mantine/core";
 import { DateTimePicker } from "@mantine/dates";
 import { notifications } from "@mantine/notifications";

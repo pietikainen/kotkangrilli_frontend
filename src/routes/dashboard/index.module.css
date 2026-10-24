@@ -1,0 +1,35 @@
+.eventSummary {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--mantine-spacing-md);
+  align-items: center;
+}
+
+.details {
+  display: grid;
+  grid-template-columns: 55px minmax(0, 1fr);
+  gap: 4px 8px;
+  margin: 0;
+  font-size: var(--mantine-font-size-sm);
+}
+
+.details dt {
+  color: var(--mantine-color-dimmed);
+}
+
+.details dd {
+  margin: 0;
+  font-family: var(--mantine-font-family-monospace);
+  font-size: var(--mantine-font-size-xs);
+  overflow-wrap: anywhere;
+}
+
+.countdown {
+  min-width: 0;
+}
+
+@media (min-width: 62em) {
+  .eventSummary:has(.countdown) {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 320px);
+  }
+}

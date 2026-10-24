@@ -1,0 +1,77 @@
+.page {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background-color: var(--mantine-color-body);
+}
+
+.fallingBackground {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  user-select: none;
+}
+
+.fallingItem {
+  position: absolute;
+  top: -80px;
+  left: var(--left);
+  width: var(--size);
+  height: calc(var(--size) * 1.5);
+  opacity: 0.4;
+  animation: grillFall var(--duration) var(--delay) linear infinite;
+}
+
+.pixelSprite {
+  display: block;
+  width: 100%;
+  height: 100%;
+  image-rendering: pixelated;
+}
+
+@keyframes grillFall {
+  from {
+    transform: translate3d(0, 0, 0) rotate(var(--rotation));
+  }
+  to {
+    transform: translate3d(var(--drift), calc(100dvh + 160px), 0)
+      rotate(calc(var(--rotation) + 180deg));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fallingItem {
+    animation: none;
+    top: calc(5% + var(--left) * 0.8);
+    transform: rotate(var(--rotation));
+    opacity: 0.2;
+  }
+}
+
+.login {
+  width: 100%;
+  max-width: 380px;
+}
+
+.titlebar {
+  margin: 2px;
+  padding: 5px 8px;
+  background-color: var(--kg-titlebar);
+  color: var(--kg-titlebar-text);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 700;
+}
+
+.logo {
+  flex-shrink: 0;
+  border: var(--kg-frame-width) solid;
+  border-color: var(--kg-inset-border);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.wordmark {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 1.25rem;
+}

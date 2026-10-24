@@ -1,3 +1,4 @@
+import "@mantine/schedule/styles.css";
 import {
   Button,
   Grid,

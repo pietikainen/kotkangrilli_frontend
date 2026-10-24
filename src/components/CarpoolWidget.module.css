@@ -1,0 +1,25 @@
+.passengers {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 18rem), 1fr));
+  gap: var(--mantine-spacing-xs);
+}
+
+.passenger {
+  padding: var(--mantine-spacing-xs);
+  border: 1px solid var(--mantine-color-default-border);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.amount {
+  order: 1;
+  width: 100%;
+}

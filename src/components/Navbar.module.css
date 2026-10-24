@@ -1,0 +1,19 @@
+.sectionLabel {
+  margin: 6px 0;
+  padding: 3px 6px;
+  background-color: var(--kg-surface-raised);
+  border: 1px solid;
+  border-color: var(--kg-outset-border);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.event {
+  background-color: var(--kg-recessed);
+  border-color: var(--kg-inset-border);
+}
+
+.eventLabel {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.6875rem;
+}

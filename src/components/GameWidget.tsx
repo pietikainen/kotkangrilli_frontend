@@ -5,6 +5,7 @@ import {
   Group,
   Image,
   Spoiler,
+  Stack,
   Text,
   Title,
   Tooltip,
@@ -65,43 +66,73 @@ export default function GameWidget({
           <Title order={4}>{game.title}</Title>
         </Spoiler>
       </Group>
-      <Group mt="xs">
-        {game.voteGroup && <Badge color="blue">{game.voteGroup}</Badge>}
-        {getLink(game.link, game.store)}
-        <Badge
-          leftSection={
-            game.price > 0 ? (
-              <IconCurrencyEuro size={14} />
-            ) : (
-              <IconCurrencyEuroOff size={14} />
-            )
-          }
-          color={game.price > 0 ? "yellow" : "gray"}
-        >
-          {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
-        </Badge>
-        <Badge leftSection={<IconUsers size={14} />} color="grape">
-          {game.players}
-        </Badge>
-        <Badge
-          leftSection={
-            game.isLan ? <IconHomeLink size={14} /> : <IconNetwork size={14} />
-          }
-          color={game.isLan ? "teal" : "orange"}
-        >
-          {game.isLan ? "LAN" : "Online"}
-        </Badge>
-      </Group>
-      <Group justify="space-between" mt="xs">
-        <Spoiler
-          maxHeight={isMobile ? 41 : undefined}
-          showLabel="Näytä lisää"
-          hideLabel="Piilota"
-        >
-          <Text c="dimmed" size="sm">
-            {game.description}
-          </Text>
-        </Spoiler>
+      <Stack gap={4} mt="xs">
+        <Group gap={4}>
+          {game.voteGroup && <Badge color="blue">{game.voteGroup}</Badge>}
+          {getLink(game.link, game.store)}
+        </Group>
+        <Group gap={4}>
+          <Badge
+            leftSection={
+              game.price > 0 ? (
+                <IconCurrencyEuro size={14} />
+              ) : (
+                <IconCurrencyEuroOff size={14} />
+              )
+            }
+            color={game.price > 0 ? "yellow" : "gray"}
+          >
+            {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
+          </Badge>
+          <Badge leftSection={<IconUsers size={14} />} color="grape">
+            {game.players}
+          </Badge>
+          <Badge
+            leftSection={
+              game.isLan ? (
+                <IconHomeLink size={14} />
+              ) : (
+                <IconNetwork size={14} />
+              )
+            }
+            color={game.isLan ? "teal" : "orange"}
+          >
+            {game.isLan ? "LAN" : "Online"}
+          </Badge>
+        </Group>
+      </Stack>
+      <Spoiler
+        mt="xs"
+        mb="xs"
+        maxHeight={isMobile ? 41 : undefined}
+        showLabel="Näytä lisää"
+        hideLabel="Piilota"
+      >
+        <Text c="dimmed" size="sm">
+          {game.description}
+        </Text>
+      </Spoiler>
+      <Group
+        mt="auto"
+        pt="xs"
+        align="flex-end"
+        justify="space-between"
+        wrap="nowrap"
+      >
+        {"votes_amount" in game && (
+          <Group gap="xs" miw={0}>
+            <Text>Ääniä: {game.votes_amount}</Text>
+            {game.is_winner && game.finalized && (
+              <Badge color="green">Voittaja</Badge>
+            )}
+            {game.is_winner && !game.finalized && (
+              <Badge color="yellow">Uusi äänestyskierros</Badge>
+            )}
+            {!game.is_winner && !game.finalized && (
+              <Badge color="red">Ei voittoa</Badge>
+            )}
+          </Group>
+        )}
         <Tooltip
           label={user?.nickname || user?.username}
           position="top"
@@ -109,6 +140,8 @@ export default function GameWidget({
           withArrow
         >
           <Avatar
+            ml="auto"
+            style={{ flexShrink: 0 }}
             src={`https://cdn.discordapp.com/avatars/${user.snowflake}/${user.avatar}.png`}
             size="sm"
             radius="xl"
@@ -123,26 +156,6 @@ export default function GameWidget({
           </Avatar>
         </Tooltip>
       </Group>
-      {"votes_amount" in game && (
-        <Group
-          mt="xs"
-          w="100%"
-          h="100%"
-          align="flex-end"
-          justify="space-between"
-        >
-          <Text>Ääniä: {game.votes_amount}</Text>
-          {game.is_winner && game.finalized && (
-            <Badge color="green">Voittaja</Badge>
-          )}
-          {game.is_winner && !game.finalized && (
-            <Badge color="yellow">Uusi äänestyskierros</Badge>
-          )}
-          {!game.is_winner && !game.finalized && (
-            <Badge color="red">Ei voittoa</Badge>
-          )}
-        </Group>
-      )}
     </Card>
   );
 }

@@ -1,0 +1,12 @@
+body {
+  min-width: 320px;
+}
+
+::selection {
+  background: var(--kg-accent);
+  color: var(--mantine-color-body);
+}
+
+:focus-visible {
+  outline-color: var(--kg-accent);
+}

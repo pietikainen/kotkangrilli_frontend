@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 async function getEvents() {
@@ -7,9 +7,12 @@ async function getEvents() {
   });
 }
 
+export const eventsQueryOptions = queryOptions({
+  queryKey: ["events"],
+  queryFn: getEvents,
+  staleTime: 10_000,
+});
+
 export default function useGetEvents() {
-  return useQuery({
-    queryKey: ["events"],
-    queryFn: getEvents,
-  });
+  return useQuery(eventsQueryOptions);
 }

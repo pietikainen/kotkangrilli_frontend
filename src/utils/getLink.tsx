@@ -18,8 +18,8 @@ export function getLink(link: string | null | undefined, store: string) {
       return (
         <Badge
           leftSection={<IconBrandSteam size={14} />}
-          variant="gradient"
-          gradient={{ from: "#111d2e", to: "#1387b8", deg: 180 }}
+          variant="outline"
+          color="blue"
           component="a"
           href={link}
           target="_blank"

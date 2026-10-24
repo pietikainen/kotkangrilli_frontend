@@ -5,8 +5,8 @@ import {
   Button,
   Group,
   Image,
-  List,
   Loader,
+  Menu,
   Modal,
   Popover,
   Select,
@@ -20,10 +20,17 @@ import {
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
 import {
+  IconChevronDown,
   IconCurrencyEuro,
   IconCurrencyEuroOff,
+  IconDotsVertical,
   IconInfoCircle,
   IconMessage,
+  IconPencil,
+  IconReceiptRefund,
+  IconTrash,
+  IconUserPlus,
+  IconUsers,
 } from "@tabler/icons-react";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
@@ -52,6 +59,7 @@ import {
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
+import classes from "./MealWidget.module.css";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
@@ -254,12 +262,7 @@ export default function MealWidget({
           {meal.banktransfer && <Badge color="teal">Tilisiirto</Badge>}
         </Group>
         <Text>Syöjiä: {eaterRows.length}</Text>
-        <List
-          type="ordered"
-          style={{
-            columnCount: 2,
-          }}
-        >
+        <ul className={classes.eaters} aria-label="Syöjät">
           {eaterRows.map((e: EaterRow) => {
             const eaterUser = users?.data.find(
               (u: { id: number }) => u.id === e.eaterId,
@@ -275,8 +278,8 @@ export default function MealWidget({
             );
 
             return (
-              <List.Item key={e.id}>
-                <Group>
+              <li key={e.id} className={classes.eater}>
+                <Group gap="xs">
                   {eaterUser?.avatar ? (
                     <Image
                       src={`https://cdn.discordapp.com/avatars/${eaterUser.snowflake}/${eaterUser.avatar}.png?size=16`}
@@ -295,7 +298,9 @@ export default function MealWidget({
                       fit="contain"
                     />
                   )}
-                  {eaterUser?.nickname || eaterUser?.username}
+                  <Text size="sm" fw={500} className={classes.name}>
+                    {eaterUser?.nickname || eaterUser?.username}
+                  </Text>
 
                   {visiblePaymentState === 0 && (
                     <ThemeIcon size="sm" color="red">
@@ -323,7 +328,7 @@ export default function MealWidget({
 
                     if (canSeeAmounts && unpaidAmount > 0) {
                       return (
-                        <Text size="xs" c="red.7">
+                        <Text size="xs" c="red.7" className={classes.amount}>
                           Maksamatta {formatCents(unpaidAmount)}
                         </Text>
                       );
@@ -331,7 +336,7 @@ export default function MealWidget({
 
                     if (canSeeAmounts && awaitingConfirmationAmount > 0) {
                       return (
-                        <Text size="xs" c="yellow.8">
+                        <Text size="xs" c="yellow.8" className={classes.amount}>
                           Odottaa vahvistusta{" "}
                           {formatCents(awaitingConfirmationAmount)}
                         </Text>
@@ -349,7 +354,11 @@ export default function MealWidget({
                       shadow="md"
                     >
                       <Popover.Target>
-                        <ActionIcon size="sm">
+                        <ActionIcon
+                          size="sm"
+                          variant="subtle"
+                          aria-label={`Kommentti: ${eaterUser?.nickname || eaterUser?.username}`}
+                        >
                           <IconMessage />
                         </ActionIcon>
                       </Popover.Target>
@@ -360,106 +369,120 @@ export default function MealWidget({
                   )}
 
                   {(isChef || isAdmin) && (
-                    <>
-                      {e.paid === 0 && (
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          color="red"
-                          onClick={() =>
-                            e.id &&
-                            deleteEater.mutate({
-                              id: e.id,
-                            })
-                          }
-                          disabled={
-                            !e.id || (hasMealPaymentRequests && !isAdmin)
-                          }
+                    <Menu position="bottom-end" shadow="md" width={240}>
+                      <Menu.Target>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          aria-label={`Syöjän toiminnot: ${eaterUser?.nickname || eaterUser?.username}`}
                         >
-                          Poista syöjä
-                        </Button>
-                      )}
-                      {confirmIds.length > 0 && (
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          color="green"
-                          onClick={() =>
-                            updateAssignmentsPaid.mutate(
-                              {
-                                ids: confirmIds,
-                                paidLevel: 2,
-                              },
-                              {
-                                onSuccess: () => {
-                                  notifications.show({
-                                    title: "Maksettu",
-                                    message: "Syöjä merkattu maksetuksi",
-                                    color: "green",
-                                  });
+                          <IconDotsVertical size={18} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Label>
+                          {eaterUser?.nickname || eaterUser?.username}
+                        </Menu.Label>
+                        {e.paid === 0 && (
+                          <Menu.Item
+                            leftSection={<IconTrash size={16} />}
+                            color="red"
+                            onClick={() =>
+                              e.id &&
+                              deleteEater.mutate({
+                                id: e.id,
+                              })
+                            }
+                            disabled={
+                              !e.id ||
+                              deleteEater.isPending ||
+                              (hasMealPaymentRequests && !isAdmin)
+                            }
+                          >
+                            Poista syöjä
+                          </Menu.Item>
+                        )}
+                        {confirmIds.length > 0 && (
+                          <Menu.Item
+                            leftSection={<IconCurrencyEuro size={16} />}
+                            color="green"
+                            disabled={updateAssignmentsPaid.isPending}
+                            onClick={() =>
+                              updateAssignmentsPaid.mutate(
+                                {
+                                  ids: confirmIds,
+                                  paidLevel: 2,
                                 },
-                              },
-                            )
-                          }
-                        >
-                          Vahvista maksu
-                        </Button>
-                      )}
-                      {e.paid > 0 && (
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          color="red"
-                          onClick={() =>
-                            updateAssignmentsPaid.mutate(
-                              {
-                                ids: getPositiveAssignmentIds(
-                                  e.paymentAssignments,
-                                  (assignment) => assignment.paid > 0,
-                                ),
-                                paidLevel: 0,
-                              },
-                              {
-                                onSuccess: () => {
-                                  notifications.show({
-                                    title: "Maksu poistettu",
-                                    message: "Syöjä merkattu maksamattomaksi",
-                                    color: "green",
-                                  });
+                                {
+                                  onSuccess: () => {
+                                    notifications.show({
+                                      title: "Maksettu",
+                                      message: "Syöjä merkattu maksetuksi",
+                                      color: "green",
+                                    });
+                                  },
                                 },
-                              },
-                            )
-                          }
-                          disabled={
-                            getPositiveAssignmentIds(
-                              e.paymentAssignments,
-                              (assignment) => assignment.paid > 0,
-                            ).length === 0
-                          }
+                              )
+                            }
+                          >
+                            Vahvista maksu
+                          </Menu.Item>
+                        )}
+                        {e.paid > 0 && (
+                          <Menu.Item
+                            leftSection={<IconCurrencyEuroOff size={16} />}
+                            color="red"
+                            onClick={() =>
+                              updateAssignmentsPaid.mutate(
+                                {
+                                  ids: getPositiveAssignmentIds(
+                                    e.paymentAssignments,
+                                    (assignment) => assignment.paid > 0,
+                                  ),
+                                  paidLevel: 0,
+                                },
+                                {
+                                  onSuccess: () => {
+                                    notifications.show({
+                                      title: "Maksu poistettu",
+                                      message: "Syöjä merkattu maksamattomaksi",
+                                      color: "green",
+                                    });
+                                  },
+                                },
+                              )
+                            }
+                            disabled={
+                              updateAssignmentsPaid.isPending ||
+                              getPositiveAssignmentIds(
+                                e.paymentAssignments,
+                                (assignment) => assignment.paid > 0,
+                              ).length === 0
+                            }
+                          >
+                            Poista maksu
+                          </Menu.Item>
+                        )}
+                        <Menu.Item
+                          leftSection={<IconReceiptRefund size={16} />}
+                          color="grape"
+                          onClick={() => {
+                            setRefundUserId(e.eaterId);
+                            openRefundModal();
+                          }}
                         >
-                          Poista maksu
-                        </Button>
-                      )}
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        color="grape"
-                        onClick={() => {
-                          setRefundUserId(e.eaterId);
-                          openRefundModal();
-                        }}
-                      >
-                        Luo hyvitys
-                      </Button>
-                    </>
+                          Luo hyvitys
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
                   )}
                 </Group>
-              </List.Item>
+              </li>
             );
           })}
-        </List>
+        </ul>
       </Stack>
-      <Group mt={40}>
+      <Group mt="lg" gap="xs">
         {eater ? (
           <>
             {eaterVisiblePaymentState === 0 && (
@@ -552,35 +575,63 @@ export default function MealWidget({
           </Button>
         )}
         {(isChef || isAdmin) && (
-          <>
-            <Button onClick={openPaymentModal} disabled={!participation}>
-              Luo maksu
-            </Button>
+          <Group gap="xs">
             <Button
               onClick={openEatersModal}
               disabled={!participation}
               variant="light"
+              leftSection={<IconUsers size={16} />}
             >
               Syöjälista
             </Button>
-            <Button
-              onClick={() => {
-                setSelectedEaterId(null);
-                setAddEaterComment("");
-                openAddEaterModal();
-              }}
-              disabled={!meal.id || addableEaterOptions.length === 0}
-              variant="light"
-            >
-              Lisää syöjä
-            </Button>
-            <Button onClick={open} disabled={!participation}>
-              Muokkaa
-            </Button>
-            <Button onClick={openDelete} disabled={!participation}>
-              Poista
-            </Button>
-          </>
+            <Menu position="bottom-end" shadow="md" width={220}>
+              <Menu.Target>
+                <Button
+                  variant="default"
+                  rightSection={<IconChevronDown size={16} />}
+                >
+                  Hallitse ateriaa
+                </Button>
+              </Menu.Target>
+              <Menu.Dropdown>
+                <Menu.Label>Aterian hallinta</Menu.Label>
+                <Menu.Item
+                  onClick={openPaymentModal}
+                  disabled={!participation}
+                  leftSection={<IconCurrencyEuro size={16} />}
+                >
+                  Luo maksu
+                </Menu.Item>
+                <Menu.Item
+                  onClick={() => {
+                    setSelectedEaterId(null);
+                    setAddEaterComment("");
+                    openAddEaterModal();
+                  }}
+                  disabled={!meal.id || addableEaterOptions.length === 0}
+                  leftSection={<IconUserPlus size={16} />}
+                >
+                  Lisää syöjä
+                </Menu.Item>
+                <Menu.Item
+                  onClick={open}
+                  disabled={!participation}
+                  leftSection={<IconPencil size={16} />}
+                >
+                  Muokkaa
+                </Menu.Item>
+                <Menu.Divider />
+                <Menu.Item
+                  onClick={openDelete}
+                  disabled={!participation}
+                  color="red"
+                  leftSection={<IconTrash size={16} />}
+                >
+                  Poista ateria
+                </Menu.Item>
+              </Menu.Dropdown>
+            </Menu>
+          </Group>
         )}
       </Group>
       <Modal

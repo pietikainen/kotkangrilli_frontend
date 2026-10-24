@@ -1,9 +1,10 @@
 import {
+  ActionIcon,
   Button,
   Group,
   Image,
-  List,
   Loader,
+  Menu,
   Modal,
   Stack,
   Text,
@@ -12,7 +13,15 @@ import {
 } from "@mantine/core";
 import { useDisclosure, useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import { IconCurrencyEuro, IconCurrencyEuroOff } from "@tabler/icons-react";
+import {
+  IconChevronDown,
+  IconCurrencyEuro,
+  IconCurrencyEuroOff,
+  IconDotsVertical,
+  IconPencil,
+  IconReceiptRefund,
+  IconTrash,
+} from "@tabler/icons-react";
 import dayjs from "dayjs";
 import localizedFormat from "dayjs/plugin/localizedFormat";
 import React from "react";
@@ -39,6 +48,7 @@ import {
   type PaymentRequest,
   type PaymentRequestRecipient,
 } from "../utils/paymentRequests";
+import classes from "./CarpoolWidget.module.css";
 
 dayjs.locale("fi");
 dayjs.extend(localizedFormat);
@@ -188,7 +198,7 @@ export default function CarpoolWidget({
         </Stack>
         <Text>Kyytiläisiä: {passengerRows.length}</Text>
         {carpool.description && <Text>{carpool.description}</Text>}
-        <List>
+        <ul className={classes.passengers} aria-label="Kyytiläiset">
           {passengerRows.map((passenger: PassengerRow) => {
             const passengerUser = users?.data.find(
               (u: { id: number }) => u.id === passenger.passengerId,
@@ -205,13 +215,13 @@ export default function CarpoolWidget({
             );
 
             return (
-              <List.Item key={passenger.id}>
-                <Group>
+              <li key={passenger.id} className={classes.passenger}>
+                <Group gap="xs">
                   {passengerUser?.avatar ? (
                     <Image
                       src={`https://cdn.discordapp.com/avatars/${passengerUser.snowflake}/${passengerUser.avatar}.png?size=16`}
                       fallbackSrc="https://cdn.discordapp.com/embed/avatars/0.png"
-                      alt={`${passengerUser.nickname || passengerUser.username} avatar`}
+                      alt={`${passengerUser?.nickname || passengerUser?.username} avatar`}
                       mah={16}
                       w="auto"
                       fit="contain"
@@ -219,13 +229,15 @@ export default function CarpoolWidget({
                   ) : (
                     <Image
                       src="https://cdn.discordapp.com/embed/avatars/0.png"
-                      alt={`${passengerUser.nickname || passengerUser.username} avatar`}
+                      alt={`${passengerUser?.nickname || passengerUser?.username} avatar`}
                       mah={16}
                       w="auto"
                       fit="contain"
                     />
                   )}
-                  {passengerUser?.nickname || passengerUser?.username}
+                  <Text size="sm" fw={500} className={classes.name}>
+                    {passengerUser?.nickname || passengerUser?.username}
+                  </Text>
 
                   {visiblePaymentState === 0 &&
                     passenger.paymentAssignments.length > 0 && (
@@ -255,7 +267,7 @@ export default function CarpoolWidget({
 
                     if (canSeeAmounts && unpaidAmount > 0) {
                       return (
-                        <Text size="xs" c="red.7">
+                        <Text size="xs" c="red.7" className={classes.amount}>
                           Maksamatta {formatCents(unpaidAmount)}
                         </Text>
                       );
@@ -263,7 +275,7 @@ export default function CarpoolWidget({
 
                     if (canSeeAmounts && awaitingConfirmationAmount > 0) {
                       return (
-                        <Text size="xs" c="yellow.8">
+                        <Text size="xs" c="yellow.8" className={classes.amount}>
                           Odottaa vahvistusta{" "}
                           {formatCents(awaitingConfirmationAmount)}
                         </Text>
@@ -274,63 +286,78 @@ export default function CarpoolWidget({
                   })()}
 
                   {(isDriver || isAdmin) && (
-                    <>
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        color="red"
-                        onClick={() => deletePassenger.mutate(passenger.id)}
-                        disabled={hasRidePaymentRequests && !isAdmin}
-                      >
-                        Poista
-                      </Button>
-                      {confirmIds.length > 0 && (
-                        <Button
-                          size="xs"
-                          variant="outline"
-                          color="green"
-                          onClick={() =>
-                            updateAssignmentsPaid.mutate(
-                              {
-                                ids: confirmIds,
-                                paidLevel: 2,
-                              },
-                              {
-                                onSuccess: () => {
-                                  notifications.show({
-                                    title: "Maksu hyväksytty",
-                                    message: "Kyytiläisen maksu hyväksyttiin",
-                                    color: "green",
-                                  });
-                                },
-                              },
-                            )
+                    <Menu position="bottom-end" shadow="md" width={240}>
+                      <Menu.Target>
+                        <ActionIcon
+                          variant="subtle"
+                          color="gray"
+                          aria-label={`Kyytiläisen toiminnot: ${passengerUser?.nickname || passengerUser?.username}`}
+                        >
+                          <IconDotsVertical size={18} />
+                        </ActionIcon>
+                      </Menu.Target>
+                      <Menu.Dropdown>
+                        <Menu.Label>
+                          {passengerUser?.nickname || passengerUser?.username}
+                        </Menu.Label>
+                        <Menu.Item
+                          leftSection={<IconTrash size={16} />}
+                          color="red"
+                          onClick={() => deletePassenger.mutate(passenger.id)}
+                          disabled={
+                            deletePassenger.isPending ||
+                            (hasRidePaymentRequests && !isAdmin)
                           }
                         >
-                          Vahvista maksu
-                        </Button>
-                      )}
-                      <Button
-                        size="xs"
-                        variant="outline"
-                        color="grape"
-                        onClick={() => {
-                          setRefundUserId(passenger.passengerId);
-                          openRefundModal();
-                        }}
-                      >
-                        Luo hyvitys
-                      </Button>
-                    </>
+                          Poista kyytiläinen
+                        </Menu.Item>
+                        {confirmIds.length > 0 && (
+                          <Menu.Item
+                            leftSection={<IconCurrencyEuro size={16} />}
+                            color="green"
+                            disabled={updateAssignmentsPaid.isPending}
+                            onClick={() =>
+                              updateAssignmentsPaid.mutate(
+                                {
+                                  ids: confirmIds,
+                                  paidLevel: 2,
+                                },
+                                {
+                                  onSuccess: () => {
+                                    notifications.show({
+                                      title: "Maksu hyväksytty",
+                                      message: "Kyytiläisen maksu hyväksyttiin",
+                                      color: "green",
+                                    });
+                                  },
+                                },
+                              )
+                            }
+                          >
+                            Vahvista maksu
+                          </Menu.Item>
+                        )}
+                        <Menu.Item
+                          leftSection={<IconReceiptRefund size={16} />}
+                          color="grape"
+                          onClick={() => {
+                            setRefundUserId(passenger.passengerId);
+                            openRefundModal();
+                          }}
+                        >
+                          Luo hyvitys
+                        </Menu.Item>
+                      </Menu.Dropdown>
+                    </Menu>
                   )}
                 </Group>
-              </List.Item>
+              </li>
             );
           })}
-        </List>
+        </ul>
       </Stack>
       {!isDriver && (
-        <Group mt={40}>
+        <Group mt="lg" gap="xs">
           {selfPassenger ? (
             <Button
               onClick={() => deletePassenger.mutate(selfPassenger.id)}
@@ -374,16 +401,43 @@ export default function CarpoolWidget({
         </Group>
       )}
       {(isDriver || isAdmin) && (
-        <Group mt={20}>
-          <Button onClick={openPaymentModal} disabled={!participation}>
-            Luo maksu
-          </Button>
-          <Button onClick={open} disabled={!participation}>
-            Muokkaa
-          </Button>
-          <Button onClick={openDelete} disabled={!participation}>
-            Poista
-          </Button>
+        <Group mt="lg" gap="xs">
+          <Menu position="bottom-end" shadow="md" width={220}>
+            <Menu.Target>
+              <Button
+                variant="default"
+                rightSection={<IconChevronDown size={16} />}
+              >
+                Hallitse kyytiä
+              </Button>
+            </Menu.Target>
+            <Menu.Dropdown>
+              <Menu.Label>Kyydin hallinta</Menu.Label>
+              <Menu.Item
+                onClick={openPaymentModal}
+                disabled={!participation}
+                leftSection={<IconCurrencyEuro size={16} />}
+              >
+                Luo maksu
+              </Menu.Item>
+              <Menu.Item
+                onClick={open}
+                disabled={!participation}
+                leftSection={<IconPencil size={16} />}
+              >
+                Muokkaa
+              </Menu.Item>
+              <Menu.Divider />
+              <Menu.Item
+                onClick={openDelete}
+                disabled={!participation}
+                color="red"
+                leftSection={<IconTrash size={16} />}
+              >
+                Poista kyyti
+              </Menu.Item>
+            </Menu.Dropdown>
+          </Menu>
         </Group>
       )}
       <Modal

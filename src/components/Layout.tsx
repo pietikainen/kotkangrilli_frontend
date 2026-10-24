@@ -13,7 +13,9 @@ import React, { useEffect } from "react";
 import useGetUser from "../api/useGetUser.hook";
 import kgLogo from "../assets/kg.jpg";
 import ColorSchemeToggle from "./ColorSchemeToggle";
+import classes from "./Layout.module.css";
 import Navbar from "./Navbar";
+import ThemeSwitcher from "./ThemeSwitcher";
 import UserMenu from "./UserMenu";
 
 type CommonLayoutProps = {
@@ -41,40 +43,46 @@ export const Layout = ({ children }: CommonLayoutProps) => {
 
   return (
     <AppShell
-      header={{ height: 60 }}
+      header={{ height: 52 }}
       navbar={{
-        width: 300,
+        width: 220,
         breakpoint: "sm",
         collapsed: { mobile: !opened },
       }}
-      padding="md"
+      padding="sm"
     >
       <AppShell.Header>
         <Group h="100%" justify="space-between" mx="md">
-          <Group>
+          <Group className={classes.brand} wrap="nowrap">
             <Burger
               opened={opened}
               onClick={toggle}
               hiddenFrom="sm"
               size="sm"
+              aria-label={opened ? "Sulje valikko" : "Avaa valikko"}
             />
             <Image
               src={kgLogo}
               alt="Kotkangrilli logo"
-              w={47.28}
-              h={48}
-              style={{ borderRadius: "0.5rem" }}
+              w={32}
+              h={32}
+              className={classes.logo}
             />
-            <Title>Kotkangrilli</Title>
+            <Title order={1} className={classes.wordmark}>
+              Kotkangrilli
+            </Title>
           </Group>
           <Group visibleFrom="sm">
+            <ThemeSwitcher />
             <ColorSchemeToggle />
             <UserMenu />
           </Group>
         </Group>
       </AppShell.Header>
       <Navbar onNavigate={close} />
-      <AppShell.Main>{children}</AppShell.Main>
+      <AppShell.Main>
+        <div className={classes.content}>{children}</div>
+      </AppShell.Main>
     </AppShell>
   );
 };

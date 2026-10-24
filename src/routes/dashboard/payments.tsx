@@ -11,16 +11,37 @@ import {
   Text,
   Title,
 } from "@mantine/core";
+import {
+  IconCalendarEvent,
+  IconCar,
+  IconCoinEuro,
+  IconToolsKitchen2,
+} from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
 import React from "react";
 import useGetEvents from "../../api/useGetEvents.hook";
 import useGetMyPaymentRequests from "../../api/useGetMyPaymentRequests.hook";
 import useGetOwnedPaymentRequests from "../../api/useGetOwnedPaymentRequests.hook";
 import useUpdatePaymentRequestAssignmentsPaid from "../../api/useUpdatePaymentRequestAssignmentsPaid.hook";
+import SectionPanel from "../../components/SectionPanel";
 import {
   formatCents,
   getVisiblePaymentAssignmentAmounts,
 } from "../../utils/paymentRequests";
+import classes from "./payments.module.css";
+
+const eventAccordionClasses = {
+  item: classes.eventItem,
+  control: classes.eventControl,
+  content: classes.eventContent,
+  label: classes.eventLabel,
+};
+
+const sourceAccordionClasses = {
+  item: classes.sourceItem,
+  control: classes.sourceControl,
+  content: classes.sourceContent,
+};
 
 type AssignmentRow = {
   id: number;
@@ -92,6 +113,25 @@ function typeLabel(type: AssignmentRow["type"]) {
   if (type === "event") return "Tapahtuma";
   if (type === "meal") return "Ateria";
   return "Kyyti";
+}
+
+function PaymentTypeBadge({ type }: { type: AssignmentRow["type"] }) {
+  const Icon =
+    type === "event"
+      ? IconCalendarEvent
+      : type === "meal"
+        ? IconToolsKitchen2
+        : IconCar;
+
+  return (
+    <Badge
+      variant="default"
+      className={classes.typeBadge}
+      leftSection={<Icon size={14} />}
+    >
+      {typeLabel(type)}
+    </Badge>
+  );
 }
 
 function assignmentLabel(assignment: AssignmentRow, eventTitle?: string) {
@@ -273,20 +313,20 @@ function MySourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
   return (
     <Group>
       {hasUnpaidAssignments && (
-        <Text size="sm" fw={700} c="red.7">
+        <Text size="sm" fw={700} c="red">
           Maksamatta
           {unpaidAmount > 0 && ` ${formatCents(unpaidAmount)}`}
         </Text>
       )}
       {hasAwaitingAssignments && (
-        <Text size="sm" fw={700} c="yellow.8">
+        <Text size="sm" fw={700} c="yellow">
           Odottaa vahvistusta
           {awaitingConfirmationAmount > 0 &&
             ` ${formatCents(awaitingConfirmationAmount)}`}
         </Text>
       )}
       {!hasUnpaidAssignments && !hasAwaitingAssignments && (
-        <Text size="sm" fw={700} c="green.8">
+        <Text size="sm" fw={700} c="green">
           Ei maksettavaa
         </Text>
       )}
@@ -333,24 +373,24 @@ function OwnedSourceSummary({ assignments }: { assignments: AssignmentRow[] }) {
   return (
     <Group>
       {hasUnpaidAssignments && (
-        <Text size="sm" fw={700} c="red.7">
+        <Text size="sm" fw={700} c="red">
           Maksamatta
         </Text>
       )}
       {hasAwaitingAssignments && (
-        <Text size="sm" fw={700} c="yellow.8">
+        <Text size="sm" fw={700} c="yellow">
           Odottaa vahvistusta
         </Text>
       )}
       {hasConfirmedAssignments && (
-        <Text size="sm" fw={700} c="green.8">
+        <Text size="sm" fw={700} c="green">
           Vahvistettu
         </Text>
       )}
       {!hasUnpaidAssignments &&
         !hasAwaitingAssignments &&
         !hasConfirmedAssignments && (
-          <Text size="sm" fw={700} c="gray.7">
+          <Text size="sm" fw={700} c="dimmed">
             Ei aktiivisia maksuja
           </Text>
         )}
@@ -428,6 +468,7 @@ function MyPaymentsPanel({
   return (
     <Accordion
       multiple
+      classNames={eventAccordionClasses}
       defaultValue={Object.keys(groupedAssignments).map(
         (eventId) => `event-${eventId}`,
       )}
@@ -445,7 +486,7 @@ function MyPaymentsPanel({
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <Accordion multiple>
+              <Accordion multiple classNames={sourceAccordionClasses}>
                 {Object.entries(groupAssignmentsBySource(eventAssignments)).map(
                   ([groupKey, sourceAssignments]) => {
                     const visibleAmounts =
@@ -463,9 +504,9 @@ function MyPaymentsPanel({
                         <Accordion.Control>
                           <Group justify="space-between" wrap="wrap" mr="md">
                             <Group>
-                              <Badge>
-                                {typeLabel(sourceAssignments[0].type)}
-                              </Badge>
+                              <PaymentTypeBadge
+                                type={sourceAssignments[0].type}
+                              />
                               <Text fw={600}>
                                 {assignmentLabel(sourceAssignments[0], title)}
                               </Text>
@@ -517,6 +558,7 @@ function MyPaymentsPanel({
                                   <Group
                                     key={assignment.id}
                                     justify="space-between"
+                                    className={classes.paymentRow}
                                   >
                                     <Stack gap={0}>
                                       <Text size="sm" c="dimmed">
@@ -574,6 +616,7 @@ function OwnedPaymentsPanel({
   return (
     <Accordion
       multiple
+      classNames={eventAccordionClasses}
       defaultValue={Object.keys(groupedAssignments).map(
         (eventId) => `owned-event-${eventId}`,
       )}
@@ -591,7 +634,7 @@ function OwnedPaymentsPanel({
               </Group>
             </Accordion.Control>
             <Accordion.Panel>
-              <Accordion multiple>
+              <Accordion multiple classNames={sourceAccordionClasses}>
                 {Object.entries(groupAssignmentsBySource(eventAssignments)).map(
                   ([groupKey, sourceAssignments]) => (
                     <Accordion.Item
@@ -601,9 +644,9 @@ function OwnedPaymentsPanel({
                       <Accordion.Control>
                         <Group justify="space-between" wrap="wrap" mr="md">
                           <Group>
-                            <Badge>
-                              {typeLabel(sourceAssignments[0].type)}
-                            </Badge>
+                            <PaymentTypeBadge
+                              type={sourceAssignments[0].type}
+                            />
                             <Text fw={600}>
                               {assignmentLabel(sourceAssignments[0], title)}
                             </Text>
@@ -628,7 +671,12 @@ function OwnedPaymentsPanel({
                                 );
 
                               return (
-                                <Paper key={recipientId} withBorder p="sm">
+                                <Paper
+                                  key={recipientId}
+                                  withBorder
+                                  p="sm"
+                                  className={classes.recipient}
+                                >
                                   <Stack gap="xs">
                                     <Group justify="space-between">
                                       <Group>
@@ -698,6 +746,7 @@ function OwnedPaymentsPanel({
                                         <Group
                                           key={assignment.id}
                                           justify="space-between"
+                                          className={classes.paymentRow}
                                         >
                                           <Text size="sm" c="dimmed">
                                             {assignment.comment ||
@@ -764,8 +813,7 @@ function RouteComponent() {
     []) as AssignmentRow[];
 
   return (
-    <Stack>
-      <Title order={2}>Maksut</Title>
+    <SectionPanel title="Maksut" icon={<IconCoinEuro size={18} />}>
       <Tabs defaultValue="mine">
         <Tabs.List>
           <Tabs.Tab value="mine">Omat maksut</Tabs.Tab>
@@ -800,6 +848,6 @@ function RouteComponent() {
           />
         </Tabs.Panel>
       </Tabs>
-    </Stack>
+    </SectionPanel>
   );
 }

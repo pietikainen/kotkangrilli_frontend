@@ -1,3 +1,13 @@
+.eventCard {
+  background-color: var(--kg-recessed);
+  border-color: var(--kg-inset-border);
+}
+
+.eventCard:focus-within {
+  outline: 1px dotted var(--kg-accent);
+  outline-offset: -4px;
+}
+
 .list {
   container-type: inline-size;
   min-width: 0;

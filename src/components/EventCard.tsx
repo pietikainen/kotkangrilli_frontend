@@ -27,7 +27,13 @@ export default function EventCard({
   const dateFormat = past ? "L" : "L LT";
 
   return (
-    <Paper component="article" withBorder p="md" radius="md">
+    <Paper
+      component="article"
+      withBorder
+      p="md"
+      radius="md"
+      className={classes.eventCard}
+    >
       <div className={classes.card}>
         <Stack gap="xs" className={classes.summary}>
           <Title order={3} size="h4">

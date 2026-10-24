@@ -1,0 +1,22 @@
+.brand {
+  min-width: 0;
+  gap: var(--mantine-spacing-sm);
+}
+
+.logo {
+  flex-shrink: 0;
+  border: 1px solid var(--kg-bevel-dark);
+  border-radius: var(--mantine-radius-sm);
+}
+
+.wordmark {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 1.125rem;
+  line-height: 1.25;
+  letter-spacing: 0;
+}
+
+.content {
+  max-width: 1440px;
+  margin-inline: auto;
+}

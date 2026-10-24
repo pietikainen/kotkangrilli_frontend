@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 async function getUser() {
@@ -7,13 +7,15 @@ async function getUser() {
   });
 }
 
+export const userQueryOptions = queryOptions({
+  queryKey: ["user"],
+  queryFn: getUser,
+  staleTime: Infinity,
+  gcTime: Infinity,
+  retry: false,
+  refetchOnWindowFocus: false,
+});
+
 export default function useGetUser() {
-  return useQuery({
-    queryKey: ["user"],
-    queryFn: getUser,
-    staleTime: Infinity,
-    gcTime: Infinity,
-    retry: false,
-    refetchOnWindowFocus: false,
-  });
+  return useQuery(userQueryOptions);
 }

@@ -1,0 +1,182 @@
+.header {
+  background-color: var(--kg-surface);
+  border-bottom: 2px solid var(--kg-bevel-dark);
+  box-shadow: inset 0 1px 0 var(--kg-bevel-light);
+}
+
+.navbar {
+  background-color: var(--kg-surface);
+  border-right: 2px solid var(--kg-bevel-dark);
+  box-shadow: inset -1px 0 0 var(--kg-bevel-light);
+}
+
+.main {
+  min-width: 0;
+  background-color: var(--mantine-color-body);
+}
+
+.panel {
+  background-color: var(--kg-surface);
+  border: 2px solid;
+  border-color: var(--kg-bevel-light) var(--kg-bevel-dark) var(--kg-bevel-dark)
+    var(--kg-bevel-light);
+  box-shadow: none;
+}
+
+.button {
+  font-weight: 700;
+  border-radius: 0;
+  transition: none;
+}
+
+.button:where(:not([data-disabled], :disabled)):where(
+    :not([data-variant]),
+    [data-variant="filled"],
+    [data-variant="default"]
+  ) {
+  border: 2px solid;
+  border-color: rgb(255 255 255 / 45%) rgb(0 0 0 / 65%) rgb(0 0 0 / 65%)
+    rgb(255 255 255 / 45%);
+  box-shadow:
+    inset 1px 1px 0 rgb(255 255 255 / 15%),
+    inset -1px -1px 0 rgb(0 0 0 / 15%);
+}
+
+.button:where([data-variant="default"]):where(
+    :not([data-disabled], :disabled)
+  ) {
+  background-color: var(--kg-surface-raised);
+}
+
+.button:where(:not([data-disabled], :disabled)):active {
+  border-color: var(--kg-bevel-dark) var(--kg-bevel-light) var(--kg-bevel-light)
+    var(--kg-bevel-dark);
+  box-shadow: none;
+}
+
+.button:where([data-disabled], :disabled) {
+  box-shadow: none;
+}
+
+.input:where(:not([data-variant="unstyled"], [data-disabled], :disabled)) {
+  background-color: var(--kg-recessed);
+  border: 2px solid;
+  border-color: var(--kg-bevel-dark) var(--kg-bevel-light) var(--kg-bevel-light)
+    var(--kg-bevel-dark);
+  box-shadow: none;
+}
+
+.input:where(:not([data-variant="unstyled"], [data-error])):focus-within {
+  outline: 1px solid var(--kg-accent);
+  outline-offset: -3px;
+}
+
+.input:where([data-error]) {
+  border-color: var(--mantine-color-error);
+}
+
+.badge {
+  font-family: var(--mantine-font-family-monospace);
+  font-size: 0.6875rem;
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.navLink {
+  min-height: 36px;
+  margin-block: 1px;
+  border: 1px solid transparent;
+  border-radius: 0;
+  padding-inline: 8px;
+}
+
+.navLink:where([data-active], [aria-current="page"]),
+.navLink:where([data-active], [aria-current="page"]):hover {
+  background-color: var(--kg-selection);
+  border: 1px dotted var(--kg-accent);
+  color: var(--kg-selection-text);
+}
+
+.navLabel {
+  font-size: 0.8125rem;
+  font-weight: 400;
+}
+
+.title {
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.accordionItem {
+  border-color: var(--kg-rule);
+}
+
+.accordionControl:hover {
+  background-color: var(--kg-surface-raised);
+}
+
+.dropdown,
+.modal {
+  background-color: var(--kg-surface);
+  border: 2px solid;
+  border-color: var(--kg-bevel-light) var(--kg-bevel-dark) var(--kg-bevel-dark)
+    var(--kg-bevel-light);
+  box-shadow: var(--mantine-shadow-md);
+}
+
+.modalHeader {
+  min-height: 34px;
+  padding: 4px 8px;
+  margin: 2px 2px var(--mantine-spacing-sm);
+  background-color: var(--kg-titlebar);
+  color: var(--kg-titlebar-text);
+}
+
+.modalTitle {
+  font-family: var(--mantine-font-family);
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+
+.tableHeading {
+  background-color: var(--kg-surface-raised);
+  border: 1px solid;
+  border-color: var(--kg-bevel-light) var(--kg-bevel-dark) var(--kg-bevel-dark)
+    var(--kg-bevel-light);
+  font-size: var(--mantine-font-size-sm);
+  font-weight: 400;
+}
+
+.tabsList {
+  gap: 4px;
+  border-bottom: 2px solid var(--kg-bevel-dark);
+}
+
+.tabsList::before {
+  border-color: var(--kg-bevel-dark);
+}
+
+.tab {
+  min-height: 38px;
+  background-color: var(--kg-surface-raised);
+  border: 2px solid;
+  border-color: var(--kg-bevel-light) var(--kg-bevel-dark) var(--kg-bevel-dark)
+    var(--kg-bevel-light);
+  color: var(--mantine-color-text);
+  white-space: normal;
+}
+
+.tab:where([data-active]) {
+  background-color: var(--kg-recessed);
+  border-color: var(--kg-bevel-dark) var(--kg-bevel-light) var(--kg-bevel-light)
+    var(--kg-bevel-dark);
+  color: var(--mantine-color-text);
+  font-weight: 700;
+}
+
+@media (pointer: coarse) {
+  .navLink {
+    min-height: 44px;
+  }
+}

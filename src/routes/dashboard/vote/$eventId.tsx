@@ -7,6 +7,7 @@ import {
   Loader,
   SimpleGrid,
   Spoiler,
+  Stack,
   Text,
   TextInput,
   Title,
@@ -467,78 +468,66 @@ function RouteComponent() {
                   <Title order={4}>{game.displayTitle}</Title>
                 </Spoiler>
               </Group>
-              <Group mt="xs">
-                {game.voteGroup && votingPhase === "normal" && (
-                  <Badge color="blue">Yhteisäänestys</Badge>
-                )}
-                {game.voteGroup && votingPhase === "group_decider" && (
-                  <Badge color="indigo">{game.voteGroup}</Badge>
-                )}
-                {getLink(game.link, game.store)}
-                <Badge
-                  leftSection={
-                    game.price > 0 ? (
-                      <IconCurrencyEuro size={14} />
-                    ) : (
-                      <IconCurrencyEuroOff size={14} />
-                    )
-                  }
-                  color={game.price > 0 ? "yellow" : "gray"}
-                >
-                  {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
-                </Badge>
-                <Badge leftSection={<IconUsers size={14} />} color="grape">
-                  {game.players}
-                </Badge>
-                <Badge
-                  leftSection={
-                    game.isLan ? (
-                      <IconHomeLink size={14} />
-                    ) : (
-                      <IconNetwork size={14} />
-                    )
-                  }
-                  color={game.isLan ? "teal" : "orange"}
-                >
-                  {game.isLan ? "LAN" : "Online"}
-                </Badge>
-              </Group>
-              <Group justify="space-between" mt="xs">
-                <Spoiler
-                  maxHeight={isMobile ? 41 : undefined}
-                  showLabel="Näytä lisää"
-                  hideLabel="Piilota"
-                >
-                  <Text c="dimmed" size="sm">
-                    {game.voteGroup && votingPhase === "normal"
-                      ? `Mukana: ${game.memberTitles.join(", ")}`
-                      : game.description}
-                  </Text>
-                </Spoiler>
-                {submitter && (
-                  <Tooltip
-                    label={submitter.nickname || submitter.username}
-                    position="top"
-                    events={{ hover: true, focus: true, touch: true }}
-                    withArrow
+              <Stack gap={4} mt="xs">
+                <Group gap={4}>
+                  {game.voteGroup && votingPhase === "normal" && (
+                    <Badge color="blue">Yhteisäänestys</Badge>
+                  )}
+                  {game.voteGroup && votingPhase === "group_decider" && (
+                    <Badge color="indigo">{game.voteGroup}</Badge>
+                  )}
+                  {getLink(game.link, game.store)}
+                </Group>
+                <Group gap={4}>
+                  <Badge
+                    leftSection={
+                      game.price > 0 ? (
+                        <IconCurrencyEuro size={14} />
+                      ) : (
+                        <IconCurrencyEuroOff size={14} />
+                      )
+                    }
+                    color={game.price > 0 ? "yellow" : "gray"}
                   >
-                    <Avatar
-                      src={`https://cdn.discordapp.com/avatars/${submitter.snowflake}/${submitter.avatar}.png`}
-                      size="sm"
-                      radius="xl"
-                      alt={submitter.nickname || submitter.username}
-                    >
-                      <Avatar
-                        src="https://cdn.discordapp.com/embed/avatars/0.png"
-                        size="sm"
-                        radius="xl"
-                        alt={submitter.nickname || submitter.username}
-                      />
-                    </Avatar>
-                  </Tooltip>
-                )}
-              </Group>
-              <Group mt="xs" w="100%" h="100%" align="flex-end">
+                    {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
+                  </Badge>
+                  <Badge leftSection={<IconUsers size={14} />} color="grape">
+                    {game.players}
+                  </Badge>
+                  <Badge
+                    leftSection={
+                      game.isLan ? (
+                        <IconHomeLink size={14} />
+                      ) : (
+                        <IconNetwork size={14} />
+                      )
+                    }
+                    color={game.isLan ? "teal" : "orange"}
+                  >
+                    {game.isLan ? "LAN" : "Online"}
+                  </Badge>
+                </Group>
+              </Stack>
+              <Spoiler
+                mt="xs"
+                mb="xs"
+                maxHeight={isMobile ? 41 : undefined}
+                showLabel="Näytä lisää"
+                hideLabel="Piilota"
+              >
+                <Text c="dimmed" size="sm">
+                  {game.voteGroup && votingPhase === "normal"
+                    ? `Mukana: ${game.memberTitles.join(", ")}`
+                    : game.description}
+                </Text>
+              </Spoiler>
+              <Group
+                mt="auto"
+                pt="xs"
+                w="100%"
+                justify="space-between"
+                wrap="nowrap"
+              >
                 {votedItem ? (
                   <VoteButton
                     onClick={() => {
@@ -581,6 +570,28 @@ function RouteComponent() {
                     }
                     isVoted={false}
                   />
+                )}
+                {submitter && (
+                  <Tooltip
+                    label={submitter.nickname || submitter.username}
+                    position="top"
+                    events={{ hover: true, focus: true, touch: true }}
+                    withArrow
+                  >
+                    <Avatar
+                      src={`https://cdn.discordapp.com/avatars/${submitter.snowflake}/${submitter.avatar}.png`}
+                      size="sm"
+                      radius="xl"
+                      alt={submitter.nickname || submitter.username}
+                    >
+                      <Avatar
+                        src="https://cdn.discordapp.com/embed/avatars/0.png"
+                        size="sm"
+                        radius="xl"
+                        alt={submitter.nickname || submitter.username}
+                      />
+                    </Avatar>
+                  </Tooltip>
                 )}
               </Group>
             </Card>

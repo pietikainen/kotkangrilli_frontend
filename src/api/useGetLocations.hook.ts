@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { queryOptions, useQuery } from "@tanstack/react-query";
 import axios from "axios";
 
 async function getLocations() {
@@ -10,9 +10,12 @@ async function getLocations() {
   );
 }
 
+export const locationsQueryOptions = queryOptions({
+  queryKey: ["locations"],
+  queryFn: getLocations,
+  staleTime: 10_000,
+});
+
 export default function useGetLocations() {
-  return useQuery({
-    queryKey: ["locations"],
-    queryFn: getLocations,
-  });
+  return useQuery(locationsQueryOptions);
 }
