@@ -7,6 +7,7 @@ import useGetGameVotesByEventId from "../../../api/useGetGameVotesByEventId.hook
 import useGetUserProfiles from "../../../api/useGetUserProfiles.hook";
 import usePostCountVotesByEventId from "../../../api/usePostCalculateVotesByEventId.hook";
 import GameWidget from "../../../components/GameWidget";
+import VotingParticipation from "../../../components/VotingParticipation";
 import userSchema from "../../../schemas/userSchema";
 
 interface GameVote {
@@ -59,11 +60,18 @@ function RouteComponent() {
   if (isPending || isPendingEvent || isPendingUsers) return <Loader />;
 
   if (!gameVotes?.data?.data || gameVotes.data.data.length === 0) {
-    return <Button onClick={() => mutate.mutate(eventId)}>Laske äänet</Button>;
+    return (
+      <>
+        <Title order={2}>Peliäänestys - {event?.data.data.title}</Title>
+        <VotingParticipation eventId={eventId} />
+        <Button onClick={() => mutate.mutate(eventId)}>Laske äänet</Button>
+      </>
+    );
   }
 
   return (
     <>
+      <VotingParticipation eventId={eventId} />
       <Button onClick={() => mutate.mutate(eventId)}>
         Laske äänet kierrokselle {groupedVotes[0].round + 1}
       </Button>

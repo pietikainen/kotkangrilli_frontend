@@ -16,6 +16,7 @@ export default function usePostCountVotesByEventId() {
     mutationFn: (eventId: number) => postCountVotesByEventId(eventId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["game_votes"] });
+      queryClient.invalidateQueries({ queryKey: ["voting_participation"] });
     },
   });
 }

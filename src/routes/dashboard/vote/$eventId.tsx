@@ -3,25 +3,14 @@ import {
   Badge,
   Card,
   Group,
-  Image,
   Loader,
   SimpleGrid,
-  Spoiler,
-  Stack,
   Text,
   TextInput,
   Title,
   Tooltip,
 } from "@mantine/core";
-import { useMediaQuery } from "@mantine/hooks";
 import { notifications } from "@mantine/notifications";
-import {
-  IconCurrencyEuro,
-  IconCurrencyEuroOff,
-  IconHomeLink,
-  IconNetwork,
-  IconUsers,
-} from "@tabler/icons-react";
 import { createFileRoute } from "@tanstack/react-router";
 import React, { useCallback, useMemo, useState } from "react";
 import { z } from "zod";
@@ -35,9 +24,11 @@ import useGetUser from "../../../api/useGetUser.hook";
 import useGetUserProfiles from "../../../api/useGetUserProfiles.hook";
 import useGetVotes from "../../../api/useGetVotes.hook";
 import VoteButton from "../../../components/VoteButton";
+import VotingGameDetails, {
+  VotingGroupDetails,
+} from "../../../components/VotingGameDetails";
 import gameSchema from "../../../schemas/gameSchema";
 import userSchema from "../../../schemas/userSchema";
-import { getLink } from "../../../utils/getLink";
 
 interface GameVote {
   id: number;
@@ -63,6 +54,7 @@ interface GameVote {
 interface VoteCandidate extends Omit<GameVote, "id" | "submittedBy"> {
   id: string;
   submittedBy?: number;
+  members: z.infer<typeof gameSchema>[];
   memberTitles: string[];
   memberExternalApiIds: number[];
   representativeExternalApiId: number;
@@ -109,7 +101,6 @@ function RouteComponent() {
   const addVote = useAddVote();
   const deleteVote = useDeleteVote();
 
-  const isMobile = useMediaQuery("(max-width: 50em)");
   const [filter, setFilter] = useState<string>("");
 
   const votingRound = useMemo(() => {
@@ -215,6 +206,7 @@ function RouteComponent() {
         .map((game: GameVote) => ({
           ...game,
           id: `game-${game.externalApiId}`,
+          members: [game],
           memberTitles: [game.title],
           memberExternalApiIds: [game.externalApiId],
           representativeExternalApiId: game.externalApiId,
@@ -235,6 +227,7 @@ function RouteComponent() {
             ungroupedCandidates.push({
               ...game,
               id: `game-${game.externalApiId}`,
+              members: [game],
               memberTitles: [game.title],
               memberExternalApiIds: [game.externalApiId],
               representativeExternalApiId: game.externalApiId,
@@ -246,6 +239,7 @@ function RouteComponent() {
           const existingCandidate = groupedCandidates.get(voteGroup);
 
           if (existingCandidate) {
+            existingCandidate.members.push(game);
             existingCandidate.memberTitles.push(game.title);
             existingCandidate.memberExternalApiIds.push(game.externalApiId);
             return;
@@ -254,6 +248,7 @@ function RouteComponent() {
           groupedCandidates.set(voteGroup, {
             ...game,
             id: `group-${voteGroup}`,
+            members: [game],
             memberTitles: [game.title],
             memberExternalApiIds: [game.externalApiId],
             representativeExternalApiId: game.externalApiId,
@@ -288,6 +283,7 @@ function RouteComponent() {
           votes_amount: 0,
           is_winner: false,
           finalized: false,
+          members: [game],
           memberTitles: [game.title],
           memberExternalApiIds: [game.externalApiId],
           representativeExternalApiId: game.externalApiId,
@@ -299,7 +295,9 @@ function RouteComponent() {
       const existingCandidate = groupedCandidates.get(voteGroup);
 
       if (existingCandidate) {
+        existingCandidate.members.push(game);
         existingCandidate.memberTitles.push(game.title);
+        existingCandidate.memberExternalApiIds.push(game.externalApiId);
         return;
       }
 
@@ -314,6 +312,7 @@ function RouteComponent() {
         finalized: false,
         title: voteGroup,
         description: `Ryhmään kuuluvat: ${game.title}`,
+        members: [game],
         memberTitles: [game.title],
         memberExternalApiIds: [game.externalApiId],
         representativeExternalApiId: game.externalApiId,
@@ -415,6 +414,7 @@ function RouteComponent() {
       </Group>
       <SimpleGrid cols={{ base: 1, md: 2, lg: 3, xl: 4 }} mt="xs">
         {gamesToVoteRandomized.map((game: VoteCandidate) => {
+          const isGrouped = Boolean(game.voteGroup) && votingPhase === "normal";
           const submitter = users?.data.find(
             (u: z.infer<typeof userSchema>) => u.id === game.submittedBy,
           );
@@ -458,69 +458,21 @@ function RouteComponent() {
               p="xs"
               display="flex"
             >
-              <Group wrap="nowrap">
-                <Image src={game.image} h={100} w="auto" alt={game.title} />
-                <Spoiler
-                  maxHeight={110}
-                  showLabel="Näytä lisää"
-                  hideLabel="Piilota"
-                >
-                  <Title order={4}>{game.displayTitle}</Title>
-                </Spoiler>
-              </Group>
-              <Stack gap={4} mt="xs">
-                <Group gap={4}>
-                  {game.voteGroup && votingPhase === "normal" && (
-                    <Badge color="blue">Yhteisäänestys</Badge>
+              {isGrouped ? (
+                <VotingGroupDetails
+                  name={game.voteGroup ?? game.displayTitle}
+                  members={game.members}
+                />
+              ) : (
+                <>
+                  {game.voteGroup && (
+                    <Badge color="indigo" mb="xs">
+                      {game.voteGroup}
+                    </Badge>
                   )}
-                  {game.voteGroup && votingPhase === "group_decider" && (
-                    <Badge color="indigo">{game.voteGroup}</Badge>
-                  )}
-                  {getLink(game.link, game.store)}
-                </Group>
-                <Group gap={4}>
-                  <Badge
-                    leftSection={
-                      game.price > 0 ? (
-                        <IconCurrencyEuro size={14} />
-                      ) : (
-                        <IconCurrencyEuroOff size={14} />
-                      )
-                    }
-                    color={game.price > 0 ? "yellow" : "gray"}
-                  >
-                    {game.price > 0 ? `${game.price / 100}` : "Ilmainen"}
-                  </Badge>
-                  <Badge leftSection={<IconUsers size={14} />} color="grape">
-                    {game.players}
-                  </Badge>
-                  <Badge
-                    leftSection={
-                      game.isLan ? (
-                        <IconHomeLink size={14} />
-                      ) : (
-                        <IconNetwork size={14} />
-                      )
-                    }
-                    color={game.isLan ? "teal" : "orange"}
-                  >
-                    {game.isLan ? "LAN" : "Online"}
-                  </Badge>
-                </Group>
-              </Stack>
-              <Spoiler
-                mt="xs"
-                mb="xs"
-                maxHeight={isMobile ? 41 : undefined}
-                showLabel="Näytä lisää"
-                hideLabel="Piilota"
-              >
-                <Text c="dimmed" size="sm">
-                  {game.voteGroup && votingPhase === "normal"
-                    ? `Mukana: ${game.memberTitles.join(", ")}`
-                    : game.description}
-                </Text>
-              </Spoiler>
+                  <VotingGameDetails game={game} />
+                </>
+              )}
               <Group
                 mt="auto"
                 pt="xs"
@@ -571,7 +523,7 @@ function RouteComponent() {
                     isVoted={false}
                   />
                 )}
-                {submitter && (
+                {submitter && !isGrouped && (
                   <Tooltip
                     label={submitter.nickname || submitter.username}
                     position="top"
